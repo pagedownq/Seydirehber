@@ -13,6 +13,8 @@ import '../../features/services/screens/pazarlar_screen.dart';
 import '../../features/services/screens/otobus_screen.dart';
 import '../../features/services/screens/weather_screen.dart';
 import '../../features/news/screens/news_screen.dart';
+import '../../features/support/screens/support_screen.dart';
+import '../../features/settings/screens/policies_screen.dart';
 import '../../features/admin/screens/admin_screen.dart';
 import '../../features/admin/screens/admin_manage_screen.dart';
 import '../widgets/generic_list_screen.dart';
@@ -23,7 +25,7 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: '/',
     redirect: (context, state) async {
       final prefs = await SharedPreferences.getInstance();
-      final onboardingCompleted = prefs.getBool('onboarding_completed') ?? false;
+      final onboardingCompleted = docsCompletedCheck(prefs);
 
       if (!onboardingCompleted && state.matchedLocation != '/onboarding') {
         return '/onboarding';
@@ -41,6 +43,18 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/',
         builder: (context, state) => const MainShell(),
+      ),
+
+      // Help & Support
+      GoRoute(
+        path: '/support',
+        builder: (context, state) => const SupportScreen(),
+      ),
+
+      // Policies
+      GoRoute(
+        path: '/policies',
+        builder: (context, state) => const PoliciesScreen(),
       ),
 
       // Events
@@ -113,10 +127,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/weather',
         builder: (context, state) => const WeatherScreen(),
       ),
-      GoRoute(
-        path: '/news',
-        builder: (context, state) => const NewsScreen(),
-      ),
 
       // News standalone route
       GoRoute(
@@ -143,3 +153,7 @@ final routerProvider = Provider<GoRouter>((ref) {
     ],
   );
 });
+
+bool docsCompletedCheck(SharedPreferences prefs) {
+  return prefs.getBool('onboarding_completed') ?? false;
+}

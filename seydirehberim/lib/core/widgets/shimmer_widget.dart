@@ -9,22 +9,22 @@ class ShimmerWidget extends StatelessWidget {
 
   const ShimmerWidget({
     super.key,
-    required this.width,
-    required this.height,
+    this.width = double.infinity,
+    this.height = double.infinity,
     this.borderRadius = 12,
   });
 
   const ShimmerWidget.rectangular({
     super.key,
     this.width = double.infinity,
-    required this.height,
+    this.height = double.infinity,
     this.borderRadius = 12,
   });
 
   const ShimmerWidget.circular({
     super.key,
-    required this.width,
-    required this.height,
+    this.width = double.infinity,
+    this.height = double.infinity,
     this.borderRadius = 100,
   });
 

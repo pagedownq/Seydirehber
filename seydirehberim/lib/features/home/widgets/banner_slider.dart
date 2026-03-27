@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
@@ -29,7 +30,10 @@ class _BannerSliderState extends ConsumerState<BannerSlider> {
     return bannersAsync.when(
       loading: () => const Padding(
         padding: EdgeInsets.symmetric(horizontal: 16),
-        child: ShimmerWidget.rectangular(height: 160),
+        child: AspectRatio(
+          aspectRatio: 1200 / 300,
+          child: ShimmerWidget.rectangular(),
+        ),
       ),
       error: (_, __) => const SizedBox.shrink(),
       data: (snapshot) {
@@ -38,38 +42,50 @@ class _BannerSliderState extends ConsumerState<BannerSlider> {
 
         return Column(
           children: [
-            SizedBox(
-              height: 160,
-              child: PageView.builder(
-                controller: _controller,
-                itemCount: banners.length,
-                itemBuilder: (context, index) {
-                  final data = banners[index].data();
-                  final imageUrl = data['image_url'] as String? ?? '';
+            LayoutBuilder(
+              builder: (context, constraints) {
+                // Calculate height to maintain EXACTly 4:1 ratio for the image area
+                // Width is screen width minus the double padding (16+16=32)
+                final imageWidth = constraints.maxWidth - 32;
+                final imageHeight = imageWidth / 4;
 
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.08),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
+                return SizedBox(
+                  height: imageHeight,
+                  child: PageView.builder(
+                    controller: _controller,
+                    itemCount: banners.length,
+                    itemBuilder: (context, index) {
+                      final data = banners[index].data() as Map<String, dynamic>;
+                      final imageUrl = data['image_url'] as String? ?? '';
+
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.08),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                      child: CachedImageWidget(
-                        imageUrl: imageUrl,
-                        borderRadius: 16,
-                        width: double.infinity,
-                        height: 160,
-                      ),
-                    ),
-                  );
-                },
-              ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: CachedImageWidget(
+                              imageUrl: imageUrl,
+                              width: imageWidth,
+                              height: imageHeight,
+                              fit: BoxFit.fill, // Exact fit for the given aspect ratio
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                );
+              },
             ),
             if (banners.length > 1) ...[
               const SizedBox(height: 10),

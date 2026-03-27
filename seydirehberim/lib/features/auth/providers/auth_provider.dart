@@ -91,12 +91,24 @@ class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
 
   Future<void> deleteAccount() async {
     try {
+      state = const AsyncValue.loading();
       final user = _auth.currentUser;
       if (user != null) {
+        // We attempt to delete the user from Firebase Auth
         await user.delete();
+        // Also sign out from Google if applicable
         await _googleSignIn.signOut();
       }
       state = const AsyncValue.data(null);
+    } on FirebaseAuthException catch (e, st) {
+      if (e.code == 'requires-recent-login') {
+        state = AsyncValue.error(
+          'Güvenlik nedeniyle bu işlem için yeniden giriş yapmanız gerekiyor.',
+          st,
+        );
+      } else {
+        state = AsyncValue.error(e, st);
+      }
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }

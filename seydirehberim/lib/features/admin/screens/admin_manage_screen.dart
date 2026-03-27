@@ -452,23 +452,23 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
     if (confirmed != true) return;
 
     try {
-      // Delete image from Supabase Storage
-      if (widget.bucket != null) {
-        final imageUrl = data['image_url'] as String?;
-        if (imageUrl != null && imageUrl.isNotEmpty) {
-          try {
-            final uri = Uri.parse(imageUrl);
-            final pathSegments = uri.pathSegments;
-            // object/ bucket / filename
-            if (pathSegments.length >= 3) {
-              final fileName = pathSegments.last;
-              await Supabase.instance.client.storage
-                  .from(widget.bucket!)
-                  .remove([fileName]);
-            }
-          } catch (e) {
-            debugPrint('Storage delete error: $e');
-          }
+      // Get image URL from multiple possible keys
+      final imageUrl = data['image_url'] as String? ?? data['gorsel'] as String?;
+
+      // Delete image from Supabase Storage if it exists and a bucket is assigned
+      if (widget.bucket != null && imageUrl != null && imageUrl.isNotEmpty) {
+        try {
+          final uri = Uri.parse(imageUrl);
+          final fileName = uri.pathSegments.last;
+          
+          await Supabase.instance.client.storage
+              .from(widget.bucket!)
+              .remove([fileName]);
+          
+          debugPrint('Storage item deleted: $fileName');
+        } catch (storageError) {
+          debugPrint('Storage delete error: $storageError');
+          // We continue to delete the document even if storage delete fails
         }
       }
 

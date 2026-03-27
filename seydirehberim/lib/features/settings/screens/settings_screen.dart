@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../auth/providers/auth_provider.dart';
@@ -15,6 +16,18 @@ class SettingsScreen extends ConsumerWidget {
     final authState = ref.watch(authStateProvider);
     final isAdmin = ref.watch(isAdminProvider);
     final isGuest = ref.watch(isGuestProvider);
+
+    // Listen to authentication status and errors
+    ref.listen<AsyncValue<User?>>(authNotifierProvider, (previous, next) {
+      if (next is AsyncError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(next.error.toString()),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    });
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -52,13 +65,13 @@ class SettingsScreen extends ConsumerWidget {
             const SizedBox(height: 8),
           ],
 
-          // Contact Form
+          // Help & Support
           _buildSettingsItem(
             icon: Icons.help_outline,
             title: 'Yardım & Destek',
             subtitle: 'Bize ulaşın',
             iconColor: AppColors.info,
-            onTap: () => _showContactForm(context),
+            onTap: () => context.push('/support'),
           ),
           const SizedBox(height: 8),
 
@@ -77,13 +90,13 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
 
-          // Privacy Policy
+          // Policies
           _buildSettingsItem(
             icon: Icons.privacy_tip_outlined,
-            title: 'Gizlilik Politikası',
-            subtitle: 'Verileriniz güvende',
+            title: 'Politikalar',
+            subtitle: 'Gizlilik ve kullanım koşulları',
             iconColor: AppColors.primary,
-            onTap: () {},
+            onTap: () => context.push('/policies'),
           ),
           const SizedBox(height: 8),
 
@@ -291,79 +304,6 @@ class SettingsScreen extends ConsumerWidget {
         subtitle: Text(subtitle, style: AppTextStyles.caption),
         trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textLight),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      ),
-    );
-  }
-
-  void _showContactForm(BuildContext context) {
-    final nameController = TextEditingController();
-    final messageController = TextEditingController();
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.fromLTRB(
-          20, 20, 20,
-          MediaQuery.of(ctx).viewInsets.bottom + 20,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Yardım & Destek', style: AppTextStyles.heading3),
-            const SizedBox(height: 16),
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(
-                labelText: 'Adınız',
-                hintText: 'Adınızı girin',
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: messageController,
-              maxLines: 4,
-              decoration: const InputDecoration(
-                labelText: 'Mesajınız',
-                hintText: 'Mesajınızı yazın',
-                alignLabelWithHint: true,
-              ),
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () async {
-                  if (nameController.text.isEmpty || messageController.text.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Tüm alanları doldurun')),
-                    );
-                    return;
-                  }
-                  await FirebaseFirestore.instance.collection('yardim_destek').add({
-                    'ad': nameController.text,
-                    'mesaj': messageController.text,
-                    'tarih': FieldValue.serverTimestamp(),
-                  });
-                  if (context.mounted) {
-                    Navigator.pop(ctx);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Mesajınız gönderildi!'),
-                        backgroundColor: AppColors.success,
-                      ),
-                    );
-                  }
-                },
-                child: const Text('Gönder'),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
