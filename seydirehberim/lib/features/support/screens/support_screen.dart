@@ -64,6 +64,7 @@ class _SupportScreenState extends ConsumerState<SupportScreen> {
         'email': user?.email ?? 'anonymous',
         'uid': user?.uid ?? 'guest',
         'tarih': FieldValue.serverTimestamp(),
+        'durum': 'Bekliyor', // Default status for new messages
       });
 
       if (mounted) {

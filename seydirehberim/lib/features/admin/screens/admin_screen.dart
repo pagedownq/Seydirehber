@@ -103,6 +103,13 @@ class AdminScreen extends ConsumerWidget {
               'bucket': 'firmalar',
             }),
           ),
+          const SizedBox(height: 12),
+          _AdminCard(
+            icon: Icons.support_agent,
+            title: 'Yardım & Destek Mesajları',
+            color: const Color(0xFFD32F2F),
+            onTap: () => context.push('/admin/support'),
+          ),
         ],
       ),
     );

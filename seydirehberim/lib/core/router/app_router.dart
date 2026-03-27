@@ -18,6 +18,7 @@ import '../../features/settings/screens/policies_screen.dart';
 import '../../features/search/screens/search_screen.dart';
 import '../../features/admin/screens/admin_screen.dart';
 import '../../features/admin/screens/admin_manage_screen.dart';
+import '../../features/admin/screens/admin_support_screen.dart';
 import '../widgets/generic_list_screen.dart';
 import '../../features/home/providers/home_providers.dart';
 
@@ -159,6 +160,10 @@ final routerProvider = Provider<GoRouter>((ref) {
             bucket: extra['bucket'] as String?,
           );
         },
+      ),
+      GoRoute(
+        path: '/admin/support',
+        builder: (context, state) => const AdminSupportScreen(),
       ),
     ],
   );
