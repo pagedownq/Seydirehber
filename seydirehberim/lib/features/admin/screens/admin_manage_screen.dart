@@ -167,11 +167,12 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
       case 'firmalar':
         return [
           _FieldConfig('ad', 'Firma Adı', required: true),
+          _FieldConfig('yetkili_kisi', 'Yetkili Kişi'),
           _FieldConfig('hakkinda', 'Hakkında', multiline: true),
-          _FieldConfig('iletisim', 'İletişim'),
+          _FieldConfig('iletisim', 'İletişim (Telefon)', isPhone: true),
           _FieldConfig('konum', 'Konum (Adres veya Harita Linki)'),
           _FieldConfig('website', 'Web Sitesi'),
-          _FieldConfig('instagram', 'Instagram'),
+          _FieldConfig('instagram', 'Instagram (Kullanıcı adı veya Link)'),
         ];
       default:
         return [_FieldConfig('ad', 'Ad', required: true)];
@@ -299,7 +300,7 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
                                 }
                               }
                             : null,
-                        keyboardType: field.isNumber
+                        keyboardType: field.isNumber || field.isPhone
                             ? TextInputType.number
                             : TextInputType.text,
                         decoration: InputDecoration(
@@ -357,18 +358,27 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
 
                                 // Build document data
                                 final docData = <String, dynamic>{};
-                                for (final field in fields) {
-                                  final value =
-                                      controllers[field.key]?.text ?? '';
-                                  if (value.isNotEmpty) {
-                                    if (field.isNumber) {
-                                      docData[field.key] =
-                                          int.tryParse(value) ?? 0;
-                                    } else {
-                                      docData[field.key] = value;
+                                  for (final field in fields) {
+                                    final value =
+                                        controllers[field.key]?.text.trim() ??
+                                            '';
+                                    if (value.isNotEmpty) {
+                                      if (field.isNumber) {
+                                        docData[field.key] =
+                                            int.tryParse(value) ?? 0;
+                                      } else if (field.key == 'instagram') {
+                                        // Auto-prefix instagram username
+                                        if (!value.startsWith('http')) {
+                                          docData[field.key] =
+                                              'https://www.instagram.com/$value';
+                                        } else {
+                                          docData[field.key] = value;
+                                        }
+                                      } else {
+                                        docData[field.key] = value;
+                                      }
                                     }
                                   }
-                                }
 
                                 if (imageUrl != null) {
                                   docData['image_url'] = imageUrl;
@@ -507,6 +517,7 @@ class _FieldConfig {
   final bool isNumber;
   final bool isDate;
   final bool isTime;
+  final bool isPhone;
 
   _FieldConfig(
     this.key,
@@ -516,5 +527,6 @@ class _FieldConfig {
     this.isNumber = false,
     this.isDate = false,
     this.isTime = false,
+    this.isPhone = false,
   });
 }

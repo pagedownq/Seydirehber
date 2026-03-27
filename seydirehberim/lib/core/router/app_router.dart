@@ -15,6 +15,7 @@ import '../../features/services/screens/weather_screen.dart';
 import '../../features/news/screens/news_screen.dart';
 import '../../features/support/screens/support_screen.dart';
 import '../../features/settings/screens/policies_screen.dart';
+import '../../features/search/screens/search_screen.dart';
 import '../../features/admin/screens/admin_screen.dart';
 import '../../features/admin/screens/admin_manage_screen.dart';
 import '../widgets/generic_list_screen.dart';
@@ -49,6 +50,15 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/support',
         builder: (context, state) => const SupportScreen(),
+      ),
+
+      // Search
+      GoRoute(
+        path: '/search',
+        builder: (context, state) {
+          final query = state.uri.queryParameters['q'];
+          return SearchScreen(initialQuery: query);
+        },
       ),
 
       // Policies

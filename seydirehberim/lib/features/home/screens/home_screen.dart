@@ -18,15 +18,6 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  final TextEditingController _searchController = TextEditingController();
-  String _searchQuery = '';
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,6 +28,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           SliverAppBar(
             backgroundColor: AppColors.white,
             surfaceTintColor: Colors.transparent,
+            pinned: true,
             title: Row(
               children: [
                 Icon(Icons.location_on, color: AppColors.primary, size: 22),
@@ -52,81 +44,57 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
           ),
 
-          // Search & Action Buttons (Scrolly part)
+          // Action Buttons
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _buildTopActionButton(
+                      title: 'Hava Durumu',
+                      icon: Icons.cloud_outlined,
+                      gradient: AppColors.weatherGradient,
+                      onTap: () => context.push('/weather'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildTopActionButton(
+                      title: 'Arkadaşlarınla Paylaş',
+                      icon: Icons.share_outlined,
+                      isBlack: true,
+                      onTap: () {
+                        Share.share(
+                          'Seydi Rehber uygulamasını indir ve Seydişehir hakkında her şeyi öğren! 📱 https://seydirehber.com',
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // Search Bar (Isolated)
+          const SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(16, 16, 16, 16),
+              child: _HomeSearchField(),
+            ),
+          ),
+
+          // Banner Slider
+          const SliverToBoxAdapter(
+            child: BannerSlider(),
+          ),
+
+          // Etkinlikler Section
           SliverToBoxAdapter(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                  child: Column(
-                    children: [
-                      // Action Buttons
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildTopActionButton(
-                              title: 'Hava Durumu',
-                              icon: Icons.cloud_outlined,
-                              gradient: AppColors.weatherGradient,
-                              onTap: () => context.push('/weather'),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _buildTopActionButton(
-                              title: 'Arkadaşlarınla Paylaş',
-                              icon: Icons.share_outlined,
-                              isBlack: true,
-                              onTap: () {
-                                Share.share(
-                                  'Seydi Rehber uygulamasını indir ve Seydişehir hakkında her şeyi öğren! 📱 https://seydirehber.com',
-                                );
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      // Search Bar
-                      TextField(
-                        controller: _searchController,
-                        onChanged: (v) => setState(() => _searchQuery = v),
-                        decoration: InputDecoration(
-                          hintText: 'Etkinlik, firma veya yer ara...',
-                          hintStyle: AppTextStyles.bodySmall,
-                          prefixIcon: const Icon(Icons.search, color: AppColors.textLight),
-                          suffixIcon: _searchQuery.isNotEmpty
-                              ? IconButton(
-                                  icon: const Icon(Icons.clear, size: 18),
-                                  onPressed: () {
-                                    _searchController.clear();
-                                    setState(() => _searchQuery = '');
-                                  },
-                                )
-                              : null,
-                          filled: true,
-                          fillColor: AppColors.white,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
-                            borderSide: BorderSide(color: AppColors.border),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
-                            borderSide: BorderSide(color: AppColors.border),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Banner Slider
-                const BannerSlider(),
                 const SizedBox(height: 24),
-
-                // Etkinlikler
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: SeeAllButton(
@@ -140,20 +108,32 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   type: CardType.event,
                   onTap: (id) => context.push('/events/$id'),
                 ),
+              ],
+            ),
+          ),
 
+          // Hizmetler Section
+          SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 const SizedBox(height: 24),
-
-                // Hizmetler
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Text('Hizmetler', style: AppTextStyles.heading3),
                 ),
                 const SizedBox(height: 12),
-                const ServiceGrid(),
+                const RepaintBoundary(child: ServiceGrid()),
+              ],
+            ),
+          ),
 
+          // Gezilecek Yerler Section
+          SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 const SizedBox(height: 24),
-
-                // Gezilecek Yerler
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: SeeAllButton(
@@ -167,14 +147,43 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   type: CardType.place,
                   onTap: (id) => context.push('/places/$id'),
                 ),
+              ],
+            ),
+          ),
 
+          // Tüm Firmalar Section
+          SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 const SizedBox(height: 24),
-
-                // Firmalar
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: SeeAllButton(
-                    title: 'Firmalar',
+                    title: 'Tüm Firmalar',
+                    onTap: () => context.push('/companies'),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                HorizontalCardList(
+                  provider: alphabeticalCompaniesProvider,
+                  type: CardType.company,
+                  onTap: (id) => context.push('/companies/$id'),
+                ),
+              ],
+            ),
+          ),
+
+          // Yeni Eklenen Firmalar Section
+          SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 24),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: SeeAllButton(
+                    title: 'Yeni Eklenen Firmalar',
                     onTap: () => context.push('/companies'),
                   ),
                 ),
@@ -184,7 +193,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   type: CardType.company,
                   onTap: (id) => context.push('/companies/$id'),
                 ),
+              ],
+            ),
+          ),
 
+          // En Çok Ziyaret Edilen Firmalar Section
+          SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 24),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Text('En Çok Ziyaret Edilen Firmalar',
+                      style: AppTextStyles.heading3),
+                ),
+                const SizedBox(height: 8),
+                HorizontalCardList(
+                  provider: popularCompaniesProvider,
+                  type: CardType.company,
+                  onTap: (id) => context.push('/companies/$id'),
+                ),
                 const SizedBox(height: 32),
               ],
             ),
@@ -247,6 +276,71 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _HomeSearchField extends StatefulWidget {
+  const _HomeSearchField();
+
+  @override
+  State<_HomeSearchField> createState() => _HomeSearchFieldState();
+}
+
+class _HomeSearchFieldState extends State<_HomeSearchField> {
+  final TextEditingController _controller = TextEditingController();
+  bool _showClear = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(() {
+      if (_controller.text.isNotEmpty != _showClear) {
+        setState(() => _showClear = _controller.text.isNotEmpty);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: _controller,
+      textInputAction: TextInputAction.search,
+      onSubmitted: (value) {
+        if (value.trim().isNotEmpty) {
+          context.push('/search?q=${Uri.encodeComponent(value.trim())}');
+        }
+      },
+      decoration: InputDecoration(
+        hintText: 'Etkinlik, firma veya yer ara...',
+        hintStyle: AppTextStyles.bodySmall,
+        prefixIcon: const Icon(Icons.search, color: AppColors.textLight),
+        suffixIcon: _showClear
+            ? IconButton(
+                icon: const Icon(Icons.clear, size: 18),
+                onPressed: () {
+                  _controller.clear();
+                },
+              )
+            : null,
+        filled: true,
+        fillColor: AppColors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: AppColors.border),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: AppColors.border),
+        ),
+        contentPadding: const EdgeInsets.symmetric(vertical: 12),
       ),
     );
   }

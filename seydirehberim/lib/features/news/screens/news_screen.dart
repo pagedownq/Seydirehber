@@ -69,8 +69,14 @@ class _NewsCard extends StatelessWidget {
         onTap: () async {
           if (news.link.isEmpty) return;
           final url = Uri.parse(news.link);
-          if (await canLaunchUrl(url)) {
-            await launchUrl(url, mode: LaunchMode.externalApplication);
+          try {
+            await launchUrl(url, mode: LaunchMode.platformDefault);
+          } catch (e) {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Haber bağlantısı açılamadı.')),
+              );
+            }
           }
         },
         borderRadius: BorderRadius.circular(20),
@@ -107,7 +113,7 @@ class _NewsCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Text(
-                      'Toroslar Gazetesi',
+                      'Haberler',
                       style: TextStyle(
                           color: Colors.white,
                           fontSize: 10,

@@ -44,8 +44,11 @@ class HorizontalCardList extends ConsumerWidget {
           );
         }
 
+        // Horizontal for companies, Vertical for events/places
+        final double listHeight = type == CardType.company ? 220 : 310;
+
         return SizedBox(
-          height: type == CardType.company ? 200 : 180,
+          height: listHeight,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -63,84 +66,304 @@ class HorizontalCardList extends ConsumerWidget {
   }
 
   Widget _buildCard(Map<String, dynamic> data, String id) {
+    if (type == CardType.company) {
+      return _buildCompanyCard(data, id);
+    }
+
     final name = data['ad'] as String? ?? data['name'] as String? ?? '';
-    final imageUrl = data['image_url'] as String? ?? data['gorsel'] as String? ?? '';
-    final viewCount = data['goruntulenme'] as int? ?? 0;
+    final imageUrl =
+        data['image_url'] as String? ?? data['gorsel'] as String? ?? '';
 
-    return GestureDetector(
-      onTap: () => onTap(id),
-      child: Container(
-        width: 200,
-        decoration: BoxDecoration(
-          color: AppColors.cardBackground,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Image
-            if (imageUrl.isNotEmpty)
-              CachedImageWidget(
-                imageUrl: imageUrl,
-                width: 200,
-                height: 110,
-                borderRadius: 16,
-              )
-            else
-              Container(
-                width: 200,
-                height: 110,
-                decoration: BoxDecoration(
-                  color: AppColors.primarySurface,
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(16)),
-                ),
-                child: const Icon(Icons.image, color: AppColors.textLight, size: 40),
+    // Dimensions for Vertical (Event/Place)
+    const double cardWidth = 180;
+    const double imageHeight = 230;
+
+    return RepaintBoundary(
+      child: GestureDetector(
+        onTap: () => onTap(id),
+        child: Container(
+          width: cardWidth,
+          decoration: BoxDecoration(
+            color: AppColors.cardBackground,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
               ),
-
-            // Content
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    name,
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (type == CardType.event) ...[
-                    const SizedBox(height: 2),
-                    _buildEventDate(data),
-                  ],
-                  if (type == CardType.company) ...[
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(Icons.visibility_outlined,
-                            size: 14, color: AppColors.textLight),
-                        const SizedBox(width: 4),
-                        Text(
-                          '$viewCount görüntülenme',
-                          style: AppTextStyles.caption,
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Image
+              if (imageUrl.isNotEmpty)
+                SizedBox(
+                  width: cardWidth,
+                  height: imageHeight,
+                  child: Stack(
+                    children: [
+                      // Blurred background
+                      Positioned.fill(
+                        child: ClipRRect(
+                          borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(16)),
+                          child: CachedImageWidget(
+                            imageUrl: imageUrl,
+                            fit: BoxFit.cover,
+                            memCacheWidth: 100,
+                            memCacheHeight: 100,
+                          ),
                         ),
-                      ],
+                      ),
+                      Positioned.fill(
+                        child: Container(
+                            color: Colors.black.withValues(alpha: 0.1)),
+                      ),
+                      // Actual image
+                      Center(
+                        child: CachedImageWidget(
+                          imageUrl: imageUrl,
+                          fit: BoxFit.contain,
+                          borderRadius: 16,
+                          memCacheWidth: (cardWidth * 2).toInt(),
+                          memCacheHeight: (imageHeight * 2).toInt(),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              else
+                Container(
+                  width: cardWidth,
+                  height: imageHeight,
+                  decoration: BoxDecoration(
+                    color: AppColors.primarySurface,
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(16)),
+                  ),
+                  child: const Icon(Icons.image,
+                      color: AppColors.textLight, size: 40),
+                ),
+
+              // Content
+              Padding(
+                padding: const EdgeInsets.all(10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      name,
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
+                    if (type == CardType.event) ...[
+                      const SizedBox(height: 2),
+                      _buildEventDate(data),
+                    ],
                   ],
-                ],
+                ),
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCompanyCard(Map<String, dynamic> data, String id) {
+    final name = data['ad'] as String? ?? data['name'] as String? ?? '';
+    final imageUrl =
+        data['image_url'] as String? ?? data['gorsel'] as String? ?? '';
+    final viewCount = data['goruntulenme'] as int? ?? 0;
+    final category = data['kategori'] as String? ?? 'Firma';
+    final address = (data['konum'] ?? data['adres'] ?? '').toString();
+    final createdAt = data['created_at'] as Timestamp?;
+    final isNew = createdAt != null &&
+        DateTime.now().difference(createdAt.toDate()).inDays < 30;
+
+    return RepaintBoundary(
+      child: GestureDetector(
+        onTap: () => onTap(id),
+        child: Container(
+          width: 250,
+          margin: const EdgeInsets.only(bottom: 2),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(18),
+            child: Stack(
+              children: [
+                // Background Image
+                Positioned.fill(
+                  child: CachedImageWidget(
+                    imageUrl: imageUrl,
+                    fit: BoxFit.cover,
+                    memCacheWidth: 500,
+                  ),
+                ),
+                // Dark overlay for overall contrast
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.black.withValues(alpha: 0.2),
+                          Colors.transparent,
+                          Colors.black.withValues(alpha: 0.8),
+                        ],
+                        stops: const [0, 0.4, 0.9],
+                      ),
+                    ),
+                  ),
+                ),
+                // Blue overlay at the bottom like in the screenshot
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    height: 70,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          const Color(0xFF0056B3).withValues(alpha: 0.0),
+                          const Color(0xFF0056B3).withValues(alpha: 0.8),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                // Category Tag
+                Positioned(
+                  top: 12,
+                  left: 12,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0056B3),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      category,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                // "YENİ" Badge (Top Right)
+                if (isNew)
+                  Positioned(
+                    top: 12,
+                    right: 12,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.redAccent,
+                        borderRadius: BorderRadius.circular(6),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.2),
+                            blurRadius: 4,
+                          ),
+                        ],
+                      ),
+                      child: const Text(
+                        'YENİ',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                // Information at the bottom
+                Positioned(
+                  bottom: 12,
+                  left: 12,
+                  right: 12,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        name,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Row(
+                              children: [
+                                const Icon(Icons.location_on,
+                                    color: Colors.white, size: 14),
+                                const SizedBox(width: 4),
+                                Expanded(
+                                  child: Text(
+                                    address,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Row(
+                            children: [
+                              const Icon(Icons.visibility,
+                                  color: Colors.white, size: 14),
+                              const SizedBox(width: 4),
+                              Text(
+                                '$viewCount',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

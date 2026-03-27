@@ -61,6 +61,7 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
           final imageUrl = data['image_url'] as String? ?? data['gorsel'] as String? ?? '';
           final hakkinda = data['hakkinda'] as String? ?? '';
           final iletisim = data['iletisim'] as String? ?? '';
+          final yetkiliKisi = data['yetkili_kisi'] as String? ?? '';
           final konum = data['konum'] as String?;
           final website = data['website'] as String?;
           final instagram = data['instagram'] as String?;
@@ -102,14 +103,20 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                               const Icon(Icons.visibility_outlined,
                                   size: 16, color: AppColors.textLight),
                               const SizedBox(width: 4),
+                              const Text(' '),
                               Text('$viewCount', style: AppTextStyles.bodySmall),
                             ],
                           ),
                         ],
                       ),
 
-                      if (iletisim.isNotEmpty) ...[
+                      if (yetkiliKisi.isNotEmpty) ...[
                         const SizedBox(height: 12),
+                        _buildInfoRow(Icons.person_outline, 'Yetkili Kişi', yetkiliKisi),
+                      ],
+
+                      if (iletisim.isNotEmpty) ...[
+                        const SizedBox(height: 8),
                         _buildInfoRow(Icons.phone, 'İletişim', iletisim),
                       ],
 

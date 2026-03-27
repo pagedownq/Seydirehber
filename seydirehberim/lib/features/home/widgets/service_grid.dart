@@ -22,21 +22,24 @@ class ServiceGrid extends StatelessWidget {
             childAspectRatio: 1.6,
             children: [
               _ServiceCard(
-                icon: Icons.local_pharmacy_rounded,
+                imagePath: 'assets/eczane_logo.png',
                 title: 'Nöbetçi Eczane',
                 gradient: const LinearGradient(
                   colors: [Color(0xFFE53935), Color(0xFFEF5350)],
                 ),
                 iconColor: Colors.white,
+                imageSize: 32,
                 onTap: () => context.push('/pharmacy'),
               ),
               _ServiceCard(
-                icon: Icons.gavel_rounded,
+                imagePath: 'assets/noter.png',
                 title: 'Noterler',
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF5C6BC0), Color(0xFF7986CB)],
-                ),
-                iconColor: Colors.white,
+                backgroundColor: Colors.white,
+                borderColor: Colors.black,
+                textColor: Colors.black,
+                iconColor: Colors.black,
+                applyColorToImage: false,
+                imageSize: 38,
                 onTap: () => context.push('/noterler'),
               ),
               _ServiceCard(
@@ -78,20 +81,32 @@ class ServiceGrid extends StatelessWidget {
 }
 
 class _ServiceCard extends StatelessWidget {
-  final IconData icon;
+  final IconData? icon;
+  final String? imagePath;
   final String title;
-  final LinearGradient gradient;
+  final LinearGradient? gradient;
+  final Color? backgroundColor;
+  final Color? borderColor;
   final Color iconColor;
+  final Color textColor;
   final VoidCallback onTap;
   final bool isFullWidth;
+  final bool applyColorToImage;
+  final double? imageSize;
 
   const _ServiceCard({
-    required this.icon,
+    this.icon,
+    this.imagePath,
     required this.title,
-    required this.gradient,
+    this.gradient,
+    this.backgroundColor,
+    this.borderColor,
     required this.iconColor,
+    this.textColor = Colors.white,
     required this.onTap,
     this.isFullWidth = false,
+    this.applyColorToImage = true,
+    this.imageSize,
   });
 
   @override
@@ -105,11 +120,13 @@ class _ServiceCard extends StatelessWidget {
           width: isFullWidth ? double.infinity : null,
           height: isFullWidth ? 80 : null,
           decoration: BoxDecoration(
+            color: backgroundColor,
             gradient: gradient,
             borderRadius: BorderRadius.circular(16),
+            border: borderColor != null ? Border.all(color: borderColor!, width: 1.5) : null,
             boxShadow: [
               BoxShadow(
-                color: gradient.colors.first.withValues(alpha: 0.3),
+                color: (gradient?.colors.first ?? backgroundColor ?? Colors.black).withValues(alpha: 0.2),
                 blurRadius: 8,
                 offset: const Offset(0, 3),
               ),
@@ -123,10 +140,10 @@ class _ServiceCard extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
+                          color: textColor.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: Icon(icon, color: iconColor, size: 26),
+                        child: _buildIcon(imageSize ?? 32),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
@@ -134,13 +151,13 @@ class _ServiceCard extends StatelessWidget {
                           title,
                           overflow: TextOverflow.ellipsis,
                           style: AppTextStyles.bodyMedium.copyWith(
-                            color: Colors.white,
+                            color: textColor,
                             fontWeight: FontWeight.bold,
                             fontSize: 17,
                           ),
                         ),
                       ),
-                      const Icon(Icons.arrow_forward_ios, color: Colors.white70, size: 14),
+                      Icon(Icons.arrow_forward_ios, color: textColor.withValues(alpha: 0.7), size: 14),
                     ],
                   )
                 : Column(
@@ -148,19 +165,19 @@ class _ServiceCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(8),
+                        padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
+                          color: textColor.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: Icon(icon, color: iconColor, size: 22),
+                        child: _buildIcon(imageSize ?? 28),
                       ),
                       Text(
                         title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: AppTextStyles.bodyMedium.copyWith(
-                          color: Colors.white,
+                          color: textColor,
                           fontWeight: FontWeight.w600,
                           fontSize: 13,
                         ),
@@ -171,5 +188,19 @@ class _ServiceCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildIcon(double size) {
+    if (imagePath != null) {
+      return Image.asset(
+        imagePath!,
+        width: size,
+        height: size,
+        color: applyColorToImage ? iconColor : null,
+        colorBlendMode: applyColorToImage ? BlendMode.srcIn : null,
+        fit: BoxFit.contain,
+      );
+    }
+    return Icon(icon ?? Icons.help_outline, color: iconColor, size: size);
   }
 }

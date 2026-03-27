@@ -77,7 +77,7 @@ class _BannerSliderState extends ConsumerState<BannerSlider> {
                               imageUrl: imageUrl,
                               width: imageWidth,
                               height: imageHeight,
-                              fit: BoxFit.fill, // Exact fit for the given aspect ratio
+                              fit: BoxFit.cover, // Better than fill to avoid stretching
                             ),
                           ),
                         ),

@@ -41,22 +41,43 @@ final allPlacesProvider = StreamProvider((ref) {
       .snapshots();
 });
 
-// Companies - last 5
+// Companies - added in last 30 days
 final latestCompaniesProvider = StreamProvider((ref) {
+  final thirtyDaysAgo = DateTime.now().subtract(const Duration(days: 30));
   return ref
       .watch(firestoreProvider)
       .collection('firmalar')
+      .where('created_at', isGreaterThanOrEqualTo: Timestamp.fromDate(thirtyDaysAgo))
       .orderBy('created_at', descending: true)
-      .limit(5)
+      .limit(10) // Show up to 10 new firms
       .snapshots();
 });
 
-// All companies
+// All companies - sorted alphabetically
+final alphabeticalCompaniesProvider = StreamProvider((ref) {
+  return ref
+      .watch(firestoreProvider)
+      .collection('firmalar')
+      .orderBy('ad')
+      .snapshots();
+});
+
+// All companies - sorted by creation date
 final allCompaniesProvider = StreamProvider((ref) {
   return ref
       .watch(firestoreProvider)
       .collection('firmalar')
       .orderBy('created_at', descending: true)
+      .snapshots();
+});
+
+// Popular Companies - sorted by view count
+final popularCompaniesProvider = StreamProvider((ref) {
+  return ref
+      .watch(firestoreProvider)
+      .collection('firmalar')
+      .orderBy('goruntulenme', descending: true)
+      .limit(10)
       .snapshots();
 });
 
