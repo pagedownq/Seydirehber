@@ -151,8 +151,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  page.color.withValues(alpha: 0.15),
-                  page.color.withValues(alpha: 0.05),
+                  page.color.withOpacity(0.15),
+                  page.color.withOpacity(0.05),
                 ],
               ),
               borderRadius: BorderRadius.circular(32),

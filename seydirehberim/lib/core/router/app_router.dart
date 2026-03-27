@@ -19,22 +19,32 @@ import '../../features/search/screens/search_screen.dart';
 import '../../features/admin/screens/admin_screen.dart';
 import '../../features/admin/screens/admin_manage_screen.dart';
 import '../../features/admin/screens/admin_support_screen.dart';
+import '../../features/favorites/screens/favorites_screen.dart';
+import '../../features/splash/screens/splash_screen.dart';
 import '../widgets/generic_list_screen.dart';
 import '../../features/home/providers/home_providers.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
-    initialLocation: '/',
+    initialLocation: '/splash',
     redirect: (context, state) async {
       final prefs = await SharedPreferences.getInstance();
       final onboardingCompleted = docsCompletedCheck(prefs);
 
-      if (!onboardingCompleted && state.matchedLocation != '/onboarding') {
+      if (!onboardingCompleted && 
+          state.matchedLocation != '/onboarding' && 
+          state.matchedLocation != '/splash') {
         return '/onboarding';
       }
       return null;
     },
     routes: [
+      // Splash
+      GoRoute(
+        path: '/splash',
+        builder: (context, state) => const SplashScreen(),
+      ),
+
       // Onboarding
       GoRoute(
         path: '/onboarding',
@@ -51,6 +61,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/support',
         builder: (context, state) => const SupportScreen(),
+      ),
+
+      // Favorites
+      GoRoute(
+        path: '/favorites',
+        builder: (context, state) => const FavoritesScreen(),
       ),
 
       // Search
@@ -104,8 +120,26 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/companies',
         builder: (context, state) => GenericListScreen(
-          title: 'Firmalar',
+          title: 'Tüm Firmalar',
           provider: allCompaniesProvider,
+          routePrefix: 'companies',
+          showViewCount: true,
+        ),
+      ),
+      GoRoute(
+        path: '/companies/latest',
+        builder: (context, state) => GenericListScreen(
+          title: 'Yeni Eklenen Firmalar',
+          provider: allLatestCompaniesProvider,
+          routePrefix: 'companies',
+          showViewCount: true,
+        ),
+      ),
+      GoRoute(
+        path: '/companies/popular',
+        builder: (context, state) => GenericListScreen(
+          title: 'En Çok Ziyaret Edilenler',
+          provider: allPopularCompaniesProvider,
           routePrefix: 'companies',
           showViewCount: true,
         ),

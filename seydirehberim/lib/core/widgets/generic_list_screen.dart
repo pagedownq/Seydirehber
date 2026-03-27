@@ -28,8 +28,9 @@ class GenericListScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text(title, style: AppTextStyles.appBarTitle),
-        backgroundColor: AppColors.white,
+        title: Text(title, style: AppTextStyles.appBarTitle.copyWith(color: AppColors.white)),
+        backgroundColor: AppColors.primary,
+        iconTheme: const IconThemeData(color: AppColors.white),
       ),
       body: dataAsync.when(
         loading: () => ListView.builder(
@@ -56,75 +57,141 @@ class GenericListScreen extends ConsumerWidget {
             );
           }
 
-          return ListView.separated(
-            padding: const EdgeInsets.all(16),
+          return ListView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
             itemCount: docs.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               final data = docs[index].data();
               final id = docs[index].id;
               final name = data['ad'] as String? ?? data['name'] as String? ?? '';
-              final imageUrl = data['image_url'] as String? ?? data['gorsel'] as String? ?? '';
+              final imageUrl =
+                  data['image_url'] as String? ?? data['gorsel'] as String? ?? '';
               final viewCount = data['goruntulenme'] as int? ?? 0;
+              final category = data['kategori'] as String? ?? '';
+              final rawAddress = (data['konum'] ?? data['adres'] ?? '').toString();
+              // If it's a map link, don't show it as a text address in the card
+              final address = rawAddress.startsWith('http') ? '' : rawAddress;
 
-              return Material(
-                color: AppColors.cardBackground,
-                borderRadius: BorderRadius.circular(16),
-                elevation: 1,
-                shadowColor: Colors.black12,
-                child: InkWell(
-                  onTap: () => context.push('/$routePrefix/$id'),
-                  borderRadius: BorderRadius.circular(16),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Row(
+              return GestureDetector(
+                onTap: () => context.push('/$routePrefix/$id'),
+                child: Container(
+                  height: 240,
+                  margin: const EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: Stack(
                       children: [
-                        if (imageUrl.isNotEmpty)
-                          CachedImageWidget(
+                        // Background Image
+                        Positioned.fill(
+                          child: CachedImageWidget(
                             imageUrl: imageUrl,
-                            width: 70,
-                            height: 70,
-                            borderRadius: 12,
-                          )
-                        else
-                          Container(
-                            width: 70,
-                            height: 70,
-                            decoration: BoxDecoration(
-                              color: AppColors.primarySurface,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Icon(Icons.image, color: AppColors.textLight),
+                            fit: BoxFit.cover,
                           ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                name,
-                                style: AppTextStyles.bodyMedium.copyWith(
+                        ),
+                        // Top-Left Category Tag
+                        if (category.isNotEmpty)
+                          Positioned(
+                            top: 12,
+                            left: 12,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF1E88E5).withOpacity(0.9),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                category,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
                                   fontWeight: FontWeight.w600,
                                 ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
                               ),
-                              if (showViewCount) ...[
-                                const SizedBox(height: 4),
+                            ),
+                          ),
+                        // Bottom Gradient Overlay
+                        Positioned(
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.black.withOpacity(0.0),
+                                  Colors.black.withOpacity(0.8),
+                                ],
+                              ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  name,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 6),
                                 Row(
                                   children: [
-                                    const Icon(Icons.visibility_outlined,
-                                        size: 14, color: AppColors.textLight),
-                                    const SizedBox(width: 4),
-                                    Text('$viewCount', style: AppTextStyles.caption),
+                                    Expanded(
+                                      child: address.isNotEmpty ? Row(
+                                        children: [
+                                          const Icon(Icons.location_on_outlined,
+                                              size: 14, color: Colors.white70),
+                                          const SizedBox(width: 4),
+                                          Expanded(
+                                            child: Text(
+                                              address,
+                                              style: const TextStyle(
+                                                color: Colors.white70,
+                                                fontSize: 12,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
+                                      ) : const SizedBox.shrink(),
+                                    ),
+                                    if (showViewCount) ...[
+                                      const SizedBox(width: 8),
+                                      const Icon(Icons.remove_red_eye_outlined,
+                                          size: 14, color: Colors.white),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        '$viewCount görüntüleme',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 11,
+                                        ),
+                                      ),
+                                    ],
                                   ],
                                 ),
                               ],
-                            ],
+                            ),
                           ),
                         ),
-                        const Icon(Icons.arrow_forward_ios,
-                            size: 14, color: AppColors.textLight),
                       ],
                     ),
                   ),

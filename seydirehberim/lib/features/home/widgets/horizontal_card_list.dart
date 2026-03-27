@@ -88,7 +88,7 @@ class HorizontalCardList extends ConsumerWidget {
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
+                color: Colors.black.withOpacity(0.05),
                 blurRadius: 10,
                 offset: const Offset(0, 2),
               ),
@@ -119,7 +119,7 @@ class HorizontalCardList extends ConsumerWidget {
                       ),
                       Positioned.fill(
                         child: Container(
-                            color: Colors.black.withValues(alpha: 0.1)),
+                            color: Colors.black.withOpacity(0.1)),
                       ),
                       // Actual image
                       Center(
@@ -181,7 +181,8 @@ class HorizontalCardList extends ConsumerWidget {
         data['image_url'] as String? ?? data['gorsel'] as String? ?? '';
     final viewCount = data['goruntulenme'] as int? ?? 0;
     final category = data['kategori'] as String? ?? 'Firma';
-    final address = (data['konum'] ?? data['adres'] ?? '').toString();
+    final rawAddress = (data['konum'] ?? data['adres'] ?? '').toString();
+    final address = rawAddress.startsWith('http') ? '' : rawAddress;
     final createdAt = data['created_at'] as Timestamp?;
     final isNew = createdAt != null &&
         DateTime.now().difference(createdAt.toDate()).inDays < 30;
@@ -196,7 +197,7 @@ class HorizontalCardList extends ConsumerWidget {
             borderRadius: BorderRadius.circular(18),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
+                color: Colors.black.withOpacity(0.1),
                 blurRadius: 8,
                 offset: const Offset(0, 4),
               ),
@@ -222,9 +223,9 @@ class HorizontalCardList extends ConsumerWidget {
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          Colors.black.withValues(alpha: 0.2),
+                          Colors.black.withOpacity(0.2),
                           Colors.transparent,
-                          Colors.black.withValues(alpha: 0.8),
+                          Colors.black.withOpacity(0.8),
                         ],
                         stops: const [0, 0.4, 0.9],
                       ),
@@ -243,8 +244,8 @@ class HorizontalCardList extends ConsumerWidget {
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          const Color(0xFF0056B3).withValues(alpha: 0.0),
-                          const Color(0xFF0056B3).withValues(alpha: 0.8),
+                          const Color(0xFF0056B3).withOpacity(0.0),
+                          const Color(0xFF0056B3).withOpacity(0.8),
                         ],
                       ),
                     ),
@@ -284,7 +285,7 @@ class HorizontalCardList extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(6),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.2),
+                            color: Colors.black.withOpacity(0.2),
                             blurRadius: 4,
                           ),
                         ],
@@ -322,24 +323,26 @@ class HorizontalCardList extends ConsumerWidget {
                       Row(
                         children: [
                           Expanded(
-                            child: Row(
-                              children: [
-                                const Icon(Icons.location_on,
-                                    color: Colors.white, size: 14),
-                                const SizedBox(width: 4),
-                                Expanded(
-                                  child: Text(
-                                    address,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 10,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ),
+                            child: address.isNotEmpty
+                                ? Row(
+                                    children: [
+                                      const Icon(Icons.location_on_outlined,
+                                          size: 14, color: Colors.white70),
+                                      const SizedBox(width: 4),
+                                      Expanded(
+                                        child: Text(
+                                          address,
+                                          style: const TextStyle(
+                                            color: Colors.white70,
+                                            fontSize: 12,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                : const SizedBox.shrink(),
                           ),
                           const SizedBox(width: 8),
                           Row(

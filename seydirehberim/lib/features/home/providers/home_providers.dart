@@ -41,7 +41,7 @@ final allPlacesProvider = StreamProvider((ref) {
       .snapshots();
 });
 
-// Companies - added in last 30 days
+// Companies - added in last 30 days (limit 10 for home)
 final latestCompaniesProvider = StreamProvider((ref) {
   final thirtyDaysAgo = DateTime.now().subtract(const Duration(days: 30));
   return ref
@@ -49,7 +49,18 @@ final latestCompaniesProvider = StreamProvider((ref) {
       .collection('firmalar')
       .where('created_at', isGreaterThanOrEqualTo: Timestamp.fromDate(thirtyDaysAgo))
       .orderBy('created_at', descending: true)
-      .limit(10) // Show up to 10 new firms
+      .limit(10)
+      .snapshots();
+});
+
+// All New Companies - added in last 30 days (no limit)
+final allLatestCompaniesProvider = StreamProvider((ref) {
+  final thirtyDaysAgo = DateTime.now().subtract(const Duration(days: 30));
+  return ref
+      .watch(firestoreProvider)
+      .collection('firmalar')
+      .where('created_at', isGreaterThanOrEqualTo: Timestamp.fromDate(thirtyDaysAgo))
+      .orderBy('created_at', descending: true)
       .snapshots();
 });
 
@@ -71,13 +82,22 @@ final allCompaniesProvider = StreamProvider((ref) {
       .snapshots();
 });
 
-// Popular Companies - sorted by view count
+// Popular Companies - sorted by view count (limit 10 for home)
 final popularCompaniesProvider = StreamProvider((ref) {
   return ref
       .watch(firestoreProvider)
       .collection('firmalar')
       .orderBy('goruntulenme', descending: true)
       .limit(10)
+      .snapshots();
+});
+
+// All Popular Companies - sorted by view count (no limit)
+final allPopularCompaniesProvider = StreamProvider((ref) {
+  return ref
+      .watch(firestoreProvider)
+      .collection('firmalar')
+      .orderBy('goruntulenme', descending: true)
       .snapshots();
 });
 

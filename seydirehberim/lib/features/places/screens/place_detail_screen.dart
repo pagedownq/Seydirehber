@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/widgets/cached_image_widget.dart';
 import '../../../core/widgets/map_button.dart';
+import '../../favorites/providers/favorites_provider.dart';
 
-class PlaceDetailScreen extends StatelessWidget {
+class PlaceDetailScreen extends ConsumerWidget {
   final String placeId;
 
   const PlaceDetailScreen({super.key, required this.placeId});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final favorites = ref.watch(favoritesProvider);
+    final isFav = favorites.any((e) => e.id == placeId && e.type == 'place');
     return Scaffold(
       backgroundColor: AppColors.background,
       body: StreamBuilder<DocumentSnapshot>(
@@ -48,11 +51,13 @@ class PlaceDetailScreen extends StatelessWidget {
                 ),
                 actions: [
                   IconButton(
-                    icon: const Icon(Icons.share, color: Colors.white),
+                    icon: Icon(
+                      isFav ? Icons.favorite : Icons.favorite_border,
+                      color: isFav ? Colors.red : Colors.white,
+                    ),
                     onPressed: () {
-                      Share.share(
-                        '$name - Seydi Rehber ile keşfet!',
-                      );
+                      ref.read(favoritesProvider.notifier)
+                          .toggleFavorite(placeId, 'place');
                     },
                   ),
                 ],

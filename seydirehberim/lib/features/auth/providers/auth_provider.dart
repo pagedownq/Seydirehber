@@ -3,8 +3,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-// Admin email
-const String adminEmail = 'mehmetirem305@gmail.com';
+// Admin emails
+const List<String> adminEmails = [
+  'mehmetirem305@gmail.com',
+  'bilgimgverse@gmail.com'
+];
 
 // Auth state provider
 final authStateProvider = StreamProvider<User?>((ref) {
@@ -21,7 +24,7 @@ final onboardingCompletedProvider = FutureProvider<bool>((ref) async {
 final isAdminProvider = Provider<bool>((ref) {
   final authState = ref.watch(authStateProvider);
   return authState.whenOrNull(
-        data: (user) => user?.email == adminEmail,
+        data: (user) => adminEmails.contains(user?.email),
       ) ??
       false;
 });

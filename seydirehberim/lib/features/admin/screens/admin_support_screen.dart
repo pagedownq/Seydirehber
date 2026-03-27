@@ -59,7 +59,7 @@ class AdminSupportScreen extends StatelessWidget {
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                      color: isSolved ? AppColors.success.withValues(alpha: 0.1) : AppColors.primary.withValues(alpha: 0.1),
+                      color: isSolved ? AppColors.success.withOpacity(0.1) : AppColors.primary.withOpacity(0.1),
                       child: Row(
                         children: [
                           Container(

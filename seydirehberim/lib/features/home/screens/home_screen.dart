@@ -184,7 +184,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: SeeAllButton(
                     title: 'Yeni Eklenen Firmalar',
-                    onTap: () => context.push('/companies'),
+                    onTap: () => context.push('/companies/latest'),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -205,8 +205,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 const SizedBox(height: 24),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Text('En Çok Ziyaret Edilen Firmalar',
-                      style: AppTextStyles.heading3),
+                  child: SeeAllButton(
+                    title: 'En Çok Ziyaret Edilen Firmalar',
+                    onTap: () => context.push('/companies/popular'),
+                  ),
                 ),
                 const SizedBox(height: 8),
                 HorizontalCardList(
@@ -243,7 +245,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           boxShadow: [
             BoxShadow(
               color: (isBlack ? Colors.black : (gradient?.colors.first ?? AppColors.primary))
-                  .withValues(alpha: 0.2),
+                  .withOpacity(0.2),
               blurRadius: 8,
               offset: const Offset(0, 3),
             ),
@@ -256,7 +258,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
+                color: Colors.white.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(icon, color: Colors.white, size: 24),

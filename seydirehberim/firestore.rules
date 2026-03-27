@@ -4,12 +4,24 @@ service cloud.firestore {
   match /databases/{database}/documents {
     
     function isAdmin() {
-      return request.auth != null && request.auth.token.email == 'mehmetirem305@gmail.com';
+      return request.auth != null && 
+        (request.auth.token.email == 'mehmetirem305@gmail.com' || 
+         request.auth.token.email == 'bilgimgverse@gmail.com');
     }
 
     match /yardim_destek/{docId} {
       allow create: if true;
       allow read, update, delete: if isAdmin();
+    }
+
+    match /user_tokens/{docId} {
+      allow read: if isAdmin();
+      allow write: if true; // Everyone can register their device token
+    }
+
+    match /duyurular/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
     // Public collections (Read: public, Write: admin)

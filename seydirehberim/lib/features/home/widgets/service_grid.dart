@@ -126,7 +126,7 @@ class _ServiceCard extends StatelessWidget {
             border: borderColor != null ? Border.all(color: borderColor!, width: 1.5) : null,
             boxShadow: [
               BoxShadow(
-                color: (gradient?.colors.first ?? backgroundColor ?? Colors.black).withValues(alpha: 0.2),
+                color: (gradient?.colors.first ?? backgroundColor ?? Colors.black).withOpacity(0.2),
                 blurRadius: 8,
                 offset: const Offset(0, 3),
               ),
@@ -140,7 +140,7 @@ class _ServiceCard extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: textColor.withValues(alpha: 0.1),
+                          color: textColor.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: _buildIcon(imageSize ?? 32),
@@ -157,7 +157,7 @@ class _ServiceCard extends StatelessWidget {
                           ),
                         ),
                       ),
-                      Icon(Icons.arrow_forward_ios, color: textColor.withValues(alpha: 0.7), size: 14),
+                      Icon(Icons.arrow_forward_ios, color: textColor.withOpacity(0.7), size: 14),
                     ],
                   )
                 : Column(
@@ -167,7 +167,7 @@ class _ServiceCard extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: textColor.withValues(alpha: 0.1),
+                          color: textColor.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: _buildIcon(imageSize ?? 28),

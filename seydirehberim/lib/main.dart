@@ -16,6 +16,7 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
+
   // Supabase initialization
   await Supabase.initialize(
     url: 'https://ycqrgraqmafdtvaxwuml.supabase.co',

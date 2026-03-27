@@ -1,23 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/widgets/cached_image_widget.dart';
 import '../../../core/widgets/map_button.dart';
+import '../../favorites/providers/favorites_provider.dart';
 
-class CompanyDetailScreen extends StatefulWidget {
+class CompanyDetailScreen extends ConsumerStatefulWidget {
   final String companyId;
 
   const CompanyDetailScreen({super.key, required this.companyId});
 
   @override
-  State<CompanyDetailScreen> createState() => _CompanyDetailScreenState();
+  ConsumerState<CompanyDetailScreen> createState() => _CompanyDetailScreenState();
 }
 
-class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
+class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
   @override
   void initState() {
     super.initState();
@@ -41,6 +42,7 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final favorites = ref.watch(favoritesProvider);
     return Scaffold(
       backgroundColor: AppColors.background,
       body: StreamBuilder<DocumentSnapshot>(
@@ -79,11 +81,19 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                       : Container(color: AppColors.primarySurface),
                 ),
                 actions: [
-                  IconButton(
-                    icon: const Icon(Icons.share, color: Colors.white),
-                    onPressed: () {
-                      Share.share(
-                        '$name - Seydi Rehber ile keşfet!',
+                  Builder(
+                    builder: (context) {
+                      final isFav = favorites.any((e) => 
+                        e.id == widget.companyId && e.type == 'company');
+                      return IconButton(
+                        icon: Icon(
+                          isFav ? Icons.favorite : Icons.favorite_border,
+                          color: isFav ? Colors.red : Colors.white,
+                        ),
+                        onPressed: () {
+                          ref.read(favoritesProvider.notifier)
+                              .toggleFavorite(widget.companyId, 'company');
+                        },
                       );
                     },
                   ),

@@ -61,3 +61,8 @@ flutter:
 
   assets:
     - assets/
+
+  fonts:
+    - family: Nickainley
+      fonts:
+        - asset: assets/fonts/Nickainley.otf

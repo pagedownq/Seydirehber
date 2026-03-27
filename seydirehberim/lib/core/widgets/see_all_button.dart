@@ -17,7 +17,14 @@ class SeeAllButton extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(title, style: AppTextStyles.sectionTitle),
+        Expanded(
+          child: Text(
+            title,
+            style: AppTextStyles.sectionTitle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
         TextButton(
           onPressed: onTap,
           style: TextButton.styleFrom(

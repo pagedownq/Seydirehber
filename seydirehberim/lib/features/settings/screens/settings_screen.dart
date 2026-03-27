@@ -65,6 +65,16 @@ class SettingsScreen extends ConsumerWidget {
             const SizedBox(height: 8),
           ],
 
+          // Favorites
+          _buildSettingsItem(
+            icon: Icons.favorite_border,
+            title: 'Favorilerim',
+            subtitle: 'Kaydettiğiniz yerler ve firmalar',
+            iconColor: Colors.red,
+            onTap: () => context.push('/favorites'),
+          ),
+          const SizedBox(height: 8),
+
           // Help & Support
           _buildSettingsItem(
             icon: Icons.help_outline,
@@ -121,7 +131,7 @@ class SettingsScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -244,7 +254,7 @@ class SettingsScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -295,7 +305,7 @@ class SettingsScreen extends ConsumerWidget {
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: iconColor.withValues(alpha: 0.1),
+            color: iconColor.withOpacity(0.1),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(icon, color: iconColor, size: 22),
