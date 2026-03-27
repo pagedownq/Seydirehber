@@ -1,0 +1,32 @@
+﻿Analyzing seydirehberim...                                      
+
+warning - Unused import: 'package:flutter/material.dart' - lib\core\router\app_router.dart:1:8 - unused_import
+   info - Unnecessary use of multiple underscores - lib\core\widgets\generic_list_screen.dart:38:28 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\core\widgets\generic_list_screen.dart:43:20 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\core\widgets\generic_list_screen.dart:62:35 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\core\widgets\shimmer_widget.dart:66:31 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\features\admin\screens\admin_manage_screen.dart:60:35 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\features\auth\screens\onboarding_screen.dart:229:33 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\features\auth\screens\onboarding_screen.dart:229:37 - unnecessary_underscores
+warning - Unused import: '../../home/providers/home_providers.dart' - lib\features\events\screens\event_detail_screen.dart:9:8 - unused_import
+warning - Unused import: '../../../core/widgets/cached_image_widget.dart' - lib\features\home\screens\home_screen.dart:10:8 - unused_import
+warning - Unused import: '../../../core/widgets/shimmer_widget.dart' - lib\features\home\screens\home_screen.dart:11:8 - unused_import
+   info - Unnecessary use of multiple underscores - lib\features\home\widgets\banner_slider.dart:34:18 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\features\home\widgets\horizontal_card_list.dart:29:18 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\features\home\widgets\horizontal_card_list.dart:53:35 - unnecessary_underscores
+warning - Unused import: '../../../core/constants/app_colors.dart' - lib\features\home\widgets\service_grid.dart:3:8 - unused_import
+   info - Unnecessary use of multiple underscores - lib\features\news\screens\news_screen.dart:58:28 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\features\news\screens\news_screen.dart:88:35 - unnecessary_underscores
+warning - Unused import: 'package:cloud_firestore/cloud_firestore.dart' - lib\features\services\screens\noterler_screen.dart:3:8 - unused_import
+warning - Unused import: 'package:go_router/go_router.dart' - lib\features\services\screens\noterler_screen.dart:4:8 - unused_import
+   info - Unnecessary use of multiple underscores - lib\features\services\screens\noterler_screen.dart:29:28 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\features\services\screens\noterler_screen.dart:34:20 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\features\services\screens\noterler_screen.dart:44:35 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\features\services\screens\otobus_screen.dart:25:28 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\features\services\screens\otobus_screen.dart:30:20 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\features\services\screens\otobus_screen.dart:40:35 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\features\services\screens\pazarlar_screen.dart:27:28 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\features\services\screens\pazarlar_screen.dart:32:20 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\features\services\screens\pazarlar_screen.dart:42:35 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\features\settings\screens\settings_screen.dart:32:24 - unnecessary_underscores
+

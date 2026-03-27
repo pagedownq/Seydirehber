@@ -1,0 +1,26 @@
+﻿Alias name: release
+Creation date: 27 Mar 2026
+Entry type: PrivateKeyEntry
+Certificate chain length: 1
+Certificate[1]:
+Owner: CN=SeydiRehber, OU=Dev, O=Seydi■ehir, L=Seydi■ehir, ST=Konya, C=TR
+Issuer: CN=SeydiRehber, OU=Dev, O=Seydi■ehir, L=Seydi■ehir, ST=Konya, C=TR
+Serial number: 6e4269c700ab23f7
+Valid from: Fri Mar 27 15:06:32 TRT 2026 until: Tue Aug 12 15:06:32 TRT 2053
+Certificate fingerprints:
+	 SHA1: BE:18:8A:D2:64:B8:36:F9:96:89:3C:C8:1D:52:95:A7:4C:37:0B:F4
+	 SHA256: F2:33:30:F6:07:2C:C2:05:85:D4:AD:63:10:4A:47:12:F7:70:38:CF:FF:CA:2F:64:54:CF:B4:98:8C:E0:C4:86
+Signature algorithm name: SHA384withRSA
+Subject Public Key Algorithm: 2048-bit RSA key
+Version: 3
+
+Extensions: 
+
+#1: ObjectId: 2.5.29.14 Criticality=false
+SubjectKeyIdentifier [
+KeyIdentifier [
+0000: 34 7F 58 5E 0F FB B8 3A   FB A2 18 BF 4F E5 05 2E  4.X^...:....O...
+0010: 84 CE 48 1E                                        ..H.
+]
+]
+

@@ -1,0 +1,21 @@
+### SEYDİ REHBER - ANDROID SHA ANAHTARLARI ###
+
+--- DEBUG (GELİŞTİRME) ---
+Dosya: C:\Users\Mehmet\.android\debug.keystore
+Alias: AndroidDebugKey
+Sertifika:
+SHA1: 82:B6:F7:C6:09:CF:03:F1:99:B9:C0:0D:1A:7F:5F:93:40:2F:88:B3
+SHA256: C8:A4:55:FE:6A:41:B2:95:63:E0:B2:88:48:F1:14:2B:23:83:23:A6:78:9B:8F:38:88:D0:14:76:9B:4D:EC:B5
+
+--- RELEASE (YAYIN) ---
+Dosya: seydirehberim/android/app/release.jks
+Alias: release
+Şifre: seydirehberim
+Sertifika:
+SHA1: BE:18:8A:D2:64:B8:36:F9:96:89:3C:C8:1D:52:95:A7:4C:37:0B:F4
+SHA256: F2:33:30:F6:07:2C:C2:05:85:D4:AD:63:10:4A:47:12:F7:70:38:CF:FF:CA:2F:64:54:CF:B4:98:8C:E0:C4:86
+
+### NOTLAR ###
+1. Bu anahtarları Firebase Console -> Proje Ayarları -> Android Uygulaması kısmına eklemeyi unutmayın.
+2. Google Sign-In çalışması için hem Debug hem Release SHA-1 anahtarlarının Firebase'de kayıtlı olması gerekir.
+3. Release anahtarını Play Store'da yayınlarken kullanın.

@@ -1,0 +1,29 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    function isAdmin() {
+      return request.auth != null && request.auth.token.email == 'mehmetirem305@gmail.com';
+    }
+
+    match /yardim_destek/{docId} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Public collections (Read: public, Write: admin)
+    match /banners/{docId} { allow read: if true; allow write: if isAdmin(); }
+    match /etkinlikler/{docId} { allow read: if true; allow write: if isAdmin(); }
+    match /noterler/{docId} { allow read: if true; allow write: if isAdmin(); }
+    match /pazarlar/{docId} { allow read: if true; allow write: if isAdmin(); }
+    match /otobus_saatleri/{docId} { allow read: if true; allow write: if isAdmin(); }
+    match /gezilecek_yerler/{docId} { allow read: if true; allow write: if isAdmin(); }
+    match /firmalar/{docId} { allow read: if true; allow write: if isAdmin(); }
+    
+    // Default fallback rule: denies all access by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,61 @@
+name: seydirehberim
+description: "Seydi Rehber - Seydişehir Rehber Uygulaması"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.8
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # Backend
+  firebase_core: ^3.0.0
+  firebase_auth: ^5.0.0
+  cloud_firestore: ^5.0.0
+  supabase_flutter: ^2.0.0
+
+  # State & Routing
+  flutter_riverpod: ^2.5.1
+  go_router: ^14.0.0
+
+  # UI/UX
+  cached_network_image: ^3.3.0
+  shimmer: ^3.0.0
+  smooth_page_indicator: ^1.1.0
+  google_fonts: ^6.2.1
+
+  # Tools
+  webview_flutter: ^4.0.0
+  url_launcher: ^6.0.0
+  share_plus: ^10.0.0
+  shared_preferences: ^2.2.0
+  in_app_review: ^2.0.0
+  http: ^1.0.0
+  xml2json: ^6.0.0
+
+  # Google Sign In
+  google_sign_in: ^6.0.0
+
+  # Image Picker for Admin
+  image_picker: ^1.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: any
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/SeydiRehber.png"
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/
