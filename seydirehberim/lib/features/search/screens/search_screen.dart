@@ -46,24 +46,42 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.white,
         elevation: 0,
+        titleSpacing: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new,
+              color: AppColors.textPrimary, size: 20),
+          onPressed: () => context.pop(),
+        ),
         title: TextField(
           controller: _searchController,
-          autofocus: widget.initialQuery == null,
+          autofocus: true,
+          style: AppTextStyles.bodyMedium,
           decoration: const InputDecoration(
             hintText: 'Ara...',
             border: InputBorder.none,
           ),
-          onChanged: (value) => ref.read(searchQueryProvider.notifier).state = value,
+          onChanged: (value) =>
+              ref.read(searchQueryProvider.notifier).state = value,
         ),
         actions: [
           if (query.isNotEmpty)
             IconButton(
-              icon: const Icon(Icons.clear, color: AppColors.textLight),
+              icon: const Icon(Icons.clear, color: AppColors.textLight, size: 20),
               onPressed: () {
                 _searchController.clear();
                 ref.read(searchQueryProvider.notifier).state = '';
               },
             ),
+          TextButton(
+            onPressed: () => context.pop(),
+            child: const Text(
+              'Vazgeç',
+              style: TextStyle(
+                color: AppColors.primary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
         ],
       ),
       body: query.isEmpty

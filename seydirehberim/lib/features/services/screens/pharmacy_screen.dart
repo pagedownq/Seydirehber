@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../core/widgets/error_view.dart';
 
 class PharmacyScreen extends StatefulWidget {
   const PharmacyScreen({super.key});
@@ -13,6 +14,7 @@ class PharmacyScreen extends StatefulWidget {
 class _PharmacyScreenState extends State<PharmacyScreen> {
   late final WebViewController _controller;
   bool _isLoading = true;
+  bool _hasError = false;
 
   @override
   void initState() {
@@ -21,8 +23,22 @@ class _PharmacyScreenState extends State<PharmacyScreen> {
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(
         NavigationDelegate(
+          onPageStarted: (_) {
+            setState(() {
+              _hasError = false;
+              _isLoading = true;
+            });
+          },
           onPageFinished: (_) {
-            setState(() => _isLoading = false);
+            setState(() {
+              _isLoading = false;
+            });
+          },
+          onWebResourceError: (error) {
+            setState(() {
+              _hasError = true;
+              _isLoading = false;
+            });
           },
         ),
       )
@@ -38,11 +54,21 @@ class _PharmacyScreenState extends State<PharmacyScreen> {
         title: Text('Nöbetçi Eczane', style: AppTextStyles.appBarTitle),
         backgroundColor: AppColors.white,
       ),
-      body: Stack(
+      body: IndexedStack(
+        index: _hasError ? 1 : (_isLoading ? 0 : 2),
         children: [
+          const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+          ErrorView(
+            message: 'Nöbetçi eczaneleri görüntülemek için lütfen internet bağlantınızı açın.',
+            onRetry: () {
+              setState(() {
+                _isLoading = true;
+                _hasError = false;
+              });
+              _controller.reload();
+            },
+          ),
           WebViewWidget(controller: _controller),
-          if (_isLoading)
-            const Center(child: CircularProgressIndicator(color: AppColors.primary)),
         ],
       ),
     );

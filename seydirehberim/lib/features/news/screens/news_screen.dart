@@ -4,8 +4,10 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/widgets/cached_image_widget.dart';
+import '../../../core/widgets/error_view.dart';
 import '../providers/news_provider.dart';
 import '../models/news_model.dart';
+import '../../../core/widgets/shimmer_widget.dart';
 
 class NewsScreen extends ConsumerWidget {
   const NewsScreen({super.key});
@@ -39,8 +41,16 @@ class NewsScreen extends ConsumerWidget {
             ),
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
-        error: (e, __) => Center(child: Text('Haberler alınamadı: $e')),
+        loading: () => ListView.separated(
+          padding: const EdgeInsets.all(16),
+          itemCount: 3,
+          separatorBuilder: (_, __) => const SizedBox(height: 16),
+          itemBuilder: (_, __) => NewsCardShimmer(),
+        ),
+        error: (e, stack) => ErrorView(
+          message: 'Haberleri güncellemek için lütfen internet bağlantınızı kontrol edin ve tekrar deneyin.',
+          onRetry: () => ref.refresh(newsProvider),
+        ),
       ),
     );
   }
@@ -184,3 +194,4 @@ class _NewsCard extends StatelessWidget {
     );
   }
 }
+

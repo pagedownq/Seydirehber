@@ -8,6 +8,7 @@ import '../../../core/constants/app_text_styles.dart';
 import '../../../core/widgets/cached_image_widget.dart';
 import '../../../core/widgets/map_button.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../favorites/providers/favorites_provider.dart';
 
 class CompanyDetailScreen extends ConsumerStatefulWidget {
@@ -26,12 +27,13 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
     _incrementViewCount();
   }
 
-  // Daily single increment view counter using shared_preferences
+  // Permanent single increment view counter using shared_preferences
   Future<void> _incrementViewCount() async {
     final prefs = await SharedPreferences.getInstance();
-    final today = DateTime.now().toIso8601String().substring(0, 10);
-    final key = 'view_${widget.companyId}_$today';
+    // Unique key per company for this device/user
+    final key = 'is_viewed_${widget.companyId}';
 
+    // Only increment if this specific company was NEVER viewed before on this device
     if (prefs.getBool(key) != true) {
       await prefs.setBool(key, true);
       await FirebaseFirestore.instance
@@ -55,10 +57,40 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           if (!snapshot.hasData || !snapshot.data!.exists) {
-            return const Center(child: Text('Firma bulunamadı'));
+            return const Scaffold(body: Center(child: Text('Firma bulunamadı')));
           }
 
           final data = snapshot.data!.data() as Map<String, dynamic>;
+          final now = DateTime.now();
+          if (data.containsKey('expiry_date') && data['expiry_date'] != null) {
+            try {
+              final expiry = (data['expiry_date'] as Timestamp).toDate();
+              if (expiry.isBefore(now)) {
+                return Scaffold(
+                  appBar: AppBar(),
+                  body: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.timer_off_outlined, size: 80, color: Colors.grey[400]),
+                          const SizedBox(height: 16),
+                          const Text(
+                            'Bu firmanın kayıt süresi dolmuş veya hizmet geçici olarak durdurulmuştur.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                );
+              }
+            } catch (e) {
+              // handle potentially malformed date data
+            }
+          }
           final name = data['ad'] as String? ?? '';
           final imageUrl = data['image_url'] as String? ?? data['gorsel'] as String? ?? '';
           final hakkinda = data['hakkinda'] as String? ?? '';
@@ -221,31 +253,29 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
                             const Text(
                               'İletişim Bilgileri',
                               style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black87,
+                                fontSize: 24,
+                                fontWeight: FontWeight.normal,
+                                color: Colors.black,
                               ),
                             ),
-                            const SizedBox(height: 25),
+                            const SizedBox(height: 16),
                             
                             if (yetkiliKisi.isNotEmpty)
-                              _buildModernInfoRow(Icons.person_rounded, 'YETKİLİ KİŞİ', yetkiliKisi),
+                              _buildContactRow(Icons.person_rounded, 'Yetkili Kişi', yetkiliKisi),
                             if (iletisim.isNotEmpty)
-                              _buildModernInfoRow(Icons.phone_rounded, 'TELEFON', iletisim, 
+                              _buildContactRow(Icons.phone_rounded, 'Telefon', iletisim, 
                                 onTap: () => _launchURL('tel:$iletisim')),
                             if (website != null && website.isNotEmpty)
-                              _buildModernInfoRow(Icons.language_rounded, 'WEB SİTESİ', website,
+                              _buildContactRow(Icons.language_rounded, 'Web Sitesi', website,
                                 onTap: () => _launchURL(website)),
                             if (email.isNotEmpty)
-                              _buildModernInfoRow(Icons.email_rounded, 'E-POSTA ADRESİ', email,
+                              _buildContactRow(Icons.email_rounded, 'E-Posta', email,
                                 onTap: () => _launchURL('mailto:$email')),
 
-                            const SizedBox(height: 20),
-
-                             if (instagram != null && instagram.isNotEmpty) ...[
-                               const SizedBox(height: 10),
-                               _buildSocialIcon(Icons.camera_alt_rounded, () => _launchURL(instagram)),
-                             ],
+                            if (instagram != null && instagram.isNotEmpty) ...[
+                              const SizedBox(height: 16),
+                              _buildSocialIcon(FontAwesomeIcons.instagram, () => _launchURL(instagram)),
+                            ],
 
                             const SizedBox(height: 40),
 
@@ -288,6 +318,51 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
               ],
             );
         },
+      ),
+    );
+  }
+
+  Widget _buildContactRow(IconData icon, String label, String value, {VoidCallback? onTap}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: InkWell(
+        onTap: onTap,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Icon(icon, size: 28, color: const Color(0xFF2E7D32)),
+            const SizedBox(width: 12),
+            SizedBox(
+              width: 90,
+              child: Text(
+                label,
+                style: const TextStyle(
+                  color: Color(0xFF2E7D32),
+                  fontSize: 16,
+                  fontWeight: FontWeight.normal,
+                ),
+              ),
+            ),
+            const Text(
+              ' :  ',
+              style: TextStyle(
+                color: Color(0xFF2E7D32),
+                fontSize: 16,
+                fontWeight: FontWeight.normal,
+              ),
+            ),
+            Expanded(
+              child: Text(
+                value,
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontSize: 15,
+                  fontWeight: FontWeight.normal,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -340,16 +415,39 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
     );
   }
 
-  Widget _buildSocialIcon(IconData icon, VoidCallback onTap) {
+  Widget _buildSocialIcon(dynamic icon, VoidCallback onTap) {
     return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
       child: Container(
-        padding: const EdgeInsets.all(10),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: AppColors.primarySurface,
+          color: Colors.white,
           shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
-        child: Icon(icon, size: 20, color: AppColors.primaryDark),
+        child: ShaderMask(
+          blendMode: BlendMode.srcIn,
+          shaderCallback: (Rect bounds) => const RadialGradient(
+            center: Alignment.bottomLeft,
+            radius: 1.5,
+            colors: [
+              Color(0xFFfdf497),
+              Color(0xFFf58529),
+              Color(0xFFdd2a7b),
+              Color(0xFF8134af),
+              Color(0xFF515bd4),
+            ],
+            stops: [0.0, 0.2, 0.5, 0.8, 1.0],
+          ).createShader(bounds),
+          child: FaIcon(icon, size: 28),
+        ),
       ),
     );
   }

@@ -131,5 +131,5 @@ final bannersProvider = StreamProvider((ref) {
       .watch(firestoreProvider)
       .collection('banners')
       .orderBy('order')
-      .snapshots();
+      .snapshots(includeMetadataChanges: true);
 });

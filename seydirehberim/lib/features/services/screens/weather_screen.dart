@@ -3,6 +3,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/constants/app_assets.dart';
+import '../../../core/widgets/error_view.dart';
 
 class WeatherScreen extends StatefulWidget {
   const WeatherScreen({super.key});
@@ -14,6 +15,7 @@ class WeatherScreen extends StatefulWidget {
 class _WeatherScreenState extends State<WeatherScreen> {
   late final WebViewController _controller;
   bool _isLoading = true;
+  bool _hasError = false;
 
   @override
   void initState() {
@@ -22,8 +24,22 @@ class _WeatherScreenState extends State<WeatherScreen> {
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(
         NavigationDelegate(
+          onPageStarted: (_) {
+            setState(() {
+              _hasError = false;
+              _isLoading = true;
+            });
+          },
           onPageFinished: (_) {
-            setState(() => _isLoading = false);
+            setState(() {
+              _isLoading = false;
+            });
+          },
+          onWebResourceError: (error) {
+            setState(() {
+              _hasError = true;
+              _isLoading = false;
+            });
           },
         ),
       )
@@ -38,13 +54,23 @@ class _WeatherScreenState extends State<WeatherScreen> {
         title: Text('Hava Durumu', style: AppTextStyles.appBarTitle),
         backgroundColor: AppColors.white,
       ),
-      body: Stack(
+      body: IndexedStack(
+        index: _hasError ? 1 : (_isLoading ? 0 : 2),
         children: [
+          const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+          ErrorView(
+            message: 'Hava durumu bilgilerini görüntülemek için lütfen internet bağlantınızı açın.',
+            onRetry: () {
+              setState(() {
+                _isLoading = true;
+                _hasError = false;
+              });
+              _controller.reload();
+            },
+          ),
           AbsorbPointer(
             child: WebViewWidget(controller: _controller),
           ),
-          if (_isLoading)
-            const Center(child: CircularProgressIndicator(color: AppColors.primary)),
         ],
       ),
     );

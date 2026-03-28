@@ -83,6 +83,8 @@ final routerProvider = Provider<GoRouter>((ref) {
           title: 'Etkinlikler',
           provider: allEventsProvider,
           routePrefix: 'events',
+          cacheKey: 'events_cache',
+          useGrid: true,
         ),
       ),
       GoRoute(
@@ -99,6 +101,8 @@ final routerProvider = Provider<GoRouter>((ref) {
           title: 'Gezilecek Yerler',
           provider: allPlacesProvider,
           routePrefix: 'places',
+          cacheKey: 'places_cache',
+          useGrid: true,
         ),
       ),
       GoRoute(
@@ -116,6 +120,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           provider: allCompaniesProvider,
           routePrefix: 'companies',
           showViewCount: true,
+          cacheKey: 'companies_all_cache',
         ),
       ),
       GoRoute(
@@ -125,6 +130,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           provider: allLatestCompaniesProvider,
           routePrefix: 'companies',
           showViewCount: true,
+          cacheKey: 'companies_latest_cache',
         ),
       ),
       GoRoute(
@@ -134,6 +140,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           provider: allPopularCompaniesProvider,
           routePrefix: 'companies',
           showViewCount: true,
+          cacheKey: 'companies_popular_cache',
         ),
       ),
       GoRoute(

@@ -22,27 +22,43 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: CustomScrollView(
-        slivers: [
-          // Basic AppBar
-          SliverAppBar(
-            backgroundColor: AppColors.white,
-            surfaceTintColor: Colors.transparent,
-            pinned: true,
-            title: Row(
-              children: [
-                Icon(Icons.location_on, color: AppColors.primary, size: 22),
-                const SizedBox(width: 6),
-                Flexible(
-                  child: Text(
-                    'Seydi Rehber',
-                    style: AppTextStyles.appBarTitle,
-                    overflow: TextOverflow.ellipsis,
+      body: RefreshIndicator(
+        onRefresh: () async {
+          // Parallelly refresh all primary data providers for the home screen
+          await Future.wait([
+            ref.refresh(bannersProvider.future),
+            ref.refresh(latestEventsProvider.future),
+            ref.refresh(latestPlacesProvider.future),
+            ref.refresh(alphabeticalCompaniesProvider.future),
+            ref.refresh(latestCompaniesProvider.future),
+            ref.refresh(popularCompaniesProvider.future),
+          ]);
+        },
+        color: AppColors.primary,
+        backgroundColor: AppColors.white,
+        edgeOffset: 100, // Make indicator appear below the app bar
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(), // Ensures it always drags even if content is small
+          slivers: [
+            // Basic AppBar
+            SliverAppBar(
+              backgroundColor: AppColors.white,
+              surfaceTintColor: Colors.transparent,
+              pinned: true,
+              title: Row(
+                children: [
+                  Icon(Icons.location_on, color: AppColors.primary, size: 22),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      'Seydi Rehber',
+                      style: AppTextStyles.appBarTitle,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
 
           // Action Buttons
           SliverToBoxAdapter(
@@ -76,11 +92,41 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
           ),
 
-          // Search Bar (Isolated)
-          const SliverToBoxAdapter(
+          // Search Bar (Static)
+          SliverToBoxAdapter(
             child: Padding(
-              padding: EdgeInsets.fromLTRB(16, 16, 16, 16),
-              child: _HomeSearchField(),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+              child: GestureDetector(
+                onTap: () => context.push('/search'),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: AppColors.border),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.search,
+                          color: AppColors.textLight, size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Etkinlik, firma veya yer ara...',
+                        style: AppTextStyles.bodySmall
+                            .copyWith(color: AppColors.textLight),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
 
@@ -222,8 +268,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildTopActionButton({
     required String title,
@@ -234,46 +281,62 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(20),
       child: Container(
         height: 100,
-        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: isBlack ? Colors.black : (gradient == null ? Colors.white : null),
           gradient: isBlack ? null : gradient,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
               color: (isBlack ? Colors.black : (gradient?.colors.first ?? AppColors.primary))
-                  .withOpacity(0.2),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
+                  .withOpacity(0.25),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: Stack(
           children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(10),
+            Positioned(
+              right: -10,
+              top: -10,
+              child: Icon(
+                icon,
+                size: 80,
+                color: Colors.white.withOpacity(0.12),
               ),
-              child: Icon(icon, color: Colors.white, size: 24),
             ),
-            Expanded(
-              child: Text(
-                title,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13,
-                  height: 1.2,
-                ),
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(7),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(icon, color: Colors.white, size: 22),
+                  ),
+                  const SizedBox(height: 4),
+                  Flexible(
+                    child: Text(
+                      title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 13,
+                        height: 1.1,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

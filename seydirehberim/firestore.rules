@@ -31,7 +31,11 @@ service cloud.firestore {
     match /pazarlar/{docId} { allow read: if true; allow write: if isAdmin(); }
     match /otobus_saatleri/{docId} { allow read: if true; allow write: if isAdmin(); }
     match /gezilecek_yerler/{docId} { allow read: if true; allow write: if isAdmin(); }
-    match /firmalar/{docId} { allow read: if true; allow write: if isAdmin(); }
+    match /firmalar/{docId} { 
+      allow read: if true; 
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['goruntulenme']);
+      allow write: if isAdmin(); 
+    }
     
     // Default fallback rule: denies all access by default
     match /{document=**} {

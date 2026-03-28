@@ -25,20 +25,47 @@ class HorizontalCardList extends ConsumerWidget {
     final dataAsync = ref.watch(provider);
 
     return dataAsync.when(
-      loading: () => const ShimmerListWidget(),
+      loading: () => ShimmerListWidget(
+        itemHeight: type == CardType.company ? 220 : 280,
+        itemWidth: type == CardType.company ? 250 : 170,
+        borderRadius: type == CardType.company ? 18 : 16,
+      ),
       error: (_, __) => const SizedBox(
         height: 100,
         child: Center(child: Text('Veriler yüklenemedi')),
       ),
       data: (snapshot) {
-        final docs = snapshot.docs;
+        final now = DateTime.now();
+        final docs = snapshot.docs.where((d) {
+          final data = d.data();
+          if (data.containsKey('expiry_date') && data['expiry_date'] != null) {
+            try {
+              final expiry = (data['expiry_date'] as Timestamp).toDate();
+              return expiry.isAfter(now);
+            } catch (e) {
+              return true; // If format is weird, show it
+            }
+          }
+          return true; // No expiry means forever
+        }).toList();
+
         if (docs.isEmpty) {
-          return SizedBox(
+          final String emptyTitle = type == CardType.event
+              ? 'Etkinlik'
+              : (type == CardType.place ? 'Yer' : 'Firma');
+
+          return Container(
             height: 100,
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.border),
+            ),
             child: Center(
               child: Text(
-                'Henüz veri bulunmuyor',
-                style: AppTextStyles.bodySmall,
+                'Henüz $emptyTitle eklenmedi',
+                style: AppTextStyles.bodySmall.copyWith(color: AppColors.textLight),
               ),
             ),
           );

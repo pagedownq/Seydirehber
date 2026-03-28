@@ -19,7 +19,6 @@ class AdminManageScreen extends ConsumerStatefulWidget {
     required this.title,
     this.bucket,
   });
-
   @override
   ConsumerState<AdminManageScreen> createState() => _AdminManageScreenState();
 }
@@ -83,6 +82,32 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
                   title: Text(name,
                       style: AppTextStyles.bodyMedium
                           .copyWith(fontWeight: FontWeight.w600)),
+                  subtitle: (widget.collection == 'firmalar')
+                      ? Builder(
+                          builder: (context) {
+                            if (data['expiry_date'] == null) {
+                              return Text(
+                                'Bitiş: Sınırsız',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.green[600],
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              );
+                            }
+                            final expiry = (data['expiry_date'] as Timestamp).toDate();
+                            final isExpired = expiry.isBefore(DateTime.now());
+                            return Text(
+                              'Bitiş: ${expiry.day.toString().padLeft(2, '0')}.${expiry.month.toString().padLeft(2, '0')}.${expiry.year}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: isExpired ? Colors.red : Colors.grey[600],
+                                fontWeight: isExpired ? FontWeight.bold : FontWeight.normal,
+                              ),
+                            );
+                          },
+                        )
+                      : null,
                   trailing: PopupMenuButton(
                     itemBuilder: (ctx) => [
                       const PopupMenuItem(value: 'edit', child: Text('Düzenle')),
@@ -114,7 +139,8 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
       case 'banners':
         return [
           _FieldConfig('ad', 'Banner Adı', required: true),
-          _FieldConfig('url', 'Banner Linki (Opsiyonel)'),
+          _FieldConfig('url', 'Dış Bağlantı (Opsiyonel)'),
+          _FieldConfig('company_id', 'Firma Yönlendirme (Opsiyonel)', isCompanyPicker: true),
           _FieldConfig('order', 'Sıra (0, 1, 2...)', isNumber: true),
         ];
       case 'etkinlikler':
@@ -162,6 +188,7 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
           _FieldConfig('konum', 'Konum (Adres veya Harita Linki)'),
           _FieldConfig('website', 'Web Sitesi'),
           _FieldConfig('instagram', 'Instagram (Kullanıcı adı veya Link)'),
+          _FieldConfig('expiry_date', 'Firma Bitiş Tarihi', isDate: true),
         ];
       default:
         return [_FieldConfig('ad', 'Ad', required: true)];
@@ -175,10 +202,27 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
     bool isLoading = false;
 
     for (final field in fields) {
-      controllers[field.key] = TextEditingController(
-        text: existingData?[field.key]?.toString() ?? '',
-      );
+      String initialValue = '';
+      final val = existingData?[field.key];
+      
+      if (val != null) {
+        if (val is Timestamp) {
+          final date = val.toDate();
+          if (field.isDateTime) {
+            initialValue = "${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}";
+          } else {
+            initialValue = "${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}";
+          }
+        } else {
+          initialValue = val.toString();
+        }
+      }
+      
+      controllers[field.key] = TextEditingController(text: initialValue);
     }
+
+    bool isUnlimited = widget.collection == 'firmalar' && 
+                       (existingData?['expiry_date'] == null && (docId != null || controllers['expiry_date']?.text.isEmpty != false));
 
     showModalBottomSheet(
       context: context,
@@ -188,6 +232,7 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
       ),
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setModalState) {
+          // Sync with controller locally if needed, but allow toggle
           return Padding(
             padding: EdgeInsets.fromLTRB(
               20,
@@ -243,59 +288,104 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
                     const SizedBox(height: 16),
                   ],
 
-                  // Dynamic fields
-                  ...fields.map((field) {
-                    final isInteractionField = field.isDate || field.isTime;
+                  ...fields.expand((field) {
+                    final isInteractionField = field.isDate || field.isTime || field.isDateTime || field.isCompanyPicker;
+                    final isExpiryField = field.key == 'expiry_date';
 
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: TextField(
-                        controller: controllers[field.key],
-                        readOnly: isInteractionField,
-                        maxLines: field.multiline ? 4 : 1,
-                        onTap: isInteractionField
-                            ? () async {
-                                if (field.isDate) {
-                                  final date = await showDatePicker(
-                                    context: context,
-                                    initialDate: DateTime.now(),
-                                    firstDate: DateTime(2024),
-                                    lastDate: DateTime(2030),
-                                  );
-                                  if (date != null) {
-                                    final formatted =
-                                        "${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}";
-                                    controllers[field.key]?.text = formatted;
-                                  }
-                                } else if (field.isTime) {
-                                  final time = await showTimePicker(
-                                    context: context,
-                                    initialTime: TimeOfDay.now(),
-                                  );
-                                  if (time != null) {
-                                    controllers[field.key]?.text =
-                                        "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}";
-                                  }
-                                }
+                    return [
+                      if (isExpiryField)
+                        CheckboxListTile(
+                          value: isUnlimited,
+                          onChanged: (val) {
+                            setModalState(() {
+                              isUnlimited = val ?? false;
+                              if (isUnlimited) {
+                                controllers[field.key]?.clear();
                               }
-                            : null,
-                        keyboardType: field.isNumber || field.isPhone
-                            ? TextInputType.number
-                            : TextInputType.text,
-                        decoration: InputDecoration(
-                          labelText: field.label,
-                          hintText: field.label,
-                          alignLabelWithHint: field.multiline,
-                          suffixIcon: field.isDate
-                              ? const Icon(Icons.calendar_today, size: 20)
-                              : field.isTime
-                                  ? const Icon(Icons.access_time, size: 20)
-                                  : null,
+                            });
+                          },
+                          title: const Text('Sınırsız Gösterim', style: TextStyle(fontSize: 14)),
+                          controlAffinity: ListTileControlAffinity.leading,
+                          contentPadding: EdgeInsets.zero,
+                          dense: true,
                         ),
-                      ),
-                    );
-                  }),
-
+                      if (!isExpiryField || !isUnlimited)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: TextField(
+                            controller: controllers[field.key],
+                            readOnly: isInteractionField,
+                            maxLines: field.multiline ? 4 : 1,
+                            onTap: isInteractionField
+                                ? () async {
+                                    if (field.isDate || field.isDateTime) {
+                                      final date = await showDatePicker(
+                                        context: context,
+                                        initialDate: DateTime.now(),
+                                        firstDate: DateTime(2024),
+                                        lastDate: DateTime(2030),
+                                      );
+                                      if (date != null) {
+                                        if (field.isDateTime) {
+                                          final time = await showTimePicker(
+                                            context: context,
+                                            initialTime: TimeOfDay.now(),
+                                          );
+                                          if (time != null) {
+                                            final dateTime = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+                                            controllers[field.key]?.text = 
+                                              "${dateTime.day.toString().padLeft(2, '0')}.${dateTime.month.toString().padLeft(2, '0')}.${dateTime.year} ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}";
+                                          }
+                                        } else {
+                                          final formatted =
+                                              "${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}";
+                                          controllers[field.key]?.text = formatted;
+                                        }
+                                      }
+                                    } else if (field.isTime) {
+                                      final time = await showTimePicker(
+                                        context: context,
+                                        initialTime: TimeOfDay.now(),
+                                      );
+                                      if (time != null) {
+                                        controllers[field.key]?.text =
+                                            "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}";
+                                      }
+                                    } else if (field.isCompanyPicker) {
+                                      _showCompanyPicker(context, (id, name) {
+                                        setModalState(() {
+                                          controllers[field.key]?.text = "$name | $id";
+                                        });
+                                      });
+                                    }
+                                  }
+                                : null,
+                            keyboardType: field.isNumber || field.isPhone
+                                ? TextInputType.number
+                                : TextInputType.text,
+                            decoration: InputDecoration(
+                              labelText: field.label,
+                              hintText: field.label,
+                              alignLabelWithHint: field.multiline,
+                              suffixIcon: field.isDate || field.isDateTime
+                                  ? const Icon(Icons.calendar_today, size: 20)
+                                  : field.isTime
+                                      ? const Icon(Icons.access_time, size: 20)
+                                      : field.isCompanyPicker
+                                          ? IconButton(
+                                              icon: controllers[field.key]!.text.isNotEmpty 
+                                                  ? const Icon(Icons.clear, size: 20)
+                                                  : const Icon(Icons.business, size: 20),
+                                              onPressed: controllers[field.key]!.text.isNotEmpty 
+                                                  ? () => setModalState(() => controllers[field.key]?.clear())
+                                                  : null,
+                                            )
+                                          : null,
+                            ),
+                          ),
+                        ),
+                    ];
+                  }).toList(),
                   const SizedBox(height: 8),
                   SizedBox(
                     width: double.infinity,
@@ -345,6 +435,29 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
                                       if (field.isNumber) {
                                         docData[field.key] =
                                             int.tryParse(value) ?? 0;
+                                      } else if (field.key == 'expiry_date') {
+                                        // Parse dd.MM.yyyy back to Timestamp
+                                        try {
+                                           final parts = value.split(' ');
+                                           final dateParts = parts[0].split('.');
+                                           
+                                           int year = int.parse(dateParts[2]);
+                                           int month = int.parse(dateParts[1]);
+                                           int day = int.parse(dateParts[0]);
+                                           int hour = 0;
+                                           int minute = 0;
+
+                                           if (parts.length > 1) {
+                                             final timeParts = parts[1].split(':');
+                                             hour = int.parse(timeParts[0]);
+                                             minute = int.parse(timeParts[1]);
+                                           }
+
+                                           final date = DateTime(year, month, day, hour, minute);
+                                           docData[field.key] = Timestamp.fromDate(date);
+                                        } catch (e) {
+                                          debugPrint('Date parse error: $e');
+                                        }
                                       } else if (field.key == 'instagram') {
                                         // Auto-prefix instagram username
                                         if (!value.startsWith('http')) {
@@ -353,9 +466,16 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
                                         } else {
                                           docData[field.key] = value;
                                         }
+                                      } else if (field.isCompanyPicker) {
+                                        // Extract ID from "Name | ID" format
+                                        final parts = value.split(' | ');
+                                        docData[field.key] = parts.last;
                                       } else {
                                         docData[field.key] = value;
                                       }
+                                    } else {
+                                      // Explicitly set to null to allow clearing optional fields (banners etc.)
+                                      docData[field.key] = null;
                                     }
                                   }
 
@@ -452,11 +572,11 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
         try {
           final uri = Uri.parse(imageUrl);
           final fileName = uri.pathSegments.last;
-          
+
           await Supabase.instance.client.storage
               .from(widget.bucket!)
               .remove([fileName]);
-          
+
           debugPrint('Storage item deleted: $fileName');
         } catch (storageError) {
           debugPrint('Storage delete error: $storageError');
@@ -489,6 +609,67 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
       }
     }
   }
+
+  void _showCompanyPicker(
+      BuildContext context, Function(String id, String name) onSelect) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Firma Seç'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                decoration: const InputDecoration(
+                  hintText: 'Firma ara...',
+                  prefixIcon: Icon(Icons.search),
+                ),
+                onChanged: (val) {
+                  // Basic filtering logic could go here
+                },
+              ),
+              const SizedBox(height: 16),
+              Flexible(
+                child: StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('firmalar')
+                      .orderBy('ad')
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+
+                    final companies = snapshot.data!.docs;
+                    return ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: companies.length,
+                      itemBuilder: (context, index) {
+                        final data =
+                            companies[index].data() as Map<String, dynamic>;
+                        final name = data['ad'] ?? 'İsimsiz';
+                        final id = companies[index].id;
+
+                        return ListTile(
+                          title: Text(name),
+                          onTap: () {
+                            onSelect(id, name);
+                            Navigator.pop(context);
+                          },
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _FieldConfig {
@@ -499,7 +680,9 @@ class _FieldConfig {
   final bool isNumber;
   final bool isDate;
   final bool isTime;
+  final bool isDateTime;
   final bool isPhone;
+  final bool isCompanyPicker;
 
   _FieldConfig(
     this.key,
@@ -509,6 +692,8 @@ class _FieldConfig {
     this.isNumber = false,
     this.isDate = false,
     this.isTime = false,
+    this.isDateTime = false,
     this.isPhone = false,
+    this.isCompanyPicker = false,
   });
 }

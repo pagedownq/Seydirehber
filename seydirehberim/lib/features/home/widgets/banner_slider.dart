@@ -1,8 +1,8 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/widgets/cached_image_widget.dart';
 import '../../../core/widgets/shimmer_widget.dart';
@@ -74,10 +74,17 @@ class _BannerSliderState extends ConsumerState<BannerSlider> {
                     itemBuilder: (context, index) {
                       final data = banners[index].data() as Map<String, dynamic>;
                       final imageUrl = data['image_url'] as String? ?? '';
+                      final companyId = data['company_id'] as String? ?? '';
                       final targetUrl = data['url'] as String? ?? '';
 
                       return GestureDetector(
-                        onTap: targetUrl.isNotEmpty ? () => _launchURL(targetUrl) : null,
+                        onTap: () {
+                          if (companyId.isNotEmpty) {
+                            context.push('/companies/$companyId');
+                          } else if (targetUrl.isNotEmpty) {
+                            _launchURL(targetUrl);
+                          }
+                        },
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           child: Container(

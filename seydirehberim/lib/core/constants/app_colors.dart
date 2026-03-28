@@ -54,6 +54,6 @@ class AppColors {
   static const LinearGradient weatherGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Color(0xFF2196F3), Color(0xFF03A9F4)],
+    colors: [Color(0xFF2196F3), Color(0xFF00BCD4)],
   );
 }
