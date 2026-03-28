@@ -11,6 +11,8 @@ class CachedImageWidget extends StatelessWidget {
   final int? memCacheWidth;
   final int? memCacheHeight;
 
+  final bool isCompany;
+
   const CachedImageWidget({
     super.key,
     required this.imageUrl,
@@ -20,10 +22,31 @@ class CachedImageWidget extends StatelessWidget {
     this.borderRadius = 0,
     this.memCacheWidth,
     this.memCacheHeight,
+    this.isCompany = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    if (imageUrl.isEmpty) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(borderRadius),
+        child: isCompany
+            ? Image.asset(
+                'assets/fotoyok.png',
+                width: width,
+                height: height,
+                fit: fit,
+              )
+            : Container(
+                width: width,
+                height: height,
+                color: AppColors.primarySurface,
+                child: const Icon(Icons.image_not_supported_outlined,
+                    color: AppColors.primaryDark),
+              ),
+      );
+    }
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(borderRadius),
       child: RepaintBoundary(
@@ -53,21 +76,15 @@ class CachedImageWidget extends StatelessWidget {
             width: width,
             height: height,
             color: AppColors.primarySurface,
-            child: const Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.image_not_supported_outlined,
-                    color: AppColors.textLight, size: 32),
-                SizedBox(height: 4),
-                Text(
-                  'Görsel yüklenemedi',
-                  style: TextStyle(
-                    color: AppColors.textLight,
-                    fontSize: 11,
-                  ),
-                ),
-              ],
-            ),
+            child: isCompany
+                ? Image.asset(
+                    'assets/fotoyok.png',
+                    width: width,
+                    height: height,
+                    fit: fit,
+                  )
+                : const Icon(Icons.broken_image_outlined,
+                    color: AppColors.primaryDark),
           ),
         ),
       ),

@@ -74,24 +74,12 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: ListTile(
-                  leading: imageUrl.isNotEmpty
-                      ? ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: CachedImageWidget(
-                            imageUrl: imageUrl,
-                            width: 50,
-                            height: 50,
-                          ),
-                        )
-                      : Container(
-                          width: 50,
-                          height: 50,
-                          decoration: BoxDecoration(
-                            color: AppColors.primarySurface,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Icon(Icons.image, color: AppColors.textLight),
-                        ),
+                  leading: CachedImageWidget(
+                    imageUrl: imageUrl,
+                    width: 50,
+                    height: 50,
+                    borderRadius: 8,
+                  ),
                   title: Text(name,
                       style: AppTextStyles.bodyMedium
                           .copyWith(fontWeight: FontWeight.w600)),
@@ -126,6 +114,7 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
       case 'banners':
         return [
           _FieldConfig('ad', 'Banner Adı', required: true),
+          _FieldConfig('url', 'Banner Linki (Opsiyonel)'),
           _FieldConfig('order', 'Sıra (0, 1, 2...)', isNumber: true),
         ];
       case 'etkinlikler':
@@ -243,22 +232,12 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
                                 borderRadius: BorderRadius.circular(12),
                                 child: Image.file(selectedImage!, fit: BoxFit.cover),
                               )
-                            : existingData?['image_url'] != null
-                                ? CachedImageWidget(
-                                    imageUrl: existingData!['image_url'],
-                                    borderRadius: 12,
-                                  )
-                                : const Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(Icons.add_photo_alternate,
-                                          size: 36, color: AppColors.textLight),
-                                      SizedBox(height: 4),
-                                      Text('Görsel Seç',
-                                          style: TextStyle(
-                                              color: AppColors.textLight)),
-                                    ],
-                                  ),
+                            : CachedImageWidget(
+                                imageUrl: existingData?['image_url'] ?? '',
+                                borderRadius: 12,
+                                width: double.infinity,
+                                height: 120,
+                              ),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -380,8 +359,11 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
                                     }
                                   }
 
-                                if (imageUrl != null) {
+                                if (imageUrl != null && imageUrl.isNotEmpty) {
                                   docData['image_url'] = imageUrl;
+                                } else {
+                                  // Use empty string to trigger the 'fotoyok.png' default in the UI
+                                  docData['image_url'] = '';
                                 }
 
                                 if (docId == null) {

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/widgets/cached_image_widget.dart';
 import '../../../core/widgets/shimmer_widget.dart';
@@ -21,6 +22,22 @@ class _BannerSliderState extends ConsumerState<BannerSlider> {
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  Future<void> _launchURL(String url) async {
+    String finalUrl = url;
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      finalUrl = 'https://$url';
+    }
+
+    final uri = Uri.parse(finalUrl);
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      debugPrint('Error launching URL: $e');
+    }
   }
 
   @override
@@ -57,27 +74,31 @@ class _BannerSliderState extends ConsumerState<BannerSlider> {
                     itemBuilder: (context, index) {
                       final data = banners[index].data() as Map<String, dynamic>;
                       final imageUrl = data['image_url'] as String? ?? '';
+                      final targetUrl = data['url'] as String? ?? '';
 
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.08),
-                                blurRadius: 12,
-                                offset: const Offset(0, 4),
+                      return GestureDetector(
+                        onTap: targetUrl.isNotEmpty ? () => _launchURL(targetUrl) : null,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.08),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: CachedImageWidget(
+                                imageUrl: imageUrl,
+                                width: imageWidth,
+                                height: imageHeight,
+                                fit: BoxFit.cover, // Better than fill to avoid stretching
                               ),
-                            ],
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(16),
-                            child: CachedImageWidget(
-                              imageUrl: imageUrl,
-                              width: imageWidth,
-                              height: imageHeight,
-                              fit: BoxFit.cover, // Better than fill to avoid stretching
                             ),
                           ),
                         ),

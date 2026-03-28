@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/widgets/cached_image_widget.dart';
@@ -16,7 +17,7 @@ class EventDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.white,
       body: StreamBuilder<DocumentSnapshot>(
         stream: FirebaseFirestore.instance
             .collection('etkinlikler')
@@ -39,74 +40,168 @@ class EventDetailScreen extends ConsumerWidget {
           final endDate = data['bitis_tarihi'] ?? data['bitis_tarihi_str'];
           final saat = data['saat'] as String?;
 
-          return CustomScrollView(
-            slivers: [
-              SliverAppBar(
-                expandedHeight: 250,
-                pinned: true,
-                backgroundColor: AppColors.white,
-                flexibleSpace: FlexibleSpaceBar(
-                  background: imageUrl.isNotEmpty
-                      ? CachedImageWidget(
-                          imageUrl: imageUrl,
-                          fit: BoxFit.cover,
-                        )
-                      : Container(color: AppColors.primarySurface),
-                ),
-                actions: [
-                  IconButton(
-                    icon: const Icon(Icons.share, color: Colors.white),
-                    onPressed: () {
-                      Share.share(
-                        '$name etkinliğini Seydi Rehber\'de keşfet!',
-                      );
-                    },
+          return Stack(
+            children: [
+              CustomScrollView(
+                slivers: [
+                  SliverAppBar(
+                    expandedHeight: 280,
+                    pinned: true,
+                    elevation: 0,
+                    backgroundColor: AppColors.primaryDark,
+                    foregroundColor: Colors.white,
+                    leading: Container(
+                      margin: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.3),
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.arrow_back, size: 20),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ),
+                    flexibleSpace: FlexibleSpaceBar(
+                      background: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          CachedImageWidget(
+                            imageUrl: imageUrl,
+                            fit: BoxFit.cover,
+                          ),
+                          DecoratedBox(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.black.withOpacity(0.4),
+                                  Colors.transparent,
+                                  Colors.black.withOpacity(0.2),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    actions: [
+                      Container(
+                        margin: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.3),
+                          shape: BoxShape.circle,
+                        ),
+                        child: IconButton(
+                          icon: const Icon(Icons.share_outlined, size: 20),
+                          onPressed: () {
+                            Share.share('$name etkinliğini Seydi Rehber\'de keşfet!');
+                          },
+                        ),
+                      ),
+                    ],
+                    bottom: PreferredSize(
+                      preferredSize: const Size.fromHeight(20),
+                      child: Container(
+                        height: 20,
+                        width: double.infinity,
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.vertical(top: Radius.circular(38)),
+                        ),
+                      ),
+                    ),
                   ),
+
+                  SliverToBoxAdapter(
+                    child: Container(
+                      color: Colors.white,
+                      padding: const EdgeInsets.fromLTRB(25, 0, 25, 120),
+                      child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              name,
+                              style: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.black,
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            
+                            const SizedBox(height: 32),
+
+                            // Zaman Bilgisi Section
+                            const Text(
+                              'Zaman Bilgisi',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            
+                            _buildModernInfoRow(Icons.calendar_month, 'BAŞLANGIÇ', _formatDate(startDate)),
+                            if (endDate != null)
+                              _buildModernInfoRow(Icons.event_note, 'BİTİŞ TARİHİ', _formatDate(endDate)),
+                            if (saat != null)
+                              _buildModernInfoRow(Icons.access_time_filled, 'ETKİNLİK SAATİ', saat),
+
+                            const SizedBox(height: 40),
+
+                            if (hakkinda.isNotEmpty) ...[
+                              const Text(
+                                'Açıklama',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                hakkinda,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey[800],
+                                  height: 1.5,
+                                ),
+                              ),
+                              const SizedBox(height: 40),
+                            ],
+
+                            if (konum != null && konum.isNotEmpty) ...[
+                              const SectionTitle(title: 'Konum'),
+                              const SizedBox(height: 16),
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton.icon(
+                                  onPressed: () => _launchMap(konum!),
+                                  icon: const Icon(Icons.near_me_rounded),
+                                  label: const Text('HARİTA ÜZERİNDEN BAK', 
+                                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 0.5)),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.primarySurface,
+                                    foregroundColor: AppColors.primaryDark,
+                                    padding: const EdgeInsets.symmetric(vertical: 18),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(15),
+                                    ),
+                                    elevation: 0,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
                 ],
               ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(name, style: AppTextStyles.heading2),
-                      const SizedBox(height: 12),
 
-                      // Dates
-                      _buildInfoRow(
-                        Icons.calendar_today,
-                        'Başlangıç',
-                        _formatDate(startDate),
-                      ),
-                      if (endDate != null) ...[
-                        const SizedBox(height: 8),
-                        _buildInfoRow(
-                          Icons.event,
-                          'Bitiş',
-                          _formatDate(endDate),
-                        ),
-                      ],
-                      if (saat != null) ...[
-                        const SizedBox(height: 8),
-                        _buildInfoRow(Icons.access_time, 'Saat', saat),
-                      ],
-
-                      if (hakkinda.isNotEmpty) ...[
-                        const SizedBox(height: 20),
-                        Text('Hakkında', style: AppTextStyles.heading3),
-                        const SizedBox(height: 8),
-                        Text(hakkinda, style: AppTextStyles.bodyMedium),
-                      ],
-
-                      if (konum != null && konum.isNotEmpty) ...[
-                        const SizedBox(height: 20),
-                        MapButton(locationUrl: konum),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
             ],
           );
         },
@@ -114,14 +209,45 @@ class EventDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value) {
-    return Row(
-      children: [
-        Icon(icon, size: 18, color: AppColors.primary),
-        const SizedBox(width: 8),
-        Text('$label: ', style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.w600)),
-        Expanded(child: Text(value, style: AppTextStyles.bodySmall)),
-      ],
+  Widget _buildModernInfoRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.primarySurface,
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: Icon(icon, size: 24, color: AppColors.primaryDark),
+          ),
+          const SizedBox(width: 20),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  color: Colors.grey[500],
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1.2,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                value,
+                style: const TextStyle(
+                  color: Colors.black87,
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -132,5 +258,35 @@ class EventDetailScreen extends ConsumerWidget {
       return '${dt.day.toString().padLeft(2, '0')}.${dt.month.toString().padLeft(2, '0')}.${dt.year}';
     }
     return date.toString();
+  }
+
+  Future<void> _launchMap(String query) async {
+    String mapUrl = '';
+    if (query.startsWith('http')) {
+      mapUrl = query;
+    } else {
+      mapUrl = 'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(query)}';
+    }
+    final uri = Uri.parse(mapUrl);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+}
+
+class SectionTitle extends StatelessWidget {
+  final String title;
+  const SectionTitle({super.key, required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      title,
+      style: const TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.bold,
+        color: Colors.black87,
+      ),
+    );
   }
 }

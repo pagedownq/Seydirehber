@@ -20,31 +20,23 @@ import '../../features/admin/screens/admin_screen.dart';
 import '../../features/admin/screens/admin_manage_screen.dart';
 import '../../features/admin/screens/admin_support_screen.dart';
 import '../../features/favorites/screens/favorites_screen.dart';
-import '../../features/splash/screens/splash_screen.dart';
 import '../widgets/generic_list_screen.dart';
 import '../../features/home/providers/home_providers.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
-    initialLocation: '/splash',
+    initialLocation: '/',
     redirect: (context, state) async {
       final prefs = await SharedPreferences.getInstance();
       final onboardingCompleted = docsCompletedCheck(prefs);
 
       if (!onboardingCompleted && 
-          state.matchedLocation != '/onboarding' && 
-          state.matchedLocation != '/splash') {
+          state.matchedLocation != '/onboarding') {
         return '/onboarding';
       }
       return null;
     },
     routes: [
-      // Splash
-      GoRoute(
-        path: '/splash',
-        builder: (context, state) => const SplashScreen(),
-      ),
-
       // Onboarding
       GoRoute(
         path: '/onboarding',

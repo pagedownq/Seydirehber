@@ -7,6 +7,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/widgets/cached_image_widget.dart';
 import '../../../core/widgets/map_button.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../favorites/providers/favorites_provider.dart';
 
 class CompanyDetailScreen extends ConsumerStatefulWidget {
@@ -42,9 +43,8 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final favorites = ref.watch(favoritesProvider);
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.white,
       body: StreamBuilder<DocumentSnapshot>(
         stream: FirebaseFirestore.instance
             .collection('firmalar')
@@ -64,141 +64,324 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
           final hakkinda = data['hakkinda'] as String? ?? '';
           final iletisim = data['iletisim'] as String? ?? '';
           final yetkiliKisi = data['yetkili_kisi'] as String? ?? '';
+          final email = data['email'] as String? ?? '';
+          final category = data['kategori'] as String? ?? '';
           final konum = data['konum'] as String?;
           final website = data['website'] as String?;
           final instagram = data['instagram'] as String?;
-          final viewCount = data['goruntulenme'] as int? ?? 0;
 
-          return CustomScrollView(
-            slivers: [
-              SliverAppBar(
-                expandedHeight: 250,
-                pinned: true,
-                backgroundColor: AppColors.white,
-                flexibleSpace: FlexibleSpaceBar(
-                  background: imageUrl.isNotEmpty
-                      ? CachedImageWidget(imageUrl: imageUrl, fit: BoxFit.cover)
-                      : Container(color: AppColors.primarySurface),
-                ),
-                actions: [
-                  Builder(
-                    builder: (context) {
-                      final isFav = favorites.any((e) => 
-                        e.id == widget.companyId && e.type == 'company');
-                      return IconButton(
-                        icon: Icon(
-                          isFav ? Icons.favorite : Icons.favorite_border,
-                          color: isFav ? Colors.red : Colors.white,
-                        ),
-                        onPressed: () {
-                          ref.read(favoritesProvider.notifier)
-                              .toggleFavorite(widget.companyId, 'company');
-                        },
-                      );
-                    },
-                  ),
-                ],
-              ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
+          return Stack(
+            children: [
+              CustomScrollView(
+                slivers: [
+                  // App Bar with Image
+                  SliverAppBar(
+                    expandedHeight: 280,
+                    pinned: true,
+                    elevation: 0,
+                    backgroundColor: AppColors.primaryDark,
+                    foregroundColor: Colors.white,
+                    leading: Container(
+                      margin: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.3),
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.arrow_back, size: 20),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ),
+                    flexibleSpace: FlexibleSpaceBar(
+                      background: Stack(
+                        fit: StackFit.expand,
                         children: [
-                          Expanded(child: Text(name, style: AppTextStyles.heading2)),
-                          Row(
-                            children: [
-                              const Icon(Icons.visibility_outlined,
-                                  size: 16, color: AppColors.textLight),
-                              const SizedBox(width: 4),
-                              const Text(' '),
-                              Text('$viewCount', style: AppTextStyles.bodySmall),
-                            ],
+                          CachedImageWidget(
+                            imageUrl: imageUrl,
+                            fit: BoxFit.cover,
+                            isCompany: true,
+                          ),
+                          // Dark overlay for readability
+                          DecoratedBox(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.black.withOpacity(0.4),
+                                  Colors.transparent,
+                                  Colors.black.withOpacity(0.2),
+                                ],
+                              ),
+                            ),
                           ),
                         ],
                       ),
-
-                      if (yetkiliKisi.isNotEmpty) ...[
-                        const SizedBox(height: 12),
-                        _buildInfoRow(Icons.person_outline, 'Yetkili Kişi', yetkiliKisi),
-                      ],
-
-                      if (iletisim.isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        _buildInfoRow(Icons.phone, 'İletişim', iletisim),
-                      ],
-
-                      if (hakkinda.isNotEmpty) ...[
-                        const SizedBox(height: 16),
-                        Text('Hakkında', style: AppTextStyles.heading3),
-                        const SizedBox(height: 8),
-                        Text(hakkinda, style: AppTextStyles.bodyMedium),
-                      ],
-
-                      // Optional web & social
-                      if (website != null && website.isNotEmpty) ...[
-                        const SizedBox(height: 12),
-                        _buildLinkRow(Icons.language, 'Web Sitesi', website),
-                      ],
-                      if (instagram != null && instagram.isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        _buildLinkRow(Icons.camera_alt_outlined, 'Instagram', instagram),
-                      ],
-
-                      if (konum != null && konum.isNotEmpty) ...[
-                        const SizedBox(height: 20),
-                        MapButton(locationUrl: konum),
-                      ],
+                    ),
+                    actions: [
+                      Container(
+                        margin: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.3),
+                          shape: BoxShape.circle,
+                        ),
+                        child: IconButton(
+                          icon: const Icon(Icons.share_outlined, size: 20),
+                          onPressed: () {
+                            Share.share('$name firmasını Seydi Rehber\'de keşfet!');
+                          },
+                        ),
+                      ),
+                      Consumer(
+                        builder: (context, ref, child) {
+                          final favorites = ref.watch(favoritesProvider);
+                          final isFav = favorites.any((e) => 
+                            e.id == widget.companyId && e.type == 'company');
+                          return Container(
+                            margin: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.3),
+                              shape: BoxShape.circle,
+                            ),
+                            child: IconButton(
+                              icon: Icon(
+                                isFav ? Icons.favorite : Icons.favorite_border,
+                                color: isFav ? Colors.red : Colors.white,
+                                size: 20,
+                              ),
+                              onPressed: () {
+                                ref.read(favoritesProvider.notifier)
+                                    .toggleFavorite(widget.companyId, 'company');
+                              },
+                            ),
+                          );
+                        },
+                      ),
                     ],
+                    bottom: PreferredSize(
+                      preferredSize: const Size.fromHeight(20),
+                      child: Container(
+                        height: 20,
+                        width: double.infinity,
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.vertical(top: Radius.circular(38)),
+                        ),
+                      ),
+                    ),
                   ),
+
+                  // Content Card
+                  SliverToBoxAdapter(
+                    child: Container(
+                      color: Colors.white,
+                      padding: const EdgeInsets.fromLTRB(25, 10, 25, 120),
+                      child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Title and Category (No Logo)
+                            Text(
+                              name,
+                              style: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.black,
+                                height: 1.1,
+                              ),
+                            ),
+                                if (category.isNotEmpty) ...[
+                                  Text(
+                                    category.toUpperCase(),
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      color: AppColors.primaryDark,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 1.2,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                ],
+
+                            const SizedBox(height: 32),
+
+                            // Description
+                            if (hakkinda.isNotEmpty) ...[
+                              Text(
+                                hakkinda,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey[800],
+                                  height: 1.5,
+                                ),
+                              ),
+                              const SizedBox(height: 40),
+                            ],
+
+                            // Contact Info Section
+                            const Text(
+                              'İletişim Bilgileri',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            const SizedBox(height: 25),
+                            
+                            if (yetkiliKisi.isNotEmpty)
+                              _buildModernInfoRow(Icons.person_rounded, 'YETKİLİ KİŞİ', yetkiliKisi),
+                            if (iletisim.isNotEmpty)
+                              _buildModernInfoRow(Icons.phone_rounded, 'TELEFON', iletisim, 
+                                onTap: () => _launchURL('tel:$iletisim')),
+                            if (website != null && website.isNotEmpty)
+                              _buildModernInfoRow(Icons.language_rounded, 'WEB SİTESİ', website,
+                                onTap: () => _launchURL(website)),
+                            if (email.isNotEmpty)
+                              _buildModernInfoRow(Icons.email_rounded, 'E-POSTA ADRESİ', email,
+                                onTap: () => _launchURL('mailto:$email')),
+
+                            const SizedBox(height: 20),
+
+                             if (instagram != null && instagram.isNotEmpty) ...[
+                               const SizedBox(height: 10),
+                               _buildSocialIcon(Icons.camera_alt_rounded, () => _launchURL(instagram)),
+                             ],
+
+                            const SizedBox(height: 40),
+
+                            // Location Section
+                            const Text(
+                              'Konum',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            if (konum != null && konum.isNotEmpty)
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton.icon(
+                                  onPressed: () => _launchMap(konum),
+                                  icon: const Icon(Icons.near_me_rounded),
+                                  label: const Text('HARİTA ÜZERİNDEN BAK', 
+                                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 0.5)),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.primarySurface,
+                                    foregroundColor: AppColors.primaryDark,
+                                    padding: const EdgeInsets.symmetric(vertical: 18),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(15),
+                                    ),
+                                    elevation: 0,
+                                  ),
+                                ),
+                              ),
+                            const SizedBox(height: 40),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          );
+              ],
+            );
         },
       ),
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value) {
-    return Row(
-      children: [
-        Icon(icon, size: 18, color: AppColors.primary),
-        const SizedBox(width: 8),
-        Text('$label: ', style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.w600)),
-        Expanded(child: Text(value, style: AppTextStyles.bodySmall)),
-      ],
+  Widget _buildModernInfoRow(IconData icon, String label, String value, {VoidCallback? onTap}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 25),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(15),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.primarySurface,
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Icon(icon, size: 24, color: AppColors.primaryDark),
+            ),
+            const SizedBox(width: 20),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      color: Colors.grey[500],
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    value,
+                    style: const TextStyle(
+                      color: Colors.black87,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
-  Widget _buildLinkRow(IconData icon, String label, String url) {
+  Widget _buildSocialIcon(IconData icon, VoidCallback onTap) {
     return InkWell(
-      onTap: () async {
-        String link = url;
-        if (!link.startsWith('http')) link = 'https://$link';
-        final uri = Uri.parse(link);
-        if (await canLaunchUrl(uri)) {
-          await launchUrl(uri, mode: LaunchMode.externalApplication);
-        }
-      },
-      child: Row(
-        children: [
-          Icon(icon, size: 18, color: AppColors.primary),
-          const SizedBox(width: 8),
-          Text('$label: ', style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.w600)),
-          Expanded(
-            child: Text(
-              url,
-              style: AppTextStyles.bodySmall.copyWith(
-                color: AppColors.primary,
-                decoration: TextDecoration.underline,
-              ),
-            ),
-          ),
-        ],
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: AppColors.primarySurface,
+          shape: BoxShape.circle,
+        ),
+        child: Icon(icon, size: 20, color: AppColors.primaryDark),
       ),
     );
+  }
+
+  Future<void> _launchURL(String url) async {
+    String link = url;
+    if (link.startsWith('tel:')) {
+      final uri = Uri.parse(link);
+      if (await canLaunchUrl(uri)) await launchUrl(uri);
+      return;
+    }
+    if (!link.startsWith('http')) link = 'https://$link';
+    final uri = Uri.parse(link);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  Future<void> _launchMap(String query) async {
+    String mapUrl = '';
+    // If it's already a full link, use it, otherwise treat as search query
+    if (query.startsWith('http')) {
+      mapUrl = query;
+    } else {
+      mapUrl = 'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(query)}';
+    }
+    
+    final uri = Uri.parse(mapUrl);
+    
+    // On Android/iOS, this LaunchMode will prefer the native app
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
   }
 }

@@ -72,8 +72,8 @@ class _FavoriteItemCard extends StatelessWidget {
         final imageUrl =
             data['image_url'] as String? ?? data['gorsel'] as String? ?? '';
         final viewCount = data['goruntulenme'] as int? ?? 0;
-        final category = data['kategori'] as String? ?? (item.type == 'company' ? 'Firma' : 'Gezilecek Yer');
-        final rawAddress = (data['konum'] ?? data['adres'] ?? '').toString();
+        final category = data['kategori'] as String? ?? '';
+                final rawAddress = (data['konum'] ?? data['adres'] ?? '').toString();
         final address = rawAddress.startsWith('http') ? '' : rawAddress;
 
         return GestureDetector(
@@ -99,28 +99,30 @@ class _FavoriteItemCard extends StatelessWidget {
                     child: CachedImageWidget(
                       imageUrl: imageUrl,
                       fit: BoxFit.cover,
+                      isCompany: item.type == 'company',
                     ),
                   ),
                   // Category Tag
-                  Positioned(
-                    top: 12,
-                    left: 12,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.9),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        category,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
+                  if (category.isNotEmpty)
+                    Positioned(
+                      top: 12,
+                      left: 12,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(0.9),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          category,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ),
-                  ),
                   // Favorite Icon (always on here)
                   Positioned(
                     top: 12,

@@ -45,7 +45,7 @@ class HorizontalCardList extends ConsumerWidget {
         }
 
         // Horizontal for companies, Vertical for events/places
-        final double listHeight = type == CardType.company ? 220 : 310;
+        final double listHeight = type == CardType.company ? 220 : 280;
 
         return SizedBox(
           height: listHeight,
@@ -75,99 +75,45 @@ class HorizontalCardList extends ConsumerWidget {
         data['image_url'] as String? ?? data['gorsel'] as String? ?? '';
 
     // Dimensions for Vertical (Event/Place)
-    const double cardWidth = 180;
-    const double imageHeight = 230;
+    const double cardWidth = 170;
+    const double imageHeight = 200;
 
     return RepaintBoundary(
       child: GestureDetector(
         onTap: () => onTap(id),
-        child: Container(
+        child: SizedBox(
           width: cardWidth,
-          decoration: BoxDecoration(
-            color: AppColors.cardBackground,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Image
-              if (imageUrl.isNotEmpty)
-                SizedBox(
-                  width: cardWidth,
-                  height: imageHeight,
-                  child: Stack(
-                    children: [
-                      // Blurred background
-                      Positioned.fill(
-                        child: ClipRRect(
-                          borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(16)),
-                          child: CachedImageWidget(
-                            imageUrl: imageUrl,
-                            fit: BoxFit.cover,
-                            memCacheWidth: 100,
-                            memCacheHeight: 100,
-                          ),
-                        ),
-                      ),
-                      Positioned.fill(
-                        child: Container(
-                            color: Colors.black.withOpacity(0.1)),
-                      ),
-                      // Actual image
-                      Center(
-                        child: CachedImageWidget(
-                          imageUrl: imageUrl,
-                          fit: BoxFit.contain,
-                          borderRadius: 16,
-                          memCacheWidth: (cardWidth * 2).toInt(),
-                          memCacheHeight: (imageHeight * 2).toInt(),
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              else
-                Container(
-                  width: cardWidth,
-                  height: imageHeight,
-                  decoration: BoxDecoration(
-                    color: AppColors.primarySurface,
-                    borderRadius:
-                        const BorderRadius.vertical(top: Radius.circular(16)),
-                  ),
-                  child: const Icon(Icons.image,
-                      color: AppColors.textLight, size: 40),
-                ),
-
-              // Content
-              Padding(
-                padding: const EdgeInsets.all(10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      name,
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (type == CardType.event) ...[
-                      const SizedBox(height: 2),
-                      _buildEventDate(data),
-                    ],
-                  ],
-                ),
+              // Image with rounded corners
+              CachedImageWidget(
+                imageUrl: imageUrl,
+                height: imageHeight,
+                width: cardWidth,
+                fit: BoxFit.cover,
+                borderRadius: 16,
               ),
+
+              const SizedBox(height: 8),
+
+              // Title below image
+              Text(
+                name,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                  letterSpacing: -0.2,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+
+              if (type == CardType.event) ...[
+                const SizedBox(height: 4),
+                _buildEventDate(data),
+              ],
             ],
           ),
         ),
@@ -180,7 +126,7 @@ class HorizontalCardList extends ConsumerWidget {
     final imageUrl =
         data['image_url'] as String? ?? data['gorsel'] as String? ?? '';
     final viewCount = data['goruntulenme'] as int? ?? 0;
-    final category = data['kategori'] as String? ?? 'Firma';
+    final category = data['kategori'] as String? ?? '';
     final rawAddress = (data['konum'] ?? data['adres'] ?? '').toString();
     final address = rawAddress.startsWith('http') ? '' : rawAddress;
     final createdAt = data['created_at'] as Timestamp?;
@@ -213,6 +159,7 @@ class HorizontalCardList extends ConsumerWidget {
                     imageUrl: imageUrl,
                     fit: BoxFit.cover,
                     memCacheWidth: 500,
+                    isCompany: true,
                   ),
                 ),
                 // Dark overlay for overall contrast
@@ -244,34 +191,35 @@ class HorizontalCardList extends ConsumerWidget {
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          const Color(0xFF0056B3).withOpacity(0.0),
-                          const Color(0xFF0056B3).withOpacity(0.8),
+                          AppColors.primaryDark.withOpacity(0.0),
+                          AppColors.primaryDark.withOpacity(0.8),
                         ],
                       ),
                     ),
                   ),
                 ),
                 // Category Tag
-                Positioned(
-                  top: 12,
-                  left: 12,
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF0056B3),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      category,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
+                if (category.isNotEmpty)
+                  Positioned(
+                    top: 12,
+                    left: 12,
+                    child: Container(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        category,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
-                ),
                 // "YENİ" Badge (Top Right)
                 if (isNew)
                   Positioned(

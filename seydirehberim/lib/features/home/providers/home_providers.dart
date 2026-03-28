@@ -73,12 +73,12 @@ final alphabeticalCompaniesProvider = StreamProvider((ref) {
       .snapshots();
 });
 
-// All companies - sorted by creation date
+// All companies - sorted alphabetically
 final allCompaniesProvider = StreamProvider((ref) {
   return ref
       .watch(firestoreProvider)
       .collection('firmalar')
-      .orderBy('created_at', descending: true)
+      .orderBy('ad')
       .snapshots();
 });
 

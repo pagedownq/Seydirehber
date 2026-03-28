@@ -191,15 +191,14 @@ class _SearchCollectionSection extends StatelessWidget {
                 contentPadding: EdgeInsets.zero,
                 leading: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: imageUrl.toString().isNotEmpty
-                      ? CachedImageWidget(
-                          imageUrl: imageUrl, 
-                          width: 50, 
-                          height: 50,
-                          memCacheWidth: 100,
-                          memCacheHeight: 100,
-                        )
-                      : Container(width: 50, height: 50, color: AppColors.border),
+                  child: CachedImageWidget(
+                    imageUrl: imageUrl.toString(),
+                    width: 50,
+                    height: 50,
+                    memCacheWidth: 100,
+                    memCacheHeight: 100,
+                    isCompany: routePrefix == '/companies',
+                  ),
                 ),
                 title: Text(name),
                 onTap: () => context.push('$routePrefix/${doc.id}'),
