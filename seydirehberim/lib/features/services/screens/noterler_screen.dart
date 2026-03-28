@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/widgets/cached_image_widget.dart';
 import '../../../core/widgets/map_button.dart';
-import '../../../core/widgets/shimmer_widget.dart';
-import '../../../core/services/local_cache_service.dart';
 import '../../../core/widgets/shimmer_widget.dart';
 import '../../home/providers/home_providers.dart';
 
@@ -33,81 +29,30 @@ class NoterlerScreen extends ConsumerWidget {
             child: ShimmerWidget.rectangular(height: 120),
           ),
         ),
-        error: (err, stack) {
-          final cachedData = LocalCacheService.getList('noterler');
-          if (cachedData != null && cachedData.isNotEmpty) {
-            return _buildNoterList(cachedData, isFromManualCache: true);
-          }
-          return const Center(child: Text('Veriler yüklenemedi'));
-        },
+        error: (err, stack) => const Center(child: Text('Veriler yüklenemedi.')),
         data: (snapshot) {
           final docs = snapshot.docs;
-
-          if (docs.isNotEmpty && !snapshot.metadata.isFromCache) {
-            final dataList = docs.map((d) => d.data()).toList();
-            LocalCacheService.saveList('noterler', dataList);
-          }
-
-          if (docs.isEmpty) {
-             if (snapshot.metadata.isFromCache) {
-                final manualCache = LocalCacheService.getList('noterler');
-                if (manualCache != null && manualCache.isNotEmpty) {
-                  return _buildNoterList(manualCache, isFromManualCache: true);
-                }
-             }
-             return const Center(child: Text('Henüz noter eklenmemiş'));
-          }
-
+          if (docs.isEmpty) return const Center(child: Text('Henüz noter eklenmemiş'));
           final items = docs.map((d) => d.data()).toList();
-          return Column(
-            children: [
-              if (snapshot.metadata.isFromCache)
-                _buildOfflineBanner(),
-              Expanded(child: _buildNoterList(items)),
-            ],
-          );
+          return _buildNoterList(items);
         },
       ),
     );
   }
 
-  Widget _buildOfflineBanner() {
-    return Container(
-      width: double.infinity,
-      color: Colors.orange.shade50,
-      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.cloud_off, size: 14, color: Colors.orange),
-          const SizedBox(width: 8),
-          Text(
-            'Çevrimdışı mod: Kayıtlı veriler gösteriliyor',
-            style: AppTextStyles.bodySmall.copyWith(color: Colors.orange.shade900),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNoterList(List<Map<String, dynamic>> items, {bool isFromManualCache = false}) {
+  Widget _buildNoterList(List<Map<String, dynamic>> items) {
     return ListView.separated(
       padding: const EdgeInsets.all(16),
       itemCount: items.length,
       separatorBuilder: (_, __) => const SizedBox(height: 12),
-      itemBuilder: (context, index) {
-        final data = items[index];
-        return _NoterCard(data: data, isFromManualCache: isFromManualCache);
-      },
+      itemBuilder: (context, index) => _NoterCard(data: items[index]),
     );
   }
 }
 
 class _NoterCard extends StatelessWidget {
   final Map<String, dynamic> data;
-  final bool isFromManualCache;
-
-  const _NoterCard({required this.data, this.isFromManualCache = false});
+  const _NoterCard({required this.data});
 
   @override
   Widget build(BuildContext context) {
@@ -115,7 +60,10 @@ class _NoterCard extends StatelessWidget {
     final imageUrl = data['image_url'] as String? ?? data['gorsel'] as String? ?? '';
     final gunler = data['gunler'] as String? ?? '';
     final telefon = data['telefon'] as String? ?? '';
-    final konum = data['konum'] as String?;
+    final rawAdres = data['adres'] as String? ?? '';
+    final rawKonum = data['konum'] as String? ?? '';
+    final adres = rawAdres.isNotEmpty ? rawAdres : (rawKonum.startsWith('http') ? '' : rawKonum);
+    final konum = rawKonum;
 
     return Container(
       decoration: BoxDecoration(
@@ -144,29 +92,13 @@ class _NoterCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Expanded(child: Text(name, style: AppTextStyles.heading3)),
-                    if (isFromManualCache)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          'KAYITLI',
-                          style: AppTextStyles.bodySmall.copyWith(color: AppColors.primary, fontSize: 8),
-                        ),
-                      ),
-                  ],
-                ),
+                Text(name, style: AppTextStyles.heading3),
                 if (gunler.isNotEmpty) ...[
                   const SizedBox(height: 6),
                   Row(
                     children: [
                       const Icon(Icons.schedule, size: 16, color: AppColors.primary),
-                      const SizedBox(width: 6),
+                      const SizedBox(width: 8),
                       Expanded(child: Text(gunler, style: AppTextStyles.bodySmall)),
                     ],
                   ),
@@ -176,12 +108,29 @@ class _NoterCard extends StatelessWidget {
                   Row(
                     children: [
                       const Icon(Icons.phone, size: 16, color: AppColors.primary),
-                      const SizedBox(width: 6),
+                      const SizedBox(width: 8),
                       Text(telefon, style: AppTextStyles.bodySmall),
                     ],
                   ),
                 ],
-                if (konum != null && konum.isNotEmpty) ...[
+                if (adres.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      const Icon(Icons.location_on, size: 16, color: AppColors.primary),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          adres,
+                          style: AppTextStyles.bodySmall,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+                if (konum.isNotEmpty) ...[
                   const SizedBox(height: 12),
                   MapButton(locationUrl: konum),
                 ],

@@ -7,7 +7,10 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/widgets/cached_image_widget.dart';
 import '../../../core/widgets/map_button.dart';
+import '../../../core/widgets/interactive_map_widget.dart';
+import '../../../core/utils/map_helper.dart';
 import '../../home/providers/home_providers.dart';
+import 'package:latlong2/latlong.dart';
 
 class EventDetailScreen extends ConsumerWidget {
   final String eventId;
@@ -36,6 +39,7 @@ class EventDetailScreen extends ConsumerWidget {
           final imageUrl = data['image_url'] as String? ?? data['gorsel'] as String? ?? '';
           final hakkinda = data['hakkinda'] as String? ?? '';
           final konum = data['konum'] as String?;
+          final adres = data['adres'] as String? ?? data['konum'] as String? ?? '';
           final startDate = data['baslangic_tarihi'] ?? data['baslangic_tarihi_str'];
           final endDate = data['bitis_tarihi'] ?? data['bitis_tarihi_str'];
           final saat = data['saat'] as String?;
@@ -176,6 +180,24 @@ class EventDetailScreen extends ConsumerWidget {
                             if (konum != null && konum.isNotEmpty) ...[
                               const SectionTitle(title: 'Konum'),
                               const SizedBox(height: 16),
+                              if (adres.isNotEmpty) ...[
+                                _buildModernInfoRow(Icons.location_on_outlined, 'ADRES', adres),
+                              ],
+                              FutureBuilder<LatLng?>(
+                                future: MapHelper.getCoordinates(konum),
+                                builder: (context, snapshot) {
+                                  if (snapshot.hasData && snapshot.data != null) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(bottom: 20),
+                                      child: InteractiveMapWidget(
+                                        position: snapshot.data!,
+                                        title: name,
+                                      ),
+                                    );
+                                  }
+                                  return const SizedBox.shrink();
+                                },
+                              ),
                               SizedBox(
                                 width: double.infinity,
                                 child: ElevatedButton.icon(

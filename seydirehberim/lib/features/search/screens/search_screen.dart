@@ -5,6 +5,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/widgets/cached_image_widget.dart';
 import 'package:go_router/go_router.dart';
+import '../providers/search_history_provider.dart';
 
 final searchQueryProvider = StateProvider<String>((ref) => '');
 
@@ -62,6 +63,11 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           ),
           onChanged: (value) =>
               ref.read(searchQueryProvider.notifier).state = value,
+          onSubmitted: (value) {
+            if (value.trim().isNotEmpty) {
+              ref.read(searchHistoryProvider.notifier).addSearchTerm(value);
+            }
+          },
         ),
         actions: [
           if (query.isNotEmpty)
@@ -85,18 +91,90 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         ],
       ),
       body: query.isEmpty
-          ? const Center(child: Text('Aramak istediğiniz kelimeyi girin.'))
+          ? _SearchHistoryList(
+              onHistoryTap: (term) {
+                _searchController.text = term;
+                ref.read(searchQueryProvider.notifier).state = term;
+              },
+            )
           : _SearchResultsList(query: query),
     );
   }
 }
 
-class _SearchResultsList extends StatelessWidget {
+class _SearchHistoryList extends ConsumerWidget {
+  final Function(String) onHistoryTap;
+  const _SearchHistoryList({required this.onHistoryTap});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final history = ref.watch(searchHistoryProvider);
+
+    if (history.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.search, size: 64, color: AppColors.textLight.withOpacity(0.2)),
+            const SizedBox(height: 16),
+            const Text(
+              'Aramak istediğiniz kelimeyi girin.',
+              style: TextStyle(color: AppColors.textSecondary),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Son Aramalar',
+                style: AppTextStyles.heading3,
+              ),
+              TextButton(
+                onPressed: () => ref.read(searchHistoryProvider.notifier).clearHistory(),
+                child: const Text('Temizle', style: TextStyle(color: AppColors.error)),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: ListView.separated(
+            padding: EdgeInsets.zero,
+            itemCount: history.length,
+            separatorBuilder: (_, __) => const Divider(height: 1),
+            itemBuilder: (context, index) {
+              final term = history[index];
+              return ListTile(
+                leading: const Icon(Icons.history, color: AppColors.textLight, size: 20),
+                title: Text(term, style: AppTextStyles.bodyMedium),
+                trailing: IconButton(
+                  icon: const Icon(Icons.close, size: 18, color: AppColors.textLight),
+                  onPressed: () => ref.read(searchHistoryProvider.notifier).removeSearchTerm(term),
+                ),
+                onTap: () => onHistoryTap(term),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SearchResultsList extends ConsumerWidget {
   final String query;
   const _SearchResultsList({required this.query});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     // We combine three streams to search across collections
     // For simplicity, we search for names starting with the query (case sensitive in Firestore unless normalized)
     // Note: Proper full-text search usually needs a separate service, but this is a starting point.
@@ -138,7 +216,10 @@ class _SearchResultsList extends StatelessWidget {
             ),
             title: Text(s['title'] as String),
             subtitle: const Text('Uygulama içi kısayol'),
-            onTap: () => context.push(s['route'] as String),
+            onTap: () {
+              ref.read(searchHistoryProvider.notifier).addSearchTerm(normalizedQuery);
+              context.push(s['route'] as String);
+            },
           )),
           const Divider(),
         ],
@@ -165,7 +246,7 @@ class _SearchResultsList extends StatelessWidget {
   }
 }
 
-class _SearchCollectionSection extends StatelessWidget {
+class _SearchCollectionSection extends ConsumerWidget {
   final String title;
   final String collection;
   final String query;
@@ -179,7 +260,7 @@ class _SearchCollectionSection extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance.collection(collection).snapshots(),
       builder: (context, snapshot) {
@@ -205,6 +286,10 @@ class _SearchCollectionSection extends StatelessWidget {
               final name = data['ad'] ?? data['name'] ?? '';
               final imageUrl = data['image_url'] ?? data['gorsel'] ?? '';
               
+              final rawAdres = data['adres'] as String? ?? '';
+              final rawKonum = data['konum'] as String? ?? '';
+              final address = rawAdres.isNotEmpty ? rawAdres : (rawKonum.startsWith('http') ? '' : rawKonum);
+              
               return ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: ClipRRect(
@@ -219,7 +304,11 @@ class _SearchCollectionSection extends StatelessWidget {
                   ),
                 ),
                 title: Text(name),
-                onTap: () => context.push('$routePrefix/${doc.id}'),
+                subtitle: address.isNotEmpty ? Text(address, maxLines: 1, overflow: TextOverflow.ellipsis) : null,
+                onTap: () {
+                  ref.read(searchHistoryProvider.notifier).addSearchTerm(query);
+                  context.push('$routePrefix/${doc.id}');
+                },
               );
             }),
             const Divider(),

@@ -38,7 +38,8 @@ export const COLLECTIONS: Record<string, { title: string; bucket: string | null;
       { key: 'baslangic_tarihi_str', label: 'Başlangıç Tarihi', isDate: true, required: true },
       { key: 'bitis_tarihi_str', label: 'Bitiş Tarihi', isDate: true },
       { key: 'saat', label: 'Saat', isTime: true },
-      { key: 'konum', label: 'Konum (Adres veya Harita Linki)' },
+      { key: 'adres', label: 'Görünecek Adres (Örn: Örnek Cad. No:5)', required: true },
+      { key: 'konum', label: 'Harita Konumu (Link, Koordinat veya DMS)' },
     ],
   },
   noterler: {
@@ -48,7 +49,8 @@ export const COLLECTIONS: Record<string, { title: string; bucket: string | null;
       { key: 'ad', label: 'Noter Adı', required: true },
       { key: 'gunler', label: 'Açık Günler' },
       { key: 'telefon', label: 'Telefon', isPhone: true },
-      { key: 'konum', label: 'Konum (Adres veya Harita Linki)' },
+      { key: 'adres', label: 'Görünecek Adres (Örn: Side Mah. No:1)', required: true },
+      { key: 'konum', label: 'Harita Konumu (Link, Koordinat veya DMS)' },
     ],
   },
   pazarlar: {
@@ -57,7 +59,8 @@ export const COLLECTIONS: Record<string, { title: string; bucket: string | null;
     fields: [
       { key: 'ad', label: 'Pazar Adı', required: true },
       { key: 'gunler', label: 'Açık Günler' },
-      { key: 'konum', label: 'Konum (Adres veya Harita Linki)' },
+      { key: 'adres', label: 'Görünecek Adres (Örn: Sanayi Yanı)', required: true },
+      { key: 'konum', label: 'Harita Konumu (Link, Koordinat veya DMS)' },
     ],
   },
   otobus_saatleri: {
@@ -76,7 +79,8 @@ export const COLLECTIONS: Record<string, { title: string; bucket: string | null;
       { key: 'ad', label: 'Yer Adı', required: true },
       { key: 'hakkinda', label: 'Hakkında', multiline: true },
       { key: 'tarihce', label: 'Tarihçe', multiline: true },
-      { key: 'konum', label: 'Konum (Adres veya Harita Linki)' },
+      { key: 'adres', label: 'Görünecek Adres', required: true },
+      { key: 'konum', label: 'Harita Konumu (Link, Koordinat veya DMS)' },
     ],
   },
   firmalar: {
@@ -87,7 +91,8 @@ export const COLLECTIONS: Record<string, { title: string; bucket: string | null;
       { key: 'yetkili_kisi', label: 'Yetkili Kişi' },
       { key: 'hakkinda', label: 'Hakkında', multiline: true },
       { key: 'iletisim', label: 'İletişim (Telefon)', isPhone: true },
-      { key: 'konum', label: 'Konum (Adres veya Harita Linki)' },
+      { key: 'adres', label: 'Görünecek Adres', required: true },
+      { key: 'konum', label: 'Harita Konumu (Link, Koordinat veya DMS)' },
       { key: 'website', label: 'Web Sitesi' },
       { key: 'instagram', label: 'Instagram (Kullanıcı adı veya Link)' },
       { key: 'expiry_date', label: 'Bitiş Tarihi (Sona Erme)', isDate: true },

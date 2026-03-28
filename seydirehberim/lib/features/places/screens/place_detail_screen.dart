@@ -5,7 +5,10 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/widgets/cached_image_widget.dart';
+import '../../../core/widgets/interactive_map_widget.dart';
+import '../../../core/utils/map_helper.dart';
 import '../../favorites/providers/favorites_provider.dart';
+import 'package:latlong2/latlong.dart';
 
 class PlaceDetailScreen extends ConsumerWidget {
   final String placeId;
@@ -35,6 +38,7 @@ class PlaceDetailScreen extends ConsumerWidget {
           final hakkinda = data['hakkinda'] as String? ?? '';
           final tarihce = data['tarihce'] as String?;
           final konum = data['konum'] as String?;
+          final adres = data['adres'] as String? ?? data['konum'] as String? ?? '';
           final category = data['kategori'] as String? ?? '';
 
           return Stack(
@@ -204,9 +208,27 @@ class PlaceDetailScreen extends ConsumerWidget {
                               const SizedBox(height: 32),
                             ],
 
-                            const SectionTitle(title: 'Harita'),
+                            const SectionTitle(title: 'Konum'),
                             const SizedBox(height: 16),
-                            if (konum != null && konum.isNotEmpty)
+                            if (adres.isNotEmpty) ...[
+                              _buildModernInfoRow(Icons.location_on_outlined, 'ADRES', adres),
+                            ],
+                            if (konum != null && konum.isNotEmpty) ...[
+                              FutureBuilder<LatLng?>(
+                                future: MapHelper.getCoordinates(konum),
+                                builder: (context, snapshot) {
+                                  if (snapshot.hasData && snapshot.data != null) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(bottom: 20),
+                                      child: InteractiveMapWidget(
+                                        position: snapshot.data!,
+                                        title: name,
+                                      ),
+                                    );
+                                  }
+                                  return const SizedBox.shrink();
+                                },
+                              ),
                               SizedBox(
                                 width: double.infinity,
                                 child: ElevatedButton.icon(
@@ -225,6 +247,7 @@ class PlaceDetailScreen extends ConsumerWidget {
                                   ),
                                 ),
                               ),
+                            ],
                             const SizedBox(height: 40),
                           ],
                         ),

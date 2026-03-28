@@ -7,8 +7,11 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/widgets/cached_image_widget.dart';
 import '../../../core/widgets/map_button.dart';
+import '../../../core/widgets/interactive_map_widget.dart';
+import '../../../core/utils/map_helper.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:latlong2/latlong.dart';
 import '../../favorites/providers/favorites_provider.dart';
 
 class CompanyDetailScreen extends ConsumerStatefulWidget {
@@ -99,6 +102,7 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
           final email = data['email'] as String? ?? '';
           final category = data['kategori'] as String? ?? '';
           final konum = data['konum'] as String?;
+          final adres = data['adres'] as String? ?? data['konum'] as String? ?? '';
           final website = data['website'] as String?;
           final instagram = data['instagram'] as String?;
 
@@ -279,17 +283,34 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
 
                             const SizedBox(height: 40),
 
-                            // Location Section
                             const Text(
                               'Konum',
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: 18,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.black87,
+                                color: Colors.black,
                               ),
                             ),
                             const SizedBox(height: 16),
-                            if (konum != null && konum.isNotEmpty)
+                            if (adres.isNotEmpty) ...[
+                              _buildModernInfoRow(Icons.location_on_outlined, 'ADRES', adres),
+                            ],
+                            if (konum != null && konum.isNotEmpty) ...[
+                              FutureBuilder<LatLng?>(
+                                future: MapHelper.getCoordinates(konum),
+                                builder: (context, snapshot) {
+                                  if (snapshot.hasData && snapshot.data != null) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(bottom: 20),
+                                      child: InteractiveMapWidget(
+                                        position: snapshot.data!,
+                                        title: name,
+                                      ),
+                                    );
+                                  }
+                                  return const SizedBox.shrink();
+                                },
+                              ),
                               SizedBox(
                                 width: double.infinity,
                                 child: ElevatedButton.icon(
@@ -308,6 +329,7 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
                                   ),
                                 ),
                               ),
+                            ],
                             const SizedBox(height: 40),
                           ],
                         ),

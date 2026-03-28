@@ -164,11 +164,13 @@ class GenericListScreen extends ConsumerWidget {
           final data = items[index];
           final id = data['id']?.toString() ?? '';
           final name = data['ad'] as String? ?? data['name'] as String? ?? '';
-          final imageUrl =
-              data['image_url'] as String? ?? data['gorsel'] as String? ?? '';
+          final imageUrl = data['image_url'] as String? ?? data['gorsel'] as String? ?? '';
           final category = data['kategori'] as String? ?? '';
+          final rawAdres = data['adres'] as String? ?? '';
+          final rawKonum = data['konum'] as String? ?? '';
+          final address = rawAdres.isNotEmpty ? rawAdres : (rawKonum.startsWith('http') ? '' : rawKonum);
 
-          return _buildVerticalCard(context, id, name, imageUrl, category, isFromManualCache);
+          return _buildVerticalCard(context, id, name, imageUrl, category, address, isFromManualCache);
         },
       );
     }
@@ -183,8 +185,9 @@ class GenericListScreen extends ConsumerWidget {
         final imageUrl = data['image_url'] as String? ?? data['gorsel'] as String? ?? '';
         final viewCount = data['goruntulenme'] as int? ?? 0;
         final category = data['kategori'] as String? ?? '';
-        final rawLocation = (data['konum'] ?? data['adres'] ?? '').toString();
-        final locationText = rawLocation.startsWith('http') ? 'Seydişehir, Konya' : rawLocation;
+        final rawAdres = data['adres'] as String? ?? '';
+        final rawKonum = data['konum'] as String? ?? '';
+        final locationText = rawAdres.isNotEmpty ? rawAdres : (rawKonum.startsWith('http') ? 'Seydişehir, Konya' : rawKonum);
 
         return Padding(
           padding: const EdgeInsets.only(bottom: 20),
@@ -351,6 +354,7 @@ class GenericListScreen extends ConsumerWidget {
     String name,
     String imageUrl,
     String category,
+    String address,
     bool isFromManualCache,
   ) {
     return GestureDetector(
@@ -396,6 +400,24 @@ class GenericListScreen extends ConsumerWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ),
+          if (address.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(4, 4, 4, 0),
+              child: Row(
+                children: [
+                  const Icon(Icons.location_on_outlined, size: 12, color: AppColors.textLight),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      address,
+                      style: const TextStyle(fontSize: 11, color: AppColors.textLight),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
     );

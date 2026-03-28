@@ -100,6 +100,9 @@ class HorizontalCardList extends ConsumerWidget {
     final name = data['ad'] as String? ?? data['name'] as String? ?? '';
     final imageUrl =
         data['image_url'] as String? ?? data['gorsel'] as String? ?? '';
+    final rawAdres = data['adres'] as String? ?? '';
+    final rawKonum = data['konum'] as String? ?? '';
+    final address = rawAdres.isNotEmpty ? rawAdres : (rawKonum.startsWith('http') ? '' : rawKonum);
 
     // Dimensions for Vertical (Event/Place)
     const double cardWidth = 170;
@@ -141,6 +144,23 @@ class HorizontalCardList extends ConsumerWidget {
                 const SizedBox(height: 4),
                 _buildEventDate(data),
               ],
+              if (address.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    const Icon(Icons.location_on_outlined, size: 12, color: AppColors.textLight),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        address,
+                        style: AppTextStyles.caption.copyWith(color: AppColors.textLight),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ],
           ),
         ),
@@ -154,8 +174,9 @@ class HorizontalCardList extends ConsumerWidget {
         data['image_url'] as String? ?? data['gorsel'] as String? ?? '';
     final viewCount = data['goruntulenme'] as int? ?? 0;
     final category = data['kategori'] as String? ?? '';
-    final rawAddress = (data['konum'] ?? data['adres'] ?? '').toString();
-    final address = rawAddress.startsWith('http') ? '' : rawAddress;
+    final rawAdres = data['adres'] as String? ?? '';
+    final rawKonum = data['konum'] as String? ?? '';
+    final address = rawAdres.isNotEmpty ? rawAdres : (rawKonum.startsWith('http') ? '' : rawKonum);
     final createdAt = data['created_at'] as Timestamp?;
     final isNew = createdAt != null &&
         DateTime.now().difference(createdAt.toDate()).inDays < 30;

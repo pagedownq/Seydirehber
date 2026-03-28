@@ -151,20 +151,23 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
               isDate: true, required: true),
           _FieldConfig('bitis_tarihi_str', 'Bitiş Tarihi', isDate: true),
           _FieldConfig('saat', 'Saat', isTime: true),
-          _FieldConfig('konum', 'Konum (Adres veya Harita Linki)'),
+          _FieldConfig('adres', 'Görünecek Adres (Örn: Aşağı Hisar...)'),
+          _FieldConfig('konum', 'Harita Konumu (Link, Koordinat veya DMS)'),
         ];
       case 'noterler':
         return [
           _FieldConfig('ad', 'Noter Adı', required: true),
           _FieldConfig('gunler', 'Açık Günler'),
           _FieldConfig('telefon', 'Telefon'),
-          _FieldConfig('konum', 'Konum (Adres veya Harita Linki)'),
+          _FieldConfig('adres', 'Görünecek Adres'),
+          _FieldConfig('konum', 'Harita Konumu (Link, Koordinat veya DMS)'),
         ];
       case 'pazarlar':
         return [
           _FieldConfig('ad', 'Pazar Adı', required: true),
           _FieldConfig('gunler', 'Açık Günler'),
-          _FieldConfig('konum', 'Konum (Adres veya Harita Linki)'),
+          _FieldConfig('adres', 'Görünecek Adres'),
+          _FieldConfig('konum', 'Harita Konumu (Link, Koordinat veya DMS)'),
         ];
       case 'otobus_saatleri':
         return [
@@ -177,7 +180,8 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
           _FieldConfig('ad', 'Yer Adı', required: true),
           _FieldConfig('hakkinda', 'Hakkında', multiline: true),
           _FieldConfig('tarihce', 'Tarihçe', multiline: true),
-          _FieldConfig('konum', 'Konum (Adres veya Harita Linki)'),
+          _FieldConfig('adres', 'Görünecek Adres'),
+          _FieldConfig('konum', 'Harita Konumu (Link, Koordinat veya DMS)'),
         ];
       case 'firmalar':
         return [
@@ -185,7 +189,8 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
           _FieldConfig('yetkili_kisi', 'Yetkili Kişi'),
           _FieldConfig('hakkinda', 'Hakkında', multiline: true),
           _FieldConfig('iletisim', 'İletişim (Telefon)', isPhone: true),
-          _FieldConfig('konum', 'Konum (Adres veya Harita Linki)'),
+          _FieldConfig('adres', 'Görünecek Adres'),
+          _FieldConfig('konum', 'Harita Konumu (Link, Koordinat veya DMS)'),
           _FieldConfig('website', 'Web Sitesi'),
           _FieldConfig('instagram', 'Instagram (Kullanıcı adı veya Link)'),
           _FieldConfig('expiry_date', 'Firma Bitiş Tarihi', isDate: true),
