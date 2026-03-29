@@ -47,13 +47,17 @@ class EventDetailScreen extends ConsumerWidget {
           return Stack(
             children: [
               CustomScrollView(
+                physics: const ClampingScrollPhysics(),
                 slivers: [
                   SliverAppBar(
-                    expandedHeight: 280,
+                    expandedHeight: 450,
                     pinned: true,
                     elevation: 0,
-                    backgroundColor: AppColors.primaryDark,
-                    foregroundColor: Colors.white,
+                    backgroundColor: Colors.white,
+                    scrolledUnderElevation: 0,
+                    shadowColor: Colors.transparent,
+                    surfaceTintColor: Colors.transparent,
+                    foregroundColor: AppColors.primaryDark,
                     leading: Container(
                       margin: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
@@ -61,7 +65,7 @@ class EventDetailScreen extends ConsumerWidget {
                         shape: BoxShape.circle,
                       ),
                       child: IconButton(
-                        icon: const Icon(Icons.arrow_back, size: 20),
+                        icon: const Icon(Icons.arrow_back, size: 20, color: Colors.white),
                         onPressed: () => Navigator.pop(context),
                       ),
                     ),
@@ -245,28 +249,30 @@ class EventDetailScreen extends ConsumerWidget {
             child: Icon(icon, size: 24, color: AppColors.primaryDark),
           ),
           const SizedBox(width: 20),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: TextStyle(
-                  color: Colors.grey[500],
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 1.2,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: Colors.grey[500],
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.2,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                value,
-                style: const TextStyle(
-                  color: Colors.black87,
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    color: Colors.black87,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),

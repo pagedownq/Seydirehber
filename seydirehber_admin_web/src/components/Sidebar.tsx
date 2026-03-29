@@ -17,6 +17,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => {
     { id: 'gezilecek_yerler', label: 'Gezilecek Yerler', icon: MapPin },
     { id: 'firmalar', label: 'Firmalar', icon: Building },
     { id: 'yardim_destek', label: 'Yardım ve Destek', icon: MessageSquare },
+    { id: 'reviews', label: 'Yorum Yönetimi', icon: LayoutDashboard },
   ];
 
   return (

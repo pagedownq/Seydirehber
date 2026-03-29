@@ -9,6 +9,7 @@ import '../../../core/widgets/interactive_map_widget.dart';
 import '../../../core/utils/map_helper.dart';
 import '../../favorites/providers/favorites_provider.dart';
 import 'package:latlong2/latlong.dart';
+import '../../../core/widgets/review_section.dart';
 
 class PlaceDetailScreen extends ConsumerWidget {
   final String placeId;
@@ -44,14 +45,18 @@ class PlaceDetailScreen extends ConsumerWidget {
           return Stack(
             children: [
               CustomScrollView(
+                physics: const ClampingScrollPhysics(),
                 slivers: [
                   // App Bar with Image
                   SliverAppBar(
-                    expandedHeight: 280,
+                    expandedHeight: 450,
                     pinned: true,
                     elevation: 0,
-                    backgroundColor: AppColors.primaryDark,
-                    foregroundColor: Colors.white,
+                    backgroundColor: Colors.white,
+                    scrolledUnderElevation: 0,
+                    shadowColor: Colors.transparent,
+                    surfaceTintColor: Colors.transparent,
+                    foregroundColor: AppColors.primaryDark,
                     leading: Container(
                       margin: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
@@ -59,7 +64,7 @@ class PlaceDetailScreen extends ConsumerWidget {
                         shape: BoxShape.circle,
                       ),
                       child: IconButton(
-                        icon: const Icon(Icons.arrow_back, size: 20),
+                        icon: const Icon(Icons.arrow_back, size: 20, color: Colors.white),
                         onPressed: () => Navigator.pop(context),
                       ),
                     ),
@@ -248,6 +253,14 @@ class PlaceDetailScreen extends ConsumerWidget {
                                 ),
                               ),
                             ],
+                            const SizedBox(height: 48),
+
+                            // YORUMLAR VE PUANLAMA
+                            ReviewSection(
+                              targetId: placeId,
+                              targetType: 'place',
+                            ),
+                            
                             const SizedBox(height: 40),
                           ],
                         ),

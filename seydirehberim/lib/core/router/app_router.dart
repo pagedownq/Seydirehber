@@ -19,6 +19,7 @@ import '../../features/search/screens/search_screen.dart';
 import '../../features/admin/screens/admin_screen.dart';
 import '../../features/admin/screens/admin_manage_screen.dart';
 import '../../features/admin/screens/admin_support_screen.dart';
+import '../../features/admin/screens/admin_reviews_screen.dart';
 import '../../features/favorites/screens/favorites_screen.dart';
 import '../widgets/generic_list_screen.dart';
 import '../../features/home/providers/home_providers.dart';
@@ -197,6 +198,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/admin/support',
         builder: (context, state) => const AdminSupportScreen(),
+      ),
+      GoRoute(
+        path: '/admin/reviews',
+        builder: (context, state) => const AdminReviewsScreen(),
       ),
     ],
   );

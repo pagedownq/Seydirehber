@@ -82,7 +82,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       isBlack: true,
                       onTap: () {
                         Share.share(
-                          'Seydi Rehber uygulamasını indir ve Seydişehir hakkında her şeyi öğren! 📱 https://seydirehber.com',
+                          'Seydi Rehber uygulamasını indir ve Seydişehir hakkında her şeyi öğren! 📱',
                         );
                       },
                     ),

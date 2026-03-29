@@ -109,5 +109,16 @@ export const COLLECTIONS: Record<string, { title: string; bucket: string | null;
       { key: 'durum', label: 'Durum (Bekliyor/Çözüldü)' },
       { key: 'tarih', label: 'Tarih', isDate: true },
     ]
+  },
+  reviews: {
+    title: 'Yorum Yönetimi',
+    bucket: null,
+    fields: [
+      { key: 'userName', label: 'Kullanıcı Adı', required: true },
+      { key: 'rating', label: 'Puan', isNumber: true, required: true },
+      { key: 'comment', label: 'Yorum', multiline: true, required: true },
+      { key: 'targetId', label: 'Hedef ID (Firma/Yer)', required: true },
+      { key: 'createdAt', label: 'Tarih', isDate: true },
+    ]
   }
 };

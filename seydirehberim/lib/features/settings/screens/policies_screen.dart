@@ -21,43 +21,64 @@ class PoliciesScreen extends StatelessWidget {
             context,
             icon: Icons.privacy_tip_outlined,
             title: 'Gizlilik Politikası',
-            content: '''
-Seydi Rehber olarak verilerinizin güvenliği bizim önceliğimizdir. Uygulamamızı kullandığınızda toplanan veriler şunlardır:
-
-1. Toplanan Veriler:
-Google ile giriş yaptığınızda adınız, e-posta adresiniz ve profil fotoğrafınız Firebase üzerinden authorize edilir. Bu bilgiler size daha kişiselleştirilmiş bir deneyim sunmak için kullanılır.
-
-2. Veri Kullanımı:
-Toplanan veriler sadece uygulama içindeki hizmetlerin (destek mesajları, favoriler vb.) yönetimi için kullanılır. Üçüncü şahıslarla asla paylaşılmaz.
-
-3. Güvenlik:
-Verileriniz Firebase (Google) altyapısında güvenle saklanmaktadır. İstediğiniz zaman hesabınızı silebilirsiniz.
-''',
+            content: privacyPolicyContent,
           ),
           const SizedBox(height: 12),
           _buildPolicyItem(
             context,
             icon: Icons.assignment_outlined,
             title: 'Kullanım Koşulları',
-            content: '''
-Seydi Rehber uygulamasını kullanarak aşağıdaki koşulları kabul etmiş sayılırsınız:
-
-1. Hizmet Kapsamı:
-Bu uygulama Seydişehir ilçesindeki etkinlikler, mekanlar ve hizmetler hakkında bilgi sunmak amacıyla geliştirilmiştir. Verilerin doğruluğu için azami gayret gösterilse de sorumluluk kullanıcıya aittir.
-
-2. Kullanıcı Sorumluluğu:
-Uygulama üzerinden gönderilen mesajların ve yorumların içeriğinden kullanıcı sorumludur. Topluluk kurallarına aykırı davranışlar hesabın askıya alınmasına neden olabilir.
-
-3. Telif Hakları:
-Uygulama içeriğindeki haberler, görseller ve tasarımlar Seydi Rehber'e aittir. İzinsiz kopyalanması veya ticari amaçlarla kullanılması yasaktır.
-''',
+            content: termsOfServiceContent,
           ),
           const SizedBox(height: 12),
           _buildPolicyItem(
             context,
             icon: Icons.gavel_outlined,
             title: 'KVKK Aydınlatma Metni',
-            content: '''
+            content: kvkkContent,
+          ),
+        ],
+      ),
+    );
+  }
+
+  static const String privacyPolicyContent = '''
+Seydi Rehber olarak verilerinizin güvenliği ve gizliliği bizim için en önemli önceliktir. Google Play Veri Güvenliği politikalarıyla tam uyumlu hareket etmekteyiz.
+
+1. Toplanan Veriler ve Amacı:
+- Hesap Bilgileri: Google ile giriş yaptığınızda adınız, e-posta adresiniz ve profil fotoğrafınız Firebase (Google) üzerinden alınır. Bu bilgiler sadece kimliğinizi doğrulamak ve size özel bir deneyim sunmak (favoriler, destek talepleri vb.) için kullanılır.
+- Cihaz Bilgileri: Uygulama performansı ve hata raporlarını takip etmek amacıyla anonim cihaz bilgileri (model, işletim sistemi sürümü) toplanabilir.
+- Konum Verileri: Uygulamadaki mekanların size olan uzaklığını hesaplayabilmeniz için (izniniz dahilinde) konum bilgisi kullanılabilir. Bu veri asla sunucularımızda saklanmaz.
+
+2. Veri Paylaşımı:
+- Verileriniz asla üçüncü taraflara satılmaz veya ticari amaçlarla paylaşılmaz. Sadece uygulamanın çalışması için gerekli olan güvenli altyapı sağlayıcıları (Firebase/Google) ile sınırlıdır.
+
+3. Veri Güvenliği:
+- Tüm verileriniz endüstri standardı olan SSL/TLS şifreleme yöntemleri ile korunmaktadır. Veri tabanımız Google'ın yüksek güvenlikli sunucularında barındırılır.
+
+4. Veri Silme Hakkı:
+- Kullanıcılarımız diledikleri zaman tüm verilerinin silinmesini talep edebilirler.
+- Hesabınızı uygulama içinden (Ayarlar > Hesabımı Sil) doğrudan silebilirsiniz.
+- Ayrıca, seydirehber@gmail.com adresine e-posta göndererek verilerinizin tamamen silinmesini talep edebilirsiniz. Talebiniz 7 iş günü içerisinde yerine getirilecektir.
+''';
+
+  static const String termsOfServiceContent = '''
+Seydi Rehber uygulamasını kullanarak aşağıdaki topluluk kurallarını ve kullanım şartlarını kabul etmiş sayılırsınız:
+
+1. Hizmet Kapsamı:
+Bu uygulama Seydişehir ilçesindeki sosyal hayatı zenginleştirmek için bilgi sunar. Sunulan bilgilerin doğruluğu için çalışılsa da, güncel durum değişikliklerinden kaynaklanan hatalardan kullanıcı sorumludur.
+
+2. Kullanıcı Tarafından Oluşturulan İçerikler (UGC):
+- Yorumlar ve Değerlendirmeler: Kullanıcıların yaptığı yorumlar tamamen kendilerine aittir.
+- Yasaklı İçerikler: Küfür, hakaret, şiddet içerikli, yasa dışı veya toplumu rahatsız edici hiçbir içerik paylaşılamaz.
+- Denetim: Uygulama yöneticileri, kuralları ihlal eden içerikleri önceden haber vermeksizin silme ve ilgili hesabın erişimini engelleme hakkına sahiptir.
+- Şikayet Mekanizması: Uygunsuz bulduğunuz bir içeriği "Bildir" butonu veya destek bölümü aracılığıyla bize iletebilirsiniz. Şikayetler en geç 24 saat içinde incelenerek sonuçlandırılır.
+
+3. Telif Hakları:
+Uygulama tasarımı, logoları ve belirli içerikler Seydi Rehber'in fikri mülkiyetidir. İzinsiz kopyalanması kesinlikle yasaktır.
+''';
+
+  static const String kvkkContent = '''
 6698 sayılı Kişisel Verilerin Korunması Kanunu uyarınca:
 
 Seydi Rehber, kişisel verilerinizi kanuna uygun olarak işlemektedir. Verileriniz, ilçemizdeki sosyal hayatı kolaylaştırmak ve destek taleplerinizi yanıtlamak amacıyla işlenmektedir.
@@ -68,12 +89,7 @@ Kullanıcılar olarak;
 - Verilerin silinmesini talep etme haklarına sahipsiniz.
 
 Her türlü KVKK talebiniz için "Ayarlar > Yardım ve Destek" bölümünden bize ulaşabilirsiniz.
-''',
-          ),
-        ],
-      ),
-    );
-  }
+''';
 
   Widget _buildPolicyItem(
     BuildContext context, {

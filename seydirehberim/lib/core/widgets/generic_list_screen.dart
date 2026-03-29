@@ -54,7 +54,7 @@ class GenericListScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.share_rounded, color: Colors.white, size: 22),
             onPressed: () => Share.share(
-                'Seydi Rehber - $title listesine göz at! https://seydirehber.com'),
+                'Seydi Rehber - $title listesine göz at!'),
           ),
         ],
       ),

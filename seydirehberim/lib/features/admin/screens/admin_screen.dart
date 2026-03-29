@@ -110,6 +110,13 @@ class AdminScreen extends ConsumerWidget {
             color: const Color(0xFFD32F2F),
             onTap: () => context.push('/admin/support'),
           ),
+          const SizedBox(height: 12),
+          _AdminCard(
+            icon: Icons.rate_review_outlined,
+            title: 'Yorum Yönetimi',
+            color: const Color(0xFFFBC02D),
+            onTap: () => context.push('/admin/reviews'),
+          ),
         ],
       ),
     );

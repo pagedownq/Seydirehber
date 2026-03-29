@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../providers/auth_provider.dart';
+import '../../settings/screens/policies_screen.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
@@ -22,7 +23,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final List<_OnboardingPageData> _pages = [
     _OnboardingPageData(
       icon: Icons.location_city_rounded,
-      title: 'Seydişehir Rehberin',
+      title: 'Seydi Rehber',
       description:
           'Şehrindeki etkinlikler, firmalar, gezilecek yerler ve daha fazlasını tek bir uygulamada keşfet!',
       color: AppColors.primary,
@@ -73,64 +74,92 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.white,
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: PageView.builder(
-                controller: _pageController,
-                itemCount: _pages.length,
-                onPageChanged: (index) {
-                  setState(() => _currentPage = index);
-                },
-                physics: _currentPage == 1 && !_privacyAccepted
-                    ? const NeverScrollableScrollPhysics()
-                    : null,
-                itemBuilder: (context, index) {
-                  final page = _pages[index];
-                  return _buildPage(page);
-                },
-              ),
-            ),
-
-            // Indicator
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: SmoothPageIndicator(
-                controller: _pageController,
-                count: _pages.length,
-                effect: WormEffect(
-                  dotHeight: 10,
-                  dotWidth: 10,
-                  activeDotColor: AppColors.primary,
-                  dotColor: AppColors.border,
-                ),
-              ),
-            ),
-
-            // Navigation button (hide on last page)
-            if (_currentPage < _pages.length - 1)
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: ElevatedButton(
-                    onPressed: _nextPage,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              AppColors.white,
+              AppColors.primary.withOpacity(0.01),
+              AppColors.primary.withOpacity(0.05),
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Stack(
+            children: [
+              Column(
+                children: [
+                  Expanded(
+                    child: PageView.builder(
+                      controller: _pageController,
+                      itemCount: _pages.length,
+                      onPageChanged: (index) {
+                        setState(() => _currentPage = index);
+                      },
+                      physics: _currentPage == 1 && !_privacyAccepted
+                          ? const NeverScrollableScrollPhysics()
+                          : null,
+                      itemBuilder: (context, index) {
+                        final page = _pages[index];
+                        return _buildPage(page);
+                      },
                     ),
-                    child: Text('Devam', style: AppTextStyles.button),
                   ),
-                ),
-              ),
 
-            const SizedBox(height: 16),
-          ],
+                  // Indicator and Button
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SmoothPageIndicator(
+                          controller: _pageController,
+                          count: _pages.length,
+                          effect: ExpandingDotsEffect(
+                            dotHeight: 8,
+                            dotWidth: 8,
+                            expansionFactor: 4,
+                            spacing: 8,
+                            activeDotColor: AppColors.primary,
+                            dotColor: AppColors.primary.withOpacity(0.2),
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+                        if (_currentPage < _pages.length - 1)
+                          SizedBox(
+                            width: double.infinity,
+                            height: 56,
+                            child: ElevatedButton(
+                              onPressed: _nextPage,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              child: const Text(
+                                'Devam Et',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ),
+                          )
+                        else
+                          const SizedBox(height: 56), // Placeholder
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -142,62 +171,186 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Icon container with gradient
+          const Spacer(flex: 2),
+          // Icon container with premium styling
           Container(
-            width: 120,
-            height: 120,
+            width: 160,
+            height: 160,
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  page.color.withOpacity(0.15),
-                  page.color.withOpacity(0.05),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(32),
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(40),
+              boxShadow: [
+                BoxShadow(
+                  color: page.color.withOpacity(0.15),
+                  blurRadius: 30,
+                  offset: const Offset(0, 10),
+                ),
+              ],
             ),
-            child: Icon(page.icon, size: 60, color: page.color),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        page.color.withOpacity(0.2),
+                        page.color.withOpacity(0.05),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(32),
+                  ),
+                ),
+                Icon(page.icon, size: 70, color: page.color),
+              ],
+            ),
           ),
-          const SizedBox(height: 40),
+          const SizedBox(height: 48),
           Text(
             page.title,
-            style: AppTextStyles.heading1.copyWith(fontSize: 26),
+            style: AppTextStyles.heading1.copyWith(
+              fontSize: 28,
+              fontWeight: FontWeight.w900,
+              letterSpacing: -0.5,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
-          Text(
-            page.description,
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.textSecondary,
-              height: 1.5,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              page.description,
+              style: AppTextStyles.bodyLarge.copyWith(
+                color: AppColors.textSecondary,
+                height: 1.5,
+                fontSize: 16,
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 32),
-
-          // Privacy checkbox on page 2
-          if (page.hasPrivacyCheckbox) ...[
-            CheckboxListTile(
-              value: _privacyAccepted,
-              onChanged: (v) => setState(() => _privacyAccepted = v ?? false),
-              title: Text(
-                'Gizlilik Politikasını okudum ve kabul ediyorum',
-                style: AppTextStyles.bodySmall,
+          const Spacer(flex: 3),
+          
+          // Additional components (Privacy / Auth)
+          if (page.hasPrivacyCheckbox || page.hasAuthButtons)
+            Container(
+              constraints: const BoxConstraints(maxHeight: 220),
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (page.hasPrivacyCheckbox) ...[
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: AppColors.primary.withOpacity(0.1),
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.03),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: CheckboxListTile(
+                          value: _privacyAccepted,
+                          onChanged: (v) => setState(() => _privacyAccepted = v ?? false),
+                          title: Text.rich(
+                            TextSpan(
+                              children: [
+                                WidgetSpan(
+                                  alignment: PlaceholderAlignment.middle,
+                                  child: GestureDetector(
+                                    onTap: () => _showPolicyDetail(
+                                      context,
+                                      'Gizlilik Politikası',
+                                      PoliciesScreen.privacyPolicyContent,
+                                    ),
+                                    child: Text(
+                                      'Gizlilik Politikası',
+                                      style: AppTextStyles.bodySmall.copyWith(
+                                        color: AppColors.primary,
+                                        fontWeight: FontWeight.bold,
+                                        decoration: TextDecoration.underline,
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const TextSpan(text: ', '),
+                                WidgetSpan(
+                                  alignment: PlaceholderAlignment.middle,
+                                  child: GestureDetector(
+                                    onTap: () => _showPolicyDetail(
+                                      context,
+                                      'Kullanım Koşulları',
+                                      PoliciesScreen.termsOfServiceContent,
+                                    ),
+                                    child: Text(
+                                      'Kullanım Koşulları',
+                                      style: AppTextStyles.bodySmall.copyWith(
+                                        color: AppColors.primary,
+                                        fontWeight: FontWeight.bold,
+                                        decoration: TextDecoration.underline,
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const TextSpan(text: ' ve '),
+                                WidgetSpan(
+                                  alignment: PlaceholderAlignment.middle,
+                                  child: GestureDetector(
+                                    onTap: () => _showPolicyDetail(
+                                      context,
+                                      'KVKK Aydınlatma Metni',
+                                      PoliciesScreen.kvkkContent,
+                                    ),
+                                    child: Text(
+                                      'KVKK Metni',
+                                      style: AppTextStyles.bodySmall.copyWith(
+                                        color: AppColors.primary,
+                                        fontWeight: FontWeight.bold,
+                                        decoration: TextDecoration.underline,
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                TextSpan(
+                                  text: '\'ni okudum ve kabul ediyorum',
+                                  style: AppTextStyles.bodySmall.copyWith(fontSize: 11),
+                                ),
+                              ],
+                            ),
+                          ),
+                          activeColor: AppColors.primary,
+                          controlAffinity: ListTileControlAffinity.leading,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                    ],
+                    if (page.hasAuthButtons) ...[
+                      _buildAuthButtons(),
+                      const SizedBox(height: 24),
+                    ],
+                  ],
+                ),
               ),
-              activeColor: AppColors.primary,
-              controlAffinity: ListTileControlAffinity.leading,
-              contentPadding: EdgeInsets.zero,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          ],
-
-          // Auth buttons on page 3
-          if (page.hasAuthButtons) ...[
-            _buildAuthButtons(),
-          ],
+            )
+          else
+            const SizedBox(height: 60),
         ],
       ),
     );
@@ -269,6 +422,46 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  void _showPolicyDetail(BuildContext context, String title, String content) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.8,
+        decoration: const BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(child: Text(title, style: AppTextStyles.heading2)),
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close),
+                ),
+              ],
+            ),
+            const Divider(height: 32),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Text(
+                  content,
+                  style: AppTextStyles.bodyMedium.copyWith(height: 1.6),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

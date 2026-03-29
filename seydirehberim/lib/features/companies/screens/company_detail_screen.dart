@@ -13,6 +13,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:latlong2/latlong.dart';
 import '../../favorites/providers/favorites_provider.dart';
+import '../../../core/widgets/review_section.dart';
 
 class CompanyDetailScreen extends ConsumerStatefulWidget {
   final String companyId;
@@ -109,14 +110,18 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
           return Stack(
             children: [
               CustomScrollView(
+                physics: const ClampingScrollPhysics(),
                 slivers: [
                   // App Bar with Image
                   SliverAppBar(
-                    expandedHeight: 280,
+                    expandedHeight: 450,
                     pinned: true,
                     elevation: 0,
-                    backgroundColor: AppColors.primaryDark,
-                    foregroundColor: Colors.white,
+                    backgroundColor: Colors.white,
+                    scrolledUnderElevation: 0,
+                    shadowColor: Colors.transparent,
+                    surfaceTintColor: Colors.transparent,
+                    foregroundColor: AppColors.primaryDark,
                     leading: Container(
                       margin: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
@@ -124,7 +129,7 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
                         shape: BoxShape.circle,
                       ),
                       child: IconButton(
-                        icon: const Icon(Icons.arrow_back, size: 20),
+                        icon: const Icon(Icons.arrow_back, size: 20, color: Colors.white),
                         onPressed: () => Navigator.pop(context),
                       ),
                     ),
@@ -330,6 +335,14 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
                                 ),
                               ),
                             ],
+                            const SizedBox(height: 48),
+
+                            // YORUMLAR VE PUANLAMA
+                            ReviewSection(
+                              targetId: widget.companyId,
+                              targetType: 'company',
+                            ),
+
                             const SizedBox(height: 40),
                           ],
                         ),

@@ -46,8 +46,9 @@ const ManageCollection: React.FC<ManageCollectionProps> = ({ collectionId }) => 
 
   useEffect(() => {
     setLoading(true);
-    // Use 'tarih' for support, else 'created_at'
-    const sortField = collectionId === 'yardim_destek' ? 'tarih' : 'created_at';
+    // Use 'tarih' for support, 'createdAt' for reviews, else 'created_at'
+    const sortField = collectionId === 'yardim_destek' ? 'tarih' : 
+                      collectionId === 'reviews' ? 'createdAt' : 'created_at';
     
     // We try to query with order, if it fails (e.g. index missing), we fallback to no order
     const q = query(collection(db, collectionId), orderBy(sortField, 'desc'));
@@ -221,17 +222,21 @@ const ManageCollection: React.FC<ManageCollectionProps> = ({ collectionId }) => 
                   </td>
                 )}
                 <td>
-                  <div style={{ fontWeight: 600 }}>{item.ad || item.ad_soyad || item.baslik || item.guzergah || 'İsimsiz'}</div>
+                  <div style={{ fontWeight: 600 }}>
+                    {item.ad || item.ad_soyad || item.baslik || item.guzergah || item.userName || 'İsimsiz'}
+                    {item.rating && <span style={{ color: '#f59e0b', marginLeft: '0.5rem' }}>★ {item.rating}</span>}
+                  </div>
                   <div className="text-muted" style={{ fontSize: '0.8rem' }}>
                     {item.kategori && <span>{item.kategori} - </span>}
                     {/* Format firestore timestamps if present */}
                     {item.tarih?.toDate ? format(item.tarih.toDate(), 'dd.MM.yyyy HH:mm') + ' - ' : ''}
+                    {item.createdAt?.toDate ? format(item.createdAt.toDate(), 'dd.MM.yyyy HH:mm') + ' - ' : ''}
                     {item.expiry_date && (
                       <span className="text-danger" style={{ fontWeight: 600 }}>
                          - Bitiş: {item.expiry_date.toDate ? format(item.expiry_date.toDate(), 'dd.MM.yyyy') : item.expiry_date}
                       </span>
                     )}
-                    {item.email || item.konum || item.hakkinda?.substring(0, 50)}...
+                    {(item.comment || item.email || item.konum || item.hakkinda)?.substring(0, 100)}...
                   </div>
                 </td>
                 <td style={{ minWidth: '120px' }}>
