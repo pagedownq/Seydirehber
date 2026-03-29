@@ -43,7 +43,13 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
         stream: FirebaseFirestore.instance
             .collection(widget.collection)
             .orderBy('created_at', descending: true)
-            .snapshots(),
+            .snapshots()
+            .handleError((_) {
+              // If index or field missing, fall back to unordered
+              return FirebaseFirestore.instance
+                  .collection(widget.collection)
+                  .snapshots();
+            }),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -61,6 +67,8 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
               final doc = docs[index];
               final data = doc.data() as Map<String, dynamic>;
               final name = data['ad'] as String? ??
+                  data['title'] as String? ??
+                  data['username'] as String? ??
                   data['name'] as String? ??
                   data['guzergah'] as String? ??
                   'İsimsiz';
@@ -82,32 +90,7 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
                   title: Text(name,
                       style: AppTextStyles.bodyMedium
                           .copyWith(fontWeight: FontWeight.w600)),
-                  subtitle: (widget.collection == 'firmalar')
-                      ? Builder(
-                          builder: (context) {
-                            if (data['expiry_date'] == null) {
-                              return Text(
-                                'Bitiş: Sınırsız',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.green[600],
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              );
-                            }
-                            final expiry = (data['expiry_date'] as Timestamp).toDate();
-                            final isExpired = expiry.isBefore(DateTime.now());
-                            return Text(
-                              'Bitiş: ${expiry.day.toString().padLeft(2, '0')}.${expiry.month.toString().padLeft(2, '0')}.${expiry.year}',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: isExpired ? Colors.red : Colors.grey[600],
-                                fontWeight: isExpired ? FontWeight.bold : FontWeight.normal,
-                              ),
-                            );
-                          },
-                        )
-                      : null,
+                  subtitle: _buildListSubtitle(data),
                   trailing: PopupMenuButton(
                     itemBuilder: (ctx) => [
                       const PopupMenuItem(value: 'edit', child: Text('Düzenle')),
@@ -131,6 +114,46 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
         },
       ),
     );
+  }
+
+  Widget? _buildListSubtitle(Map<String, dynamic> data) {
+    switch (widget.collection) {
+      case 'firmalar':
+        if (data['expiry_date'] == null) {
+          return Text(
+            'Bitiş: Sınırsız',
+            style: TextStyle(fontSize: 12, color: Colors.green[600], fontWeight: FontWeight.w600),
+          );
+        }
+        final expiry = (data['expiry_date'] as Timestamp).toDate();
+        final isExpired = expiry.isBefore(DateTime.now());
+        return Text(
+          'Bitiş: ${expiry.day.toString().padLeft(2, '0')}.${expiry.month.toString().padLeft(2, '0')}.${expiry.year}',
+          style: TextStyle(
+            fontSize: 12,
+            color: isExpired ? Colors.red : Colors.grey[600],
+            fontWeight: isExpired ? FontWeight.bold : FontWeight.normal,
+          ),
+        );
+      case 'esnaf_users':
+        final companyId = data['company_id'] as String? ?? '';
+        return Text(
+          'Firma ID: ${companyId.isNotEmpty ? companyId : 'Bağlı değil'}',
+          style: const TextStyle(fontSize: 12),
+        );
+      case 'coupons':
+        final isActive = data['isActive'] as bool? ?? false;
+        final companyName = data['companyName'] as String? ?? '';
+        return Text(
+          '${companyName.isNotEmpty ? companyName : 'Firma yok'} • ${isActive ? '✅ Aktif' : '❌ Pasif'}',
+          style: TextStyle(
+            fontSize: 12,
+            color: isActive ? Colors.green[700] : Colors.red,
+          ),
+        );
+      default:
+        return null;
+    }
   }
 
   // Fields config based on collection type
@@ -195,6 +218,21 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
           _FieldConfig('instagram', 'Instagram (Kullanıcı adı veya Link)'),
           _FieldConfig('expiry_date', 'Firma Bitiş Tarihi', isDate: true),
         ];
+      case 'esnaf_users':
+        return [
+          _FieldConfig('username', 'Kullanıcı Adı', required: true),
+          _FieldConfig('password', 'Şifre', required: true),
+          _FieldConfig('company_id', 'Bağlı Olduğu Firma', isCompanyPicker: true, required: true),
+        ];
+      case 'coupons':
+        return [
+          _FieldConfig('title', 'Kupon Başlığı (Örn: %20 İndirim)', required: true),
+          _FieldConfig('description', 'Kupon Detayı', multiline: true, required: true),
+          _FieldConfig('companyId', 'Firma Seç', isCompanyPicker: true, required: true),
+          _FieldConfig('companyName', 'Firma Adı (Otomatik dolar)', readOnly: true),
+          _FieldConfig('discountPercentage', 'İndirim Yüzdesi (Örn: 20)', isNumber: true),
+          _FieldConfig('isActive', 'Aktif Mi?', isBoolean: true, defaultValue: true),
+        ];
       default:
         return [_FieldConfig('ad', 'Ad', required: true)];
     }
@@ -206,7 +244,12 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
     File? selectedImage;
     bool isLoading = false;
 
+    final boolValues = <String, bool>{};
     for (final field in fields) {
+      if (field.isBoolean) {
+        boolValues[field.key] = existingData?[field.key] ?? field.defaultValue;
+        continue; // Booleans don't need controllers
+      }
       String initialValue = '';
       final val = existingData?[field.key];
       
@@ -221,6 +264,8 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
         } else {
           initialValue = val.toString();
         }
+      } else if (field.defaultValue != null) {
+        initialValue = field.defaultValue.toString();
       }
       
       controllers[field.key] = TextEditingController(text: initialValue);
@@ -314,14 +359,23 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
                           contentPadding: EdgeInsets.zero,
                           dense: true,
                         ),
+                      if (field.isBoolean)
+                        SwitchListTile(
+                          value: boolValues[field.key] ?? false,
+                          onChanged: (val) => setModalState(() => boolValues[field.key] = val),
+                          title: Text(field.label, style: const TextStyle(fontSize: 14)),
+                          contentPadding: EdgeInsets.zero,
+                          dense: true,
+                        ),
                       if (!isExpiryField || !isUnlimited)
+                        if (!field.isBoolean)
                         Padding(
                           padding: const EdgeInsets.only(bottom: 12),
                           child: TextField(
                             controller: controllers[field.key],
-                            readOnly: isInteractionField,
+                            readOnly: isInteractionField || field.readOnly,
                             maxLines: field.multiline ? 4 : 1,
-                            onTap: isInteractionField
+                            onTap: (isInteractionField && !field.readOnly)
                                 ? () async {
                                     if (field.isDate || field.isDateTime) {
                                       final date = await showDatePicker(
@@ -360,6 +414,10 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
                                       _showCompanyPicker(context, (id, name) {
                                         setModalState(() {
                                           controllers[field.key]?.text = "$name | $id";
+                                          // Auto-fill companyName if it exists in fields
+                                          if (controllers.containsKey('companyName')) {
+                                            controllers['companyName']?.text = name;
+                                          }
                                         });
                                       });
                                     }
@@ -414,14 +472,11 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
                               setModalState(() => isLoading = true);
 
                               try {
-                                String? imageUrl =
-                                    existingData?['image_url'] as String?;
+                                String? imageUrl = existingData?['image_url'] as String?;
 
                                 // Upload image to Supabase if selected
-                                if (selectedImage != null &&
-                                    widget.bucket != null) {
-                                  final fileName =
-                                      '${DateTime.now().millisecondsSinceEpoch}.jpg';
+                                if (selectedImage != null && widget.bucket != null) {
+                                  final fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
                                   await Supabase.instance.client.storage
                                       .from(widget.bucket!)
                                       .upload(fileName, selectedImage!);
@@ -432,62 +487,57 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
 
                                 // Build document data
                                 final docData = <String, dynamic>{};
-                                  for (final field in fields) {
-                                    final value =
-                                        controllers[field.key]?.text.trim() ??
-                                            '';
-                                    if (value.isNotEmpty) {
-                                      if (field.isNumber) {
-                                        docData[field.key] =
-                                            int.tryParse(value) ?? 0;
-                                      } else if (field.key == 'expiry_date') {
-                                        // Parse dd.MM.yyyy back to Timestamp
-                                        try {
-                                           final parts = value.split(' ');
-                                           final dateParts = parts[0].split('.');
-                                           
-                                           int year = int.parse(dateParts[2]);
-                                           int month = int.parse(dateParts[1]);
-                                           int day = int.parse(dateParts[0]);
-                                           int hour = 0;
-                                           int minute = 0;
+                                for (final field in fields) {
+                                  if (field.isBoolean) {
+                                    docData[field.key] = boolValues[field.key] ?? false;
+                                    continue;
+                                  }
+                                  final value = controllers[field.key]?.text.trim() ?? '';
+                                  if (value.isNotEmpty) {
+                                    if (field.isNumber) {
+                                      docData[field.key] = int.tryParse(value) ?? 0;
+                                    } else if (field.key == 'expiry_date' || field.isDate) {
+                                      try {
+                                        final parts = value.split(' ');
+                                        final dateParts = parts[0].split('.');
+                                        int year = int.parse(dateParts[2]);
+                                        int month = int.parse(dateParts[1]);
+                                        int day = int.parse(dateParts[0]);
+                                        int hour = 0;
+                                        int minute = 0;
 
-                                           if (parts.length > 1) {
-                                             final timeParts = parts[1].split(':');
-                                             hour = int.parse(timeParts[0]);
-                                             minute = int.parse(timeParts[1]);
-                                           }
+                                        if (parts.length > 1) {
+                                          final timeParts = parts[1].split(':');
+                                          hour = int.parse(timeParts[0]);
+                                          minute = int.parse(timeParts[1]);
+                                        }
 
-                                           final date = DateTime(year, month, day, hour, minute);
-                                           docData[field.key] = Timestamp.fromDate(date);
-                                        } catch (e) {
-                                          debugPrint('Date parse error: $e');
-                                        }
-                                      } else if (field.key == 'instagram') {
-                                        // Auto-prefix instagram username
-                                        if (!value.startsWith('http')) {
-                                          docData[field.key] =
-                                              'https://www.instagram.com/$value';
-                                        } else {
-                                          docData[field.key] = value;
-                                        }
-                                      } else if (field.isCompanyPicker) {
-                                        // Extract ID from "Name | ID" format
-                                        final parts = value.split(' | ');
-                                        docData[field.key] = parts.last;
+                                        final date = DateTime(year, month, day, hour, minute);
+                                        docData[field.key] = Timestamp.fromDate(date);
+                                      } catch (e) {
+                                        debugPrint('Date parse error: $e');
+                                      }
+                                    } else if (field.key == 'instagram') {
+                                      if (!value.startsWith('http')) {
+                                        docData[field.key] = 'https://www.instagram.com/$value';
                                       } else {
                                         docData[field.key] = value;
                                       }
+                                    } else if (field.isCompanyPicker) {
+                                      final parts = value.split(' | ');
+                                      docData[field.key] = parts.last;
                                     } else {
-                                      // Explicitly set to null to allow clearing optional fields (banners etc.)
-                                      docData[field.key] = null;
+                                      docData[field.key] = value;
                                     }
+                                  } else {
+                                    docData[field.key] = null;
                                   }
+                                }
 
                                 if (imageUrl != null && imageUrl.isNotEmpty) {
                                   docData['image_url'] = imageUrl;
-                                } else {
-                                  // Use empty string to trigger the 'fotoyok.png' default in the UI
+                                } else if (docId == null) {
+                                  // For NEW documents, if no image uploaded, default to empty string
                                   docData['image_url'] = '';
                                 }
 
@@ -688,6 +738,9 @@ class _FieldConfig {
   final bool isDateTime;
   final bool isPhone;
   final bool isCompanyPicker;
+  final bool isBoolean;
+  final bool readOnly;
+  final dynamic defaultValue;
 
   _FieldConfig(
     this.key,
@@ -700,5 +753,8 @@ class _FieldConfig {
     this.isDateTime = false,
     this.isPhone = false,
     this.isCompanyPicker = false,
+    this.isBoolean = false,
+    this.readOnly = false,
+    this.defaultValue,
   });
 }

@@ -117,6 +117,28 @@ class AdminScreen extends ConsumerWidget {
             color: const Color(0xFFFBC02D),
             onTap: () => context.push('/admin/reviews'),
           ),
+          const SizedBox(height: 12),
+          _AdminCard(
+            icon: Icons.people,
+            title: 'Esnaf Hesapları',
+            color: const Color(0xFF7E57C2),
+            onTap: () => context.push('/admin/manage', extra: {
+              'collection': 'esnaf_users',
+              'title': 'Esnaf Hesapları',
+              'bucket': null,
+            }),
+          ),
+          const SizedBox(height: 12),
+          _AdminCard(
+            icon: Icons.confirmation_number,
+            title: 'Kupon Yönetimi',
+            color: const Color(0xFFEC407A),
+            onTap: () => context.push('/admin/manage', extra: {
+              'collection': 'coupons',
+              'title': 'Kupon Yönetimi',
+              'bucket': null,
+            }),
+          ),
         ],
       ),
     );

@@ -23,6 +23,8 @@ import '../../features/admin/screens/admin_reviews_screen.dart';
 import '../../features/favorites/screens/favorites_screen.dart';
 import '../widgets/generic_list_screen.dart';
 import '../../features/home/providers/home_providers.dart';
+import '../../features/coupons/screens/coupons_screen.dart';
+import '../../features/coupons/screens/coupon_detail_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -149,6 +151,22 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => CompanyDetailScreen(
           companyId: state.pathParameters['id']!,
         ),
+      ),
+
+      // Coupons
+      GoRoute(
+        path: '/coupons',
+        builder: (context, state) => const CouponsScreen(),
+      ),
+      GoRoute(
+        path: '/coupons/:id',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>? ?? {};
+          return CouponDetailScreen(
+            couponId: state.pathParameters['id']!,
+            couponData: extra,
+          );
+        },
       ),
 
       // Services

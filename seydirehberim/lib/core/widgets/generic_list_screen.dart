@@ -169,8 +169,12 @@ class GenericListScreen extends ConsumerWidget {
           final rawAdres = data['adres'] as String? ?? '';
           final rawKonum = data['konum'] as String? ?? '';
           final address = rawAdres.isNotEmpty ? rawAdres : (rawKonum.startsWith('http') ? '' : rawKonum);
+          
+          final createdAt = data['created_at'] as Timestamp?;
+          final isNew = createdAt != null &&
+              DateTime.now().difference(createdAt.toDate()).inDays < 30;
 
-          return _buildVerticalCard(context, id, name, imageUrl, category, address, isFromManualCache);
+          return _buildVerticalCard(context, id, name, imageUrl, category, address, isFromManualCache, isNew);
         },
       );
     }
@@ -246,11 +250,45 @@ class GenericListScreen extends ConsumerWidget {
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 12,
-                              fontWeight: FontWeight.w800,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
                       ),
+                    
+                    // NEW Badge
+                    () {
+                      final createdAt = data['created_at'] as Timestamp?;
+                      final isNew = createdAt != null &&
+                          DateTime.now().difference(createdAt.toDate()).inDays < 30;
+                      if (!isNew) return const SizedBox.shrink();
+                      
+                      return Positioned(
+                        top: 15,
+                        right: 15,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.redAccent,
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.2),
+                                blurRadius: 4,
+                              ),
+                            ],
+                          ),
+                          child: const Text(
+                            'YENİ',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      );
+                    }(),
                     if (isFromManualCache)
                       Positioned(
                         top: 15,
@@ -347,7 +385,6 @@ class GenericListScreen extends ConsumerWidget {
       },
     );
   }
-
   Widget _buildVerticalCard(
     BuildContext context,
     String id,
@@ -356,6 +393,7 @@ class GenericListScreen extends ConsumerWidget {
     String category,
     String address,
     bool isFromManualCache,
+    bool isNew,
   ) {
     return GestureDetector(
       onTap: () => context.push('/$routePrefix/$id'),
@@ -377,9 +415,41 @@ class GenericListScreen extends ConsumerWidget {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(16),
-                child: CachedImageWidget(
-                  imageUrl: imageUrl,
-                  fit: BoxFit.cover,
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: CachedImageWidget(
+                        imageUrl: imageUrl,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    if (isNew)
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.redAccent,
+                            borderRadius: BorderRadius.circular(6),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 4,
+                              ),
+                            ],
+                          ),
+                          child: const Text(
+                            'YENİ',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ),

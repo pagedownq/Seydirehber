@@ -74,7 +74,12 @@ const ManageCollection: React.FC<ManageCollectionProps> = ({ collectionId }) => 
       setFormData(item);
     } else {
       setEditingItem(null);
-      setFormData({});
+      // Set defaults for new items
+      const defaults: any = {};
+      if (collectionId === 'coupons') {
+        defaults.isActive = true;
+      }
+      setFormData(defaults);
     }
     setSelectedFile(null);
     setShowModal(true);
@@ -124,6 +129,9 @@ const ManageCollection: React.FC<ManageCollectionProps> = ({ collectionId }) => 
         if (f.isDate && cleanData[f.key] && typeof cleanData[f.key] === 'string') {
           // Convert HTML date string (YYYY-MM-DD) to Firestore Timestamp
           cleanData[f.key] = Timestamp.fromDate(new Date(cleanData[f.key]));
+        }
+        if (f.isBoolean) {
+          cleanData[f.key] = !!cleanData[f.key];
         }
         // Ensure optional fields can be cleared
         if (!f.required && (cleanData[f.key] === '' || cleanData[f.key] === undefined)) {
@@ -223,7 +231,7 @@ const ManageCollection: React.FC<ManageCollectionProps> = ({ collectionId }) => 
                   )}
                   <td style={{ padding: '1.25rem' }}>
                     <div style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: '0.25rem', color: 'var(--text)' }}>
-                      {item.ad || item.ad_soyad || item.baslik || item.guzergah || item.userName || 'İsimsiz'}
+                      {item.ad || item.ad_soyad || item.baslik || item.guzergah || item.userName || item.username || item.title || 'İsimsiz'}
                       {item.rating && <span style={{ color: '#f59e0b', marginLeft: '0.75rem', fontSize: '0.9rem' }}>★ {item.rating}</span>}
                     </div>
                     
@@ -401,7 +409,15 @@ const ManageCollection: React.FC<ManageCollectionProps> = ({ collectionId }) => 
                       <select 
                         className="input"
                         value={formData[field.key] || ''}
-                        onChange={(e) => setFormData({ ...formData, [field.key]: e.target.value })}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          const updates: any = { [field.key]: val };
+                          if (collectionId === 'coupons' && field.key === 'companyId') {
+                            const company = companies.find(c => c.id === val);
+                            if (company) updates.companyName = company.ad;
+                          }
+                          setFormData({ ...formData, ...updates });
+                        }}
                         disabled={!companies.length}
                       >
                         <option value="">Firma Seçin (Boş Bırakılabilir)</option>
@@ -425,6 +441,17 @@ const ManageCollection: React.FC<ManageCollectionProps> = ({ collectionId }) => 
                       value={formData[field.key] || ''}
                       onChange={(e) => setFormData({ ...formData, [field.key]: e.target.value })}
                     />
+                  ) : field.isBoolean ? (
+                    <div>
+                      <label className="switch">
+                        <input 
+                          type="checkbox" 
+                          checked={formData[field.key] || false}
+                          onChange={(e) => setFormData({ ...formData, [field.key]: e.target.checked })}
+                        />
+                        <span className="slider"></span>
+                      </label>
+                    </div>
                   ) : (
                     <input 
                       className="input"

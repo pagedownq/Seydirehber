@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/widgets/error_view.dart';
@@ -39,6 +40,24 @@ class _PharmacyScreenState extends State<PharmacyScreen> {
               _hasError = true;
               _isLoading = false;
             });
+          },
+          onNavigationRequest: (request) async {
+            final url = request.url;
+            if (url.startsWith('tel:') || 
+                url.startsWith('geo:') || 
+                url.contains('maps.google.com') ||
+                url.contains('google.com/maps')) {
+              try {
+                final uri = Uri.parse(url);
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                }
+              } catch (e) {
+                debugPrint('Launch error: $e');
+              }
+              return NavigationDecision.prevent;
+            }
+            return NavigationDecision.navigate;
           },
         ),
       )

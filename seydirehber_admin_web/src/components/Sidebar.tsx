@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Image, Calendar, Gavel, Store, Bus, MapPin, Building, MessageSquare } from 'lucide-react';
+import { LayoutDashboard, Image, Calendar, Gavel, Store, Bus, MapPin, Building, MessageSquare, Users, Ticket } from 'lucide-react';
 
 interface SidebarProps {
   activeTab: string;
@@ -18,6 +18,8 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => {
     { id: 'firmalar', label: 'Firmalar', icon: Building },
     { id: 'yardim_destek', label: 'Yardım ve Destek', icon: MessageSquare },
     { id: 'reviews', label: 'Yorum Yönetimi', icon: LayoutDashboard },
+    { id: 'esnaf_users', label: 'Esnaf Hesapları', icon: Users },
+    { id: 'coupons', label: 'Kupon Yönetimi', icon: Ticket },
   ];
 
   return (

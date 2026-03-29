@@ -9,6 +9,11 @@ service cloud.firestore {
          request.auth.token.email == 'bilgimgverse@gmail.com');
     }
 
+    // Esnaf yetki kontrolü kaldırıldı (Auth kullanılmadığı için kurallar esnetildi)
+    function isEsnaf(firmaId) {
+      return true; // Esnaf_web Auth kullanmadığından bypass edildi
+    }
+
     match /yardim_destek/{docId} {
       allow create: if true;
       allow read, update, delete: if isAdmin();
@@ -43,6 +48,41 @@ service cloud.firestore {
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
       allow update, delete: if request.auth != null && (resource.data.userId == request.auth.uid || isAdmin());
     }
+    
+    // --- KUPON & ESNAF SİSTEMİ KURALLARI ---
+    
+    match /esnaf_users/{docId} {
+      // Esnaf panelinde giriş yapabilmek için (Auth olmadan) okumaya açık olmalı
+      allow read: if true;
+      allow write: if isAdmin(); 
+    }
+
+    match /coupons/{docId} {
+      // Kuponları uygulamadaki herkes okuyabilir, sadece admin oluşturup silebilir.
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /generated_codes/{docId} {
+      // 1. Kullanıcı kendi kodunu oluşturabilir.
+      // (Bunu kendi UID'si ile oluşturmak zorunda)
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      
+      // Müşteri kendi kodunu okuyabilir, admin ve esnaf da arama yapabilir
+      allow read: if true;
+                  
+      // 3. Güncelleme Yetkisi (Transaction anı):
+      // - Herkes ('kodu bilen') sadece durumu 'pending' den 'used'a alabilir ve usedAt atayabilir. (Auth kaldırıldığı için sınırlı yetki açıldı)
+      allow update: if isAdmin() || 
+                    (
+                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'usedAt']) &&
+                      request.resource.data.status == 'used' && 
+                      resource.data.status == 'pending'
+                    );
+                    
+      allow delete: if isAdmin();
+    }
+    // ----------------------------------------
     
     // Default fallback rule: denies all access by default
     match /{document=**} {

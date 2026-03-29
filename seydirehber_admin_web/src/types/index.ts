@@ -16,6 +16,7 @@ export interface FieldConfig {
   isTime?: boolean;
   isPhone?: boolean;
   isCompanyPicker?: boolean;
+  isBoolean?: boolean;
 }
 
 export const COLLECTIONS: Record<string, { title: string; bucket: string | null; fields: FieldConfig[] }> = {
@@ -120,6 +121,27 @@ export const COLLECTIONS: Record<string, { title: string; bucket: string | null;
       { key: 'comment', label: 'Yorum', multiline: true, required: true },
       { key: 'targetId', label: 'Hedef ID (Firma/Yer)', required: true },
       { key: 'createdAt', label: 'Tarih', isDate: true },
+    ]
+  },
+  esnaf_users: {
+    title: 'Esnaf Hesapları',
+    bucket: null,
+    fields: [
+      { key: 'username', label: 'E-posta (Esnaf Girişi İçin)', required: true },
+      { key: 'password', label: 'Şifre', required: true },
+      { key: 'companyId', label: 'İlişkili Firma', isCompanyPicker: true, required: true },
+    ]
+  },
+  coupons: {
+    title: 'Kupon Yönetimi',
+    bucket: null,
+    fields: [
+      { key: 'title', label: 'Kupon Adı', required: true },
+      { key: 'description', label: 'Kupon Hakkında', multiline: true },
+      { key: 'discountPercentage', label: 'İndirim Yüzdesi (Örn: 20)', isNumber: true, required: true },
+      { key: 'companyId', label: 'Geçerli Firma', isCompanyPicker: true, required: true },
+      { key: 'companyName', label: 'Firma Adı (Gösterim İçin)', required: true },
+      { key: 'isActive', label: 'Aktif Mi?', isBoolean: true },
     ]
   }
 };

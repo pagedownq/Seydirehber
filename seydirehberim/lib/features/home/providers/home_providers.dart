@@ -133,3 +133,20 @@ final bannersProvider = StreamProvider((ref) {
       .orderBy('order')
       .snapshots(includeMetadataChanges: true);
 });
+
+// Coupons - last 5
+final latestCouponsProvider = StreamProvider((ref) {
+  return ref
+      .watch(firestoreProvider)
+      .collection('coupons')
+      .snapshots();
+});
+
+// All Coupons
+final allCouponsProvider = StreamProvider((ref) {
+  return ref
+      .watch(firestoreProvider)
+      .collection('coupons')
+      .snapshots();
+});
+

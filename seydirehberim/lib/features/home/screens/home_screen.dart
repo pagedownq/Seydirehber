@@ -8,6 +8,7 @@ import '../providers/home_providers.dart';
 import '../widgets/banner_slider.dart';
 import '../widgets/horizontal_card_list.dart';
 import '../widgets/service_grid.dart';
+import '../widgets/horizontal_coupon_list.dart';
 import '../../../core/widgets/see_all_button.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -32,6 +33,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ref.refresh(alphabeticalCompaniesProvider.future),
             ref.refresh(latestCompaniesProvider.future),
             ref.refresh(popularCompaniesProvider.future),
+            ref.refresh(latestCouponsProvider.future),
           ]);
         },
         color: AppColors.primary,
@@ -153,6 +155,30 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   provider: latestEventsProvider,
                   type: CardType.event,
                   onTap: (id) => context.push('/events/$id'),
+                ),
+              ],
+            ),
+          ),
+
+          // Kuponlar Section
+          SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 24),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: SeeAllButton(
+                    title: 'Fırsat Kuponları',
+                    onTap: () => context.push('/coupons'),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                HorizontalCouponList(
+                  provider: latestCouponsProvider,
+                  onTap: (id, data) {
+                    context.push('/coupons/$id', extra: data);
+                  },
                 ),
               ],
             ),
