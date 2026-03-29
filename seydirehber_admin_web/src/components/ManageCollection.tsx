@@ -13,7 +13,7 @@ import {
   serverTimestamp,
   Timestamp 
 } from 'firebase/firestore';
-import { Plus, Trash2, Edit, X, Upload, Loader2, Search } from 'lucide-react';
+import { Plus, Trash2, Edit, X, Loader2, Search } from 'lucide-react';
 import { COLLECTIONS } from '../types';
 import { format } from 'date-fns';
 
@@ -215,7 +215,7 @@ const ManageCollection: React.FC<ManageCollectionProps> = ({ collectionId }) => 
                   {config.bucket && (
                     <td style={{ padding: '1rem' }}>
                       <img 
-                        src={item.image_url || item.gorsel || 'https://via.placeholder.com/50'} 
+                        src={item.image_url || item.gorsel || '/assets/fotoyok.png'} 
                         alt="" 
                         style={{ width: 56, height: 56, borderRadius: 12, objectFit: 'cover', border: '1px solid var(--border)' }}
                       />
@@ -352,7 +352,7 @@ const ManageCollection: React.FC<ManageCollectionProps> = ({ collectionId }) => 
                       <img src={formData.image_url} alt="Current" />
                     ) : (
                       <div style={{ textAlign: 'center' }}>
-                        <Upload size={32} style={{ marginBottom: '0.5rem' }} />
+                         <img src="/assets/fotoyok.png" alt="No image" style={{ width: '48px', height: '48px', marginBottom: '0.5rem', opacity: 0.5 }} />
                         <div>Resim Seç</div>
                       </div>
                     )}
