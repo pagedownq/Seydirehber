@@ -16,6 +16,8 @@ class SupportScreen extends ConsumerStatefulWidget {
 class _SupportScreenState extends ConsumerState<SupportScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _messageController = TextEditingController();
   String _selectedCategory = 'Öneri';
   bool _isSending = false;
@@ -35,8 +37,13 @@ class _SupportScreenState extends ConsumerState<SupportScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authState = ref.read(authStateProvider);
       authState.whenData((user) {
-        if (user != null && user.displayName != null) {
-          _nameController.text = user.displayName!;
+        if (user != null) {
+          if (user.displayName != null && _nameController.text.isEmpty) {
+            _nameController.text = user.displayName!;
+          }
+          if (user.email != null && _emailController.text.isEmpty) {
+            _emailController.text = user.email!;
+          }
         }
       });
     });
@@ -45,12 +52,27 @@ class _SupportScreenState extends ConsumerState<SupportScreen> {
   @override
   void dispose() {
     _nameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
     _messageController.dispose();
     super.dispose();
   }
 
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
+
+    final email = _emailController.text.trim();
+    final phone = _phoneController.text.trim();
+
+    if (email.isEmpty && phone.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Lütfen size ulaşabileceğimiz bir e-posta veya telefon numarası girin.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
 
     setState(() => _isSending = true);
 
@@ -59,22 +81,29 @@ class _SupportScreenState extends ConsumerState<SupportScreen> {
       
       await FirebaseFirestore.instance.collection('yardim_destek').add({
         'ad_soyad': _nameController.text.trim(),
+        'email': email,
+        'telefon': phone,
         'kategori': _selectedCategory,
         'mesaj': _messageController.text.trim(),
-        'email': user?.email ?? 'anonymous',
         'uid': user?.uid ?? 'guest',
+        'is_guest': user == null || ref.read(isGuestProvider),
         'tarih': FieldValue.serverTimestamp(),
         'durum': 'Bekliyor', // Default status for new messages
       });
 
       if (mounted) {
+        final hasPhone = _phoneController.text.trim().isNotEmpty;
+        final successMsg = hasPhone 
+            ? 'Mesajınız başarıyla gönderilmiştir! En kısa sürede e-posta veya telefon üzerinden size dönüş yapacağız.'
+            : 'Mesajınız başarıyla gönderilmiştir! En kısa sürede e-posta üzerinden size dönüş yapacağız.';
+
         // Go to home and show success message
         context.go('/');
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Mesajınız başarıyla gönderilmiştir! En kısa sürede size dönüş yapacağız.'),
+          SnackBar(
+            content: Text(successMsg),
             backgroundColor: AppColors.success,
-            duration: Duration(seconds: 4),
+            duration: const Duration(seconds: 4),
           ),
         );
       }
@@ -128,7 +157,40 @@ class _SupportScreenState extends ConsumerState<SupportScreen> {
                   hintText: 'Adınızı ve soyadınızı girin',
                   prefixIcon: const Icon(Icons.person_outline, size: 20),
                 ),
-                validator: (value) => value == null || value.isEmpty ? 'Lütfen adınızı girin' : null,
+                validator: (value) => value == null || value.trim().isEmpty ? 'Lütfen adınızı girin' : null,
+              ),
+              const SizedBox(height: 18),
+
+              // Email Field (Only for guests)
+              if (ref.watch(isGuestProvider)) ...[
+                Text('E-posta Adresi', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600)),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: const InputDecoration(
+                    hintText: 'E-posta adresiniz',
+                    prefixIcon: Icon(Icons.email_outlined, size: 20),
+                  ),
+                ),
+                const SizedBox(height: 18),
+              ],
+
+              // Phone Field
+              Text('Telefon Numarası', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600)),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _phoneController,
+                keyboardType: TextInputType.phone,
+                decoration: const InputDecoration(
+                  hintText: 'Telefon numaranız',
+                  prefixIcon: Icon(Icons.phone_outlined, size: 20),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Size ulaşabilmemiz için e-posta veya telefon numaranızdan en az birini doldurmalısınız.',
+                style: AppTextStyles.bodySmall.copyWith(fontSize: 12, color: Colors.grey[600]),
               ),
               const SizedBox(height: 18),
 

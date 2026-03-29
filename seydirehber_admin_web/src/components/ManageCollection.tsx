@@ -211,63 +211,116 @@ const ManageCollection: React.FC<ManageCollectionProps> = ({ collectionId }) => 
           </thead>
           <tbody>
             {filteredItems.map((item) => (
-              <tr key={item.id}>
-                {config.bucket && (
-                  <td>
-                    <img 
-                      src={item.image_url || item.gorsel || 'https://via.placeholder.com/50'} 
-                      alt="" 
-                      style={{ width: 48, height: 48, borderRadius: 8, objectFit: 'cover' }}
-                    />
-                  </td>
-                )}
-                <td>
-                  <div style={{ fontWeight: 600 }}>
-                    {item.ad || item.ad_soyad || item.baslik || item.guzergah || item.userName || 'İsimsiz'}
-                    {item.rating && <span style={{ color: '#f59e0b', marginLeft: '0.5rem' }}>★ {item.rating}</span>}
-                  </div>
-                  <div className="text-muted" style={{ fontSize: '0.8rem' }}>
-                    {item.kategori && <span>{item.kategori} - </span>}
-                    {/* Format firestore timestamps if present */}
-                    {item.tarih?.toDate ? format(item.tarih.toDate(), 'dd.MM.yyyy HH:mm') + ' - ' : ''}
-                    {item.createdAt?.toDate ? format(item.createdAt.toDate(), 'dd.MM.yyyy HH:mm') + ' - ' : ''}
-                    {item.expiry_date && (
-                      <span className="text-danger" style={{ fontWeight: 600 }}>
-                         - Bitiş: {item.expiry_date.toDate ? format(item.expiry_date.toDate(), 'dd.MM.yyyy') : item.expiry_date}
-                      </span>
-                    )}
-                    {(item.comment || item.email || item.konum || item.hakkinda)?.substring(0, 100)}...
-                  </div>
-                </td>
-                <td style={{ minWidth: '120px' }}>
-                  {collectionId === 'yardim_destek' && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <label className="switch">
-                        <input 
-                          type="checkbox" 
-                          checked={item.durum === 'Çözüldü'} 
-                          onChange={async (e) => {
-                            const newStatus = e.target.checked ? 'Çözüldü' : 'Bekliyor';
-                            await updateDoc(doc(db, collectionId, item.id), { durum: newStatus });
-                          }}
-                        />
-                        <span className="slider"></span>
-                      </label>
-                      <span style={{ fontSize: '0.75rem', fontWeight: 600, color: item.durum === 'Çözüldü' ? '#22c55e' : '#f59e0b' }}>
-                        {item.durum || 'Bekliyor'}
-                      </span>
-                    </div>
+                <tr key={item.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                  {config.bucket && (
+                    <td style={{ padding: '1rem' }}>
+                      <img 
+                        src={item.image_url || item.gorsel || 'https://via.placeholder.com/50'} 
+                        alt="" 
+                        style={{ width: 56, height: 56, borderRadius: 12, objectFit: 'cover', border: '1px solid var(--border)' }}
+                      />
+                    </td>
                   )}
-                </td>
-                <td style={{ display: 'flex', gap: '0.5rem' }}>
-                  <button className="btn btn-outline" style={{ padding: '0.5rem' }} onClick={() => handleOpenModal(item)}>
-                    <Edit size={16} />
-                  </button>
-                  <button className="btn btn-danger" style={{ padding: '0.5rem' }} onClick={() => handleDelete(item.id, item.image_url)}>
-                    <Trash2 size={16} />
-                  </button>
-                </td>
-              </tr>
+                  <td style={{ padding: '1.25rem' }}>
+                    <div style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: '0.25rem', color: 'var(--text)' }}>
+                      {item.ad || item.ad_soyad || item.baslik || item.guzergah || item.userName || 'İsimsiz'}
+                      {item.rating && <span style={{ color: '#f59e0b', marginLeft: '0.75rem', fontSize: '0.9rem' }}>★ {item.rating}</span>}
+                    </div>
+                    
+                    <div style={{ display: 'flex', gap: '0.75rem', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
+                      {item.kategori && <span style={{ background: 'var(--glass-bg)', padding: '2px 8px', borderRadius: '4px' }}>{item.kategori}</span>}
+                      {item.tarih?.toDate && (
+                        <span><i className="bi bi-clock me-1"></i> {format(item.tarih.toDate(), 'dd.MM.yyyy HH:mm')}</span>
+                      )}
+                      {item.createdAt?.toDate && (
+                        <span><i className="bi bi-calendar3 me-1"></i> {format(item.createdAt.toDate(), 'dd.MM.yyyy HH:mm')}</span>
+                      )}
+                    </div>
+
+                    {/* Specialized Information Display */}
+                    {(collectionId === 'yardim_destek' || collectionId === 'reviews') && (
+                      <div style={{ 
+                        background: 'rgba(15, 23, 42, 0.4)', 
+                        padding: '1rem', 
+                        borderRadius: '12px', 
+                        border: '1px solid var(--border)',
+                        marginTop: '0.5rem'
+                      }}>
+                        {collectionId === 'yardim_destek' && (
+                          <>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginBottom: '0.5rem', fontSize: '0.85rem' }}>
+                              {item.email && (
+                                <span style={{ color: 'var(--text-muted)' }}>
+                                  <strong style={{ color: 'var(--text)' }}>E-posta:</strong> {item.email}
+                                </span>
+                              )}
+                              {item.telefon && (
+                                <span style={{ color: 'var(--text-muted)' }}>
+                                  <strong style={{ color: 'var(--text)' }}>Tel No:</strong> {item.telefon}
+                                </span>
+                              )}
+                            </div>
+                            <div style={{ fontSize: '0.9rem', color: 'var(--text)', lineHeight: '1.5' }}>
+                              <strong style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '4px' }}>Mesaj:</strong>
+                              {item.mesaj}
+                            </div>
+                          </>
+                        )}
+                        {collectionId === 'reviews' && (
+                          <div style={{ fontSize: '0.9rem', color: 'var(--text)', lineHeight: '1.5' }}>
+                             <strong style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '4px' }}>Yorum:</strong>
+                             "{item.comment}"
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {!(collectionId === 'yardim_destek' || collectionId === 'reviews') && (
+                      <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                        {(item.hakkinda || item.konum || '')?.substring(0, 100)}...
+                      </div>
+                    )}
+                  </td>
+                  <td style={{ padding: '1rem' }}>
+                    {collectionId === 'yardim_destek' && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', minWidth: '100px' }}>
+                        <span style={{ 
+                          fontSize: '0.65rem', 
+                          fontWeight: 800, 
+                          color: item.durum === 'Çözüldü' ? '#22c55e' : '#f59e0b',
+                          background: item.durum === 'Çözüldü' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(245, 158, 11, 0.1)',
+                          padding: '2px 8px',
+                          borderRadius: '50px',
+                          textAlign: 'center',
+                          border: `1px solid ${item.durum === 'Çözüldü' ? 'rgba(34, 197, 94, 0.2)' : 'rgba(245, 158, 11, 0.2)'}`
+                        }}>
+                          {item.durum?.toUpperCase() || 'BEKLIYOR'}
+                        </span>
+                        <label className="switch" style={{ alignSelf: 'center' }}>
+                          <input 
+                            type="checkbox" 
+                            checked={item.durum === 'Çözüldü'} 
+                            onChange={async (e) => {
+                              const newStatus = e.target.checked ? 'Çözüldü' : 'Bekliyor';
+                              await updateDoc(doc(db, collectionId, item.id), { durum: newStatus });
+                            }}
+                          />
+                          <span className="slider"></span>
+                        </label>
+                      </div>
+                    )}
+                  </td>
+                  <td style={{ padding: '1rem' }}>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button className="btn btn-outline" style={{ padding: '0.5rem', borderRadius: '50%', width: '36px', height: '36px', justifyContent: 'center' }} onClick={() => handleOpenModal(item)}>
+                        <Edit size={16} />
+                      </button>
+                      <button className="btn btn-danger" style={{ padding: '0.5rem', borderRadius: '50%', width: '36px', height: '36px', justifyContent: 'center' }} onClick={() => handleDelete(item.id, item.image_url)}>
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
             ))}
           </tbody>
         </table>

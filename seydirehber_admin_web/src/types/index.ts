@@ -104,6 +104,7 @@ export const COLLECTIONS: Record<string, { title: string; bucket: string | null;
     fields: [
       { key: 'ad_soyad', label: 'Ad Soyad', required: true },
       { key: 'email', label: 'E-posta' },
+      { key: 'telefon', label: 'Telefon', isPhone: true },
       { key: 'kategori', label: 'Kategori' },
       { key: 'mesaj', label: 'Mesaj', multiline: true, required: true },
       { key: 'durum', label: 'Durum (Bekliyor/Çözüldü)' },

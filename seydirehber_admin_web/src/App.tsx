@@ -70,23 +70,23 @@ function App() {
         <div className="card" style={{ maxWidth: '440px', width: '100%', padding: '3rem', textAlign: 'center' }}>
           <div className="logo" style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>Seydi Rehber</div>
           <p className="text-muted" style={{ marginBottom: '2rem' }}>Yönetim paneline erişmek için lütfen admin hesabınızla giriş yapın.</p>
-          
+
           {error && (
             <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid #ef444455', color: '#ef4444', padding: '0.75rem', borderRadius: '0.75rem', marginBottom: '1.5rem', fontSize: '0.875rem' }}>
               {error}
             </div>
           )}
 
-          <button 
-            className="btn btn-google" 
-            style={{ width: '100%', padding: '0.875rem', justifyContent: 'center', gap: '1rem' }} 
+          <button
+            className="btn btn-google"
+            style={{ width: '100%', padding: '0.875rem', justifyContent: 'center', gap: '1rem' }}
             onClick={handleGoogleLogin}
             disabled={loading}
           >
             <img src="https://www.google.com/favicon.ico" alt="Google" style={{ width: 18, height: 18 }} />
             Google ile Giriş Yap
           </button>
-          
+
           <div style={{ marginTop: '2rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
             Sadece yetkili admin hesapları giriş yapabilir.
           </div>
@@ -98,7 +98,7 @@ function App() {
   return (
     <div className="app-container">
       <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
-      
+
       <main className="main-content">
         <div className="top-nav" style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '2rem', gap: '1rem', alignItems: 'center' }}>
           <div className="text-muted" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--glass-bg)', padding: '0.5rem 1rem', borderRadius: '2rem', border: '1px solid var(--border)' }}>

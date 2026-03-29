@@ -50,6 +50,10 @@ class ReviewService {
     final user = _auth.currentUser;
     if (user == null) throw Exception('Yorum yapmak için giriş yapmalısınız.');
 
+    // Secondary check to prevent double reviews
+    final hasReviewed = await hasUserReviewed(targetId);
+    if (hasReviewed) throw Exception('Bu yer için zaten yorum yaptınız.');
+
     final review = Review(
       id: '',
       targetId: targetId,

@@ -102,6 +102,18 @@ class AdminSupportScreen extends StatelessWidget {
                               ),
                             ],
                           ),
+                          if (data['telefon'] != null && (data['telefon'] as String).isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                const Icon(Icons.phone, size: 18, color: AppColors.textLight),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(data['telefon'] as String, style: AppTextStyles.bodySmall),
+                                ),
+                              ],
+                            ),
+                          ],
                           const Divider(height: 24),
                           Text(
                             message,
