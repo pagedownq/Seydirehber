@@ -7,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../../core/providers/app_info_provider.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -54,16 +55,24 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: 20),
 
           // Admin Panel - Only for admin user
-          if (isAdmin) ...[
-            _buildSettingsItem(
-              icon: Icons.admin_panel_settings,
-              title: 'Yönetim Paneli',
-              subtitle: 'İçerik yönetimi',
-              iconColor: AppColors.error,
-              onTap: () => context.push('/admin'),
-            ),
-            const SizedBox(height: 8),
-          ],
+          isAdmin.when(
+            data: (isAdminValue) => isAdminValue
+                ? Column(
+                    children: [
+                      _buildSettingsItem(
+                        icon: Icons.admin_panel_settings,
+                        title: 'Yönetim Paneli',
+                        subtitle: 'İçerik yönetimi',
+                        iconColor: AppColors.error,
+                        onTap: () => context.push('/admin'),
+                      ),
+                      const SizedBox(height: 8),
+                    ],
+                  )
+                : const SizedBox.shrink(),
+            loading: () => const SizedBox.shrink(),
+            error: (_, __) => const SizedBox.shrink(),
+          ),
 
           // Favorites
           _buildSettingsItem(
@@ -111,12 +120,28 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: 8),
 
           // App Version
-          _buildSettingsItem(
-            icon: Icons.info_outline,
-            title: 'Uygulama Hakkında',
-            subtitle: 'Seydi Rehber v1.0.0',
-            iconColor: AppColors.textLight,
-            onTap: () {},
+          ref.watch(appVersionProvider).when(
+            data: (version) => _buildSettingsItem(
+              icon: Icons.info_outline,
+              title: 'Uygulama Hakkında',
+              subtitle: 'Seydi Rehber v$version',
+              iconColor: AppColors.textLight,
+              onTap: () {},
+            ),
+            loading: () => _buildSettingsItem(
+              icon: Icons.info_outline,
+              title: 'Uygulama Hakkında',
+              subtitle: 'Sürüm bilgisi yükleniyor...',
+              iconColor: AppColors.textLight,
+              onTap: () {},
+            ),
+            error: (_, __) => _buildSettingsItem(
+              icon: Icons.info_outline,
+              title: 'Uygulama Hakkında',
+              subtitle: 'Seydi Rehber',
+              iconColor: AppColors.textLight,
+              onTap: () {},
+            ),
           ),
         ],
       ),

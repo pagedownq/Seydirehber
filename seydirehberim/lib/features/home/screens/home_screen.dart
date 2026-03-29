@@ -30,6 +30,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ref.refresh(bannersProvider.future),
             ref.refresh(latestEventsProvider.future),
             ref.refresh(latestPlacesProvider.future),
+            ref.refresh(topFiveCompaniesProvider.future),
+            ref.refresh(allCompaniesProvider.future),
             ref.refresh(alphabeticalCompaniesProvider.future),
             ref.refresh(latestCompaniesProvider.future),
             ref.refresh(popularCompaniesProvider.future),
@@ -238,7 +240,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
                 const SizedBox(height: 8),
                 HorizontalCardList(
-                  provider: alphabeticalCompaniesProvider,
+                  provider: topFiveCompaniesProvider,
                   type: CardType.company,
                   onTap: (id) => context.push('/companies/$id'),
                 ),

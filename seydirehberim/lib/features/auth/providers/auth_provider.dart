@@ -2,11 +2,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 // Admin emails
 const List<String> adminEmails = [
   'mehmetirem305@gmail.com',
-  'bilgimgverse@gmail.com'
+  'bilgimgverse@gmail.com',
+  'seydirehber@gmail.com'
 ];
 
 // Auth state provider
@@ -21,12 +25,21 @@ final onboardingCompletedProvider = FutureProvider<bool>((ref) async {
 });
 
 // Is Admin check
-final isAdminProvider = Provider<bool>((ref) {
-  final authState = ref.watch(authStateProvider);
-  return authState.whenOrNull(
-        data: (user) => adminEmails.contains(user?.email),
-      ) ??
-      false;
+final isAdminProvider = StreamProvider<bool>((ref) {
+  final authState = ref.watch(authStateProvider).value;
+  if (authState == null || authState.email == null) {
+    return Stream.value(false);
+  }
+  
+  if (adminEmails.contains(authState.email)) {
+    return Stream.value(true);
+  }
+
+  return FirebaseFirestore.instance
+      .collection('admins')
+      .doc(authState.email)
+      .snapshots()
+      .map((doc) => doc.exists && (doc.data()?['isActive'] ?? true));
 });
 
 // Is Guest check
@@ -69,6 +82,12 @@ class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
       );
 
       final userCredential = await _auth.signInWithCredential(credential);
+      
+      // Send welcome email if new user
+      if (userCredential.additionalUserInfo?.isNewUser ?? false) {
+        _sendWelcomeEmail(userCredential.user);
+      }
+
       state = AsyncValue.data(userCredential.user);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -114,6 +133,44 @@ class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
       }
     } catch (e, st) {
       state = AsyncValue.error(e, st);
+    }
+  }
+
+  Future<void> _sendWelcomeEmail(User? user) async {
+    if (user == null || user.email == null) return;
+
+    try {
+      const String serviceId = 'service_vrsbgqi';
+      const String templateId = 'template_ja4qclo';
+      const String publicKey = 'KyxKESmsRL3buWkNm';
+      const String accessToken = 'ezCvn0Sv6B0mZhyqzPzBj';
+
+      final response = await http.post(
+        Uri.parse('https://api.emailjs.com/api/v1.0/email/send'),
+        headers: {
+          'Content-Type': 'application/json',
+          'origin': 'http://localhost',
+        },
+        body: json.encode({
+          'service_id': serviceId,
+          'template_id': templateId,
+          'user_id': publicKey,
+          'accessToken': accessToken,
+          'template_params': {
+            'user_name': user.displayName ?? 'Yeni Üyemiz',
+            'user_email': user.email,
+            'to_name': user.displayName ?? 'Yeni Üyemiz',
+          },
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        print('Welcome email sent successfully to ${user.email}');
+      } else {
+        print('Error sending welcome email (Code: ${response.statusCode}): ${response.body}');
+      }
+    } catch (e) {
+      print('Failed to call EmailJS: $e');
     }
   }
 }

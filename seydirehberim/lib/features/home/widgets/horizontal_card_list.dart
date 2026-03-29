@@ -9,7 +9,7 @@ import '../../../core/widgets/shimmer_widget.dart';
 enum CardType { event, place, company }
 
 class HorizontalCardList extends ConsumerWidget {
-  final StreamProvider<QuerySnapshot<Map<String, dynamic>>> provider;
+  final StreamProvider<List<QueryDocumentSnapshot<Map<String, dynamic>>>> provider;
   final CardType type;
   final Function(String id) onTap;
 
@@ -34,9 +34,9 @@ class HorizontalCardList extends ConsumerWidget {
         height: 100,
         child: Center(child: Text('Veriler yüklenemedi')),
       ),
-      data: (snapshot) {
+      data: (docs) {
         final now = DateTime.now();
-        final docs = snapshot.docs.where((d) {
+        final filteredDocs = docs.where((d) {
           final data = d.data();
           if (data.containsKey('expiry_date') && data['expiry_date'] != null) {
             try {
@@ -49,7 +49,7 @@ class HorizontalCardList extends ConsumerWidget {
           return true; // No expiry means forever
         }).toList();
 
-        if (docs.isEmpty) {
+        if (filteredDocs.isEmpty) {
           final String emptyTitle = type == CardType.event
               ? 'Etkinlik'
               : (type == CardType.place ? 'Yer' : 'Firma');
@@ -79,11 +79,11 @@ class HorizontalCardList extends ConsumerWidget {
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: docs.length,
+            itemCount: filteredDocs.length,
             separatorBuilder: (_, __) => const SizedBox(width: 12),
             itemBuilder: (context, index) {
-              final data = docs[index].data();
-              final id = docs[index].id;
+              final data = filteredDocs[index].data();
+              final id = filteredDocs[index].id;
               return _buildCard(data, id);
             },
           ),

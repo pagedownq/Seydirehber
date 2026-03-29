@@ -53,8 +53,7 @@ class _BannerSliderState extends ConsumerState<BannerSlider> {
         ),
       ),
       error: (_, __) => const SizedBox.shrink(),
-      data: (snapshot) {
-        final banners = snapshot.docs;
+      data: (banners) {
         if (banners.isEmpty) return const SizedBox.shrink();
 
         return Column(

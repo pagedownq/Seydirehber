@@ -30,8 +30,7 @@ class NoterlerScreen extends ConsumerWidget {
           ),
         ),
         error: (err, stack) => const Center(child: Text('Veriler yüklenemedi.')),
-        data: (snapshot) {
-          final docs = snapshot.docs;
+        data: (docs) {
           if (docs.isEmpty) return const Center(child: Text('Henüz noter eklenmemiş'));
           final items = docs.map((d) => d.data()).toList();
           return _buildNoterList(items);

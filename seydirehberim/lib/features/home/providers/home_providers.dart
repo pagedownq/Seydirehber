@@ -3,46 +3,53 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 final firestoreProvider = Provider((ref) => FirebaseFirestore.instance);
 
+// Typed alias for the list of documents we'll be using everywhere
+typedef FirestoreDocs = List<QueryDocumentSnapshot<Map<String, dynamic>>>;
+
 // Events - last 5
-final latestEventsProvider = StreamProvider((ref) {
+final latestEventsProvider = StreamProvider<FirestoreDocs>((ref) {
   return ref
       .watch(firestoreProvider)
       .collection('etkinlikler')
       .orderBy('created_at', descending: true)
       .limit(5)
-      .snapshots();
+      .snapshots()
+      .map((s) => s.docs);
 });
 
 // All events
-final allEventsProvider = StreamProvider((ref) {
+final allEventsProvider = StreamProvider<FirestoreDocs>((ref) {
   return ref
       .watch(firestoreProvider)
       .collection('etkinlikler')
       .orderBy('created_at', descending: true)
-      .snapshots();
+      .snapshots()
+      .map((s) => s.docs);
 });
 
 // Places - last 5
-final latestPlacesProvider = StreamProvider((ref) {
+final latestPlacesProvider = StreamProvider<FirestoreDocs>((ref) {
   return ref
       .watch(firestoreProvider)
       .collection('gezilecek_yerler')
       .orderBy('created_at', descending: true)
       .limit(5)
-      .snapshots();
+      .snapshots()
+      .map((s) => s.docs);
 });
 
 // All places
-final allPlacesProvider = StreamProvider((ref) {
+final allPlacesProvider = StreamProvider<FirestoreDocs>((ref) {
   return ref
       .watch(firestoreProvider)
       .collection('gezilecek_yerler')
       .orderBy('created_at', descending: true)
-      .snapshots();
+      .snapshots()
+      .map((s) => s.docs);
 });
 
 // Companies - added in last 30 days (limit 10 for home)
-final latestCompaniesProvider = StreamProvider((ref) {
+final latestCompaniesProvider = StreamProvider<FirestoreDocs>((ref) {
   final thirtyDaysAgo = DateTime.now().subtract(const Duration(days: 30));
   return ref
       .watch(firestoreProvider)
@@ -50,103 +57,140 @@ final latestCompaniesProvider = StreamProvider((ref) {
       .where('created_at', isGreaterThanOrEqualTo: Timestamp.fromDate(thirtyDaysAgo))
       .orderBy('created_at', descending: true)
       .limit(10)
-      .snapshots();
+      .snapshots()
+      .map((s) => s.docs);
 });
 
 // All New Companies - added in last 30 days (no limit)
-final allLatestCompaniesProvider = StreamProvider((ref) {
+final allLatestCompaniesProvider = StreamProvider<FirestoreDocs>((ref) {
   final thirtyDaysAgo = DateTime.now().subtract(const Duration(days: 30));
   return ref
       .watch(firestoreProvider)
       .collection('firmalar')
       .where('created_at', isGreaterThanOrEqualTo: Timestamp.fromDate(thirtyDaysAgo))
       .orderBy('created_at', descending: true)
-      .snapshots();
+      .snapshots()
+      .map((s) => s.docs);
 });
 
-// All companies - sorted alphabetically
-final alphabeticalCompaniesProvider = StreamProvider((ref) {
+// All companies - locally sorted to handle missing 'order' fields gracefully
+final alphabeticalCompaniesProvider = StreamProvider<FirestoreDocs>((ref) {
   return ref
       .watch(firestoreProvider)
       .collection('firmalar')
-      .orderBy('ad')
-      .snapshots();
+      .snapshots()
+      .map((snapshot) {
+    final docs = snapshot.docs.toList();
+    docs.sort((a, b) {
+      final aData = a.data();
+      final bData = b.data();
+      final dynamic aOrderVal = aData['order'];
+      final dynamic bOrderVal = bData['order'];
+      final num aOrder = (aOrderVal is num) ? aOrderVal : 999999;
+      final num bOrder = (bOrderVal is num) ? bOrderVal : 999999;
+      
+      final int orderComparison = aOrder.compareTo(bOrder);
+      if (orderComparison != 0) return orderComparison;
+      
+      final String aName = (aData['ad'] ?? '').toString().toLowerCase();
+      final String bName = (bData['ad'] ?? '').toString().toLowerCase();
+      return aName.compareTo(bName);
+    });
+    return docs;
+  });
 });
 
-// All companies - sorted alphabetically
-final allCompaniesProvider = StreamProvider((ref) {
+// Top 5 companies for home screen - locally sorted
+final topFiveCompaniesProvider = StreamProvider<FirestoreDocs>((ref) {
   return ref
-      .watch(firestoreProvider)
-      .collection('firmalar')
-      .orderBy('ad')
-      .snapshots();
+    .watch(alphabeticalCompaniesProvider.stream)
+    .map((docs) => docs.take(5).toList());
 });
+
+// All companies - using the same provider logic
+final allCompaniesProvider = alphabeticalCompaniesProvider;
 
 // Popular Companies - sorted by view count (limit 10 for home)
-final popularCompaniesProvider = StreamProvider((ref) {
+final popularCompaniesProvider = StreamProvider<FirestoreDocs>((ref) {
   return ref
       .watch(firestoreProvider)
       .collection('firmalar')
       .orderBy('goruntulenme', descending: true)
       .limit(10)
-      .snapshots();
+      .snapshots()
+      .map((s) => s.docs);
 });
 
 // All Popular Companies - sorted by view count (no limit)
-final allPopularCompaniesProvider = StreamProvider((ref) {
+final allPopularCompaniesProvider = StreamProvider<FirestoreDocs>((ref) {
   return ref
       .watch(firestoreProvider)
       .collection('firmalar')
       .orderBy('goruntulenme', descending: true)
-      .snapshots();
+      .snapshots()
+      .map((s) => s.docs);
 });
 
 // Noterler
-final noterlerProvider = StreamProvider((ref) {
+final noterlerProvider = StreamProvider<FirestoreDocs>((ref) {
   return ref
       .watch(firestoreProvider)
       .collection('noterler')
-      .snapshots();
+      .snapshots()
+      .map((s) => s.docs);
 });
 
 // Pazarlar
-final pazarlarProvider = StreamProvider((ref) {
+final pazarlarProvider = StreamProvider<FirestoreDocs>((ref) {
   return ref
       .watch(firestoreProvider)
       .collection('pazarlar')
-      .snapshots();
+      .snapshots()
+      .map((s) => s.docs);
 });
 
 // Otobüs Saatleri
-final otobusSaatleriProvider = StreamProvider((ref) {
+final otobusSaatleriProvider = StreamProvider<FirestoreDocs>((ref) {
   return ref
       .watch(firestoreProvider)
       .collection('otobus_saatleri')
-      .snapshots();
+      .snapshots()
+      .map((s) => s.docs);
 });
 
 // Banners from Supabase (stored as Firestore docs pointing to Supabase URLs)
-final bannersProvider = StreamProvider((ref) {
+final bannersProvider = StreamProvider<FirestoreDocs>((ref) {
   return ref
-      .watch(firestoreProvider)
-      .collection('banners')
-      .orderBy('order')
-      .snapshots(includeMetadataChanges: true);
+    .watch(firestoreProvider)
+    .collection('banners')
+    .snapshots(includeMetadataChanges: true)
+    .map((snapshot) {
+      final docs = snapshot.docs.toList();
+      docs.sort((a, b) {
+        final dynamic aOrderVal = (a.data())['order'];
+        final dynamic bOrderVal = (b.data())['order'];
+        final num aOrder = (aOrderVal is num) ? aOrderVal : 999999;
+        final num bOrder = (bOrderVal is num) ? bOrderVal : 999999;
+        return aOrder.compareTo(bOrder);
+      });
+      return docs;
+    });
 });
 
 // Coupons - last 5
-final latestCouponsProvider = StreamProvider((ref) {
+final latestCouponsProvider = StreamProvider<FirestoreDocs>((ref) {
   return ref
       .watch(firestoreProvider)
       .collection('coupons')
-      .snapshots();
+      .snapshots()
+      .map((s) => s.docs);
 });
 
 // All Coupons
-final allCouponsProvider = StreamProvider((ref) {
+final allCouponsProvider = StreamProvider<FirestoreDocs>((ref) {
   return ref
       .watch(firestoreProvider)
       .collection('coupons')
-      .snapshots();
+      .snapshots()
+      .map((s) => s.docs);
 });
-

@@ -6,7 +6,7 @@ import '../../../core/constants/app_text_styles.dart';
 import '../../../core/widgets/shimmer_widget.dart';
 
 class HorizontalCouponList extends ConsumerWidget {
-  final StreamProvider<QuerySnapshot<Map<String, dynamic>>> provider;
+  final StreamProvider<List<QueryDocumentSnapshot<Map<String, dynamic>>>> provider;
   final Function(String id, Map<String, dynamic> data) onTap;
 
   const HorizontalCouponList({
@@ -44,21 +44,31 @@ class HorizontalCouponList extends ConsumerWidget {
           ),
         ),
       ),
-      data: (snapshot) {
+      data: (docs) {
         // Filter and Sort in Dart to avoid Index errors
-        final docs = snapshot.docs.where((doc) {
+        final now = DateTime.now();
+        final filteredDocs = docs.where((doc) {
           final data = doc.data();
-          return data['isActive'] == true;
+          if (data['isActive'] != true) return false;
+          
+          final expiry = data['expiry_date'] as Timestamp?;
+          if (expiry != null && expiry.toDate().isBefore(now)) return false;
+          
+          final totalLimit = data['total_limit'] as int?;
+          final usedCount = data['used_count'] as int? ?? 0;
+          if (totalLimit != null && usedCount >= totalLimit) return false;
+          
+          return true;
         }).toList();
 
-        docs.sort((a, b) {
+        filteredDocs.sort((a, b) {
           final aTime = a.data()['created_at'] as Timestamp?;
           final bTime = b.data()['created_at'] as Timestamp?;
           return (bTime?.seconds ?? 0).compareTo(aTime?.seconds ?? 0);
         });
 
         // Limit to 10 for horizontal list
-        final finalDocs = docs.take(10).toList();
+        final finalDocs = filteredDocs.take(10).toList();
 
         if (finalDocs.isEmpty) {
           return Container(

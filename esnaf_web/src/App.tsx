@@ -1,12 +1,25 @@
 import { useState, useEffect } from "react";
 import { db } from "./lib/firebase";
-import { getDocs, collection, query, where, Timestamp, runTransaction } from "firebase/firestore";
+import { 
+  getDocs, 
+  collection, 
+  query, 
+  where, 
+  Timestamp, 
+  runTransaction, 
+  doc, 
+  increment, 
+  onSnapshot,
+  orderBy,
+  limit
+} from "firebase/firestore";
+import type { QuerySnapshot, DocumentData } from "firebase/firestore";
 import { KeyRound, LogOut, AlertCircle, BarChart3, RefreshCw, Ticket, CheckCircle2, User, Building2, Phone, MessageCircle } from "lucide-react";
 
 function App() {
   const [userId, setUserId] = useState<string | null>(null);
   const [companyId, setCompanyId] = useState<string | null>(null);
-  const [usernameText, setUsernameText] = useState("");
+  const [companyName, setCompanyName] = useState("");
   
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -17,65 +30,119 @@ function App() {
   const [isVerifying, setIsVerifying] = useState(false);
   const [verifyStatus, setVerifyStatus] = useState<{type: 'success' | 'error', msg: string} | null>(null);
 
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'coupons' | 'support'>('dashboard');
+  const [coupons, setCoupons] = useState<any[]>([]);
   const [stats, setStats] = useState<{
     totalUsed: number,
-    byCoupon: Array<{id: string, title: string, count: number}>
+    dailyTrend: Array<{date: string, count: number}>,
+    recentUses: Array<{id: string, code: string, usedAt: Date, couponTitle: string}>
   } | null>(null);
   const [isStatsLoading, setIsStatsLoading] = useState(false);
 
   useEffect(() => {
+    let unsub: (() => void) | undefined;
+    
+    if (companyId) {
+      fetchCompanyName(companyId);
+      const unsubStats = fetchStats(companyId);
+      const unsubCoupons = fetchCoupons(companyId);
+      unsub = () => {
+        unsubStats();
+        unsubCoupons();
+      };
+    } else {
+      setStats(null);
+      setCoupons([]);
+      setCompanyName("");
+    }
+
+    return () => {
+      if (unsub) unsub();
+    };
+  }, [companyId]);
+
+  useEffect(() => {
     const storedUser = localStorage.getItem("esnaf_user_id");
     const storedFirma = localStorage.getItem("esnaf_firma_id");
-    const storedName = localStorage.getItem("esnaf_username");
     
     if (storedUser && storedFirma) {
       setUserId(storedUser);
       setCompanyId(storedFirma);
-      setUsernameText(storedName || "");
-      fetchStats(storedFirma);
     }
   }, []);
 
-  const fetchStats = async (fId: string) => {
-    if (!fId) return;
+  const fetchCoupons = (fId: string) => {
+    if (!fId) return () => {};
+    const q = query(collection(db, "coupons"), where("companyId", "==", fId));
+    return onSnapshot(q, (snapshot) => {
+      setCoupons(snapshot.docs.map(d => ({
+        id: d.id,
+        ...d.data()
+      })));
+    });
+  };
+
+  const fetchStats = (fId: string) => {
+    if (!fId) return () => {};
     setIsStatsLoading(true);
+    
+    const q = query(
+      collection(db, "generated_codes"),
+      where("companyId", "==", fId),
+      where("status", "==", "used"),
+      orderBy("usedAt", "desc"),
+      limit(100)
+    );
+
+    return onSnapshot(q, (snapshot) => {
+      try {
+        const dailyTrend: Record<string, number> = {};
+        const now = new Date();
+        const last7Days = Array.from({length: 7}, (_, i) => {
+          const d = new Date();
+          d.setDate(now.getDate() - i);
+          return d.toLocaleDateString('tr-TR');
+        }).reverse();
+
+        snapshot.docs.forEach((d: any) => {
+          const data = d.data();
+          if (data.usedAt) {
+            const dateStr = data.usedAt.toDate().toLocaleDateString('tr-TR');
+            if (last7Days.includes(dateStr)) {
+              dailyTrend[dateStr] = (dailyTrend[dateStr] || 0) + 1;
+            }
+          }
+        });
+
+        setStats({
+          totalUsed: snapshot.size,
+          dailyTrend: last7Days.map(date => ({ date, count: dailyTrend[date] || 0 })),
+          recentUses: snapshot.docs.slice(0, 10).map(d => ({
+            id: d.id,
+            code: d.data().code,
+            usedAt: d.data().usedAt?.toDate(),
+            couponTitle: d.data().couponTitle || "Kupon"
+          }))
+        });
+      } catch (err) {
+        console.error("Stats refresh error:", err);
+      } finally {
+        setIsStatsLoading(false);
+      }
+    });
+  };
+
+  const fetchCompanyName = async (fId: string) => {
+    if (!fId) return;
     try {
-      // 1. Fetch all coupons of this company
-      const couponsQ = query(collection(db, "coupons"), where("companyId", "==", fId));
-      const couponsSnap = await getDocs(couponsQ);
-      const couponMap: Record<string, string> = {};
-      couponsSnap.docs.forEach(d => {
-        couponMap[d.id] = d.data().title || "İsimsiz Kupon";
-      });
-
-      // 2. Fetch all used codes
-      const usedQ = query(
-        collection(db, "generated_codes"),
-        where("companyId", "==", fId),
-        where("status", "==", "used")
-      );
-      const usedSnap = await getDocs(usedQ);
-      
-      const counts: Record<string, number> = {};
-      usedSnap.docs.forEach(d => {
-        const cId = d.data().couponId;
-        counts[cId] = (counts[cId] || 0) + 1;
-      });
-
-      const byCouponArray = Object.entries(counts).map(([id, count]) => ({
-        id,
-        title: couponMap[id] || "Silinmiş Kupon",
-        count
-      })).sort((a, b) => b.count - a.count);
-
-      setStats({
-        totalUsed: usedSnap.size,
-        byCoupon: byCouponArray
-      });
+      const { getDoc, doc } = await import("firebase/firestore");
+      const docRef = doc(db, "firmalar", fId);
+      const res = await getDoc(docRef);
+      if (res.exists()) {
+        setCompanyName(res.data().ad || "");
+      }
     } catch (err) {
-      console.error("Stats error:", err);
-    } finally {
-      setIsStatsLoading(false);
+      console.error("Firma adı çekilirken hata:", err);
     }
   };
 
@@ -99,11 +166,10 @@ function App() {
         
         localStorage.setItem("esnaf_user_id", docSnap.id);
         localStorage.setItem("esnaf_firma_id", data.companyId || "");
-        localStorage.setItem("esnaf_username", data.username || email);
         
         setUserId(docSnap.id);
         setCompanyId(data.companyId || null);
-        setUsernameText(data.username || email);
+        fetchCompanyName(data.companyId || "");
       }
     } catch (err: any) {
       setLoginError("Sunucuya bağlanılamadı. Lütfen tekrar deneyin.");
@@ -115,10 +181,9 @@ function App() {
   const handleLogout = () => {
     localStorage.removeItem("esnaf_user_id");
     localStorage.removeItem("esnaf_firma_id");
-    localStorage.removeItem("esnaf_username");
     setUserId(null);
     setCompanyId(null);
-    setUsernameText("");
+    setCompanyName("");
   };
 
   const handleVerify = async (e: React.FormEvent) => {
@@ -155,15 +220,21 @@ function App() {
           throw new Error("Kupon zaten kullanılmış veya iptal edilmiş.");
         }
         
+        const couponDocRef = doc(db, "coupons", data.couponId);
+        
         transaction.update(docRef, {
           status: "used",
           usedAt: Timestamp.now()
+        });
+
+        transaction.update(couponDocRef, {
+          used_count: increment(1)
         });
       });
       
       setVerifyStatus({type: 'success', msg: "Kupon başarıyla doğrulandı!"});
       setCouponCode("");
-      fetchStats(companyId); // Refresh stats
+      // No need to call fetchStats manually, the onSnapshot will handle real-time updates
     } catch (err: any) {
       setVerifyStatus({type: 'error', msg: err.message || "Bir hata oluştu."});
     } finally {
@@ -173,83 +244,86 @@ function App() {
 
   if (userId === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0f172a] p-4 relative overflow-hidden">
-        {/* Decorative background elements */}
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-600/10 rounded-full blur-[120px]" />
+      <div className="min-h-screen flex items-center justify-center bg-[#f8fafc] p-4 relative overflow-hidden font-sans">
+        {/* Abstract background shapes */}
+        <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-indigo-100/40 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-emerald-100/40 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
         
-        <div className="max-w-md w-full bg-slate-900 border border-white/5 rounded-[2rem] shadow-2xl p-10 relative z-10">
+        <div className="max-w-md w-full bg-white/80 backdrop-blur-2xl border border-white rounded-[2.5rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.08)] p-10 relative z-10 transition-all duration-500 hover:shadow-[0_48px_80px_-24px_rgba(0,0,0,0.12)]">
           <div className="text-center mb-10">
-            <div className="mx-auto h-20 w-20 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center mb-6 shadow-xl shadow-blue-500/20">
+            <div className="mx-auto h-24 w-24 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-[2rem] flex items-center justify-center mb-8 shadow-2xl shadow-indigo-500/20 transform hover:scale-110 transition-transform duration-500">
               <Building2 className="h-10 w-10 text-white" />
             </div>
-            <h1 className="text-3xl font-black text-white italic tracking-tight">ESNAF GİRİŞİ</h1>
-            <p className="text-slate-500 mt-2 text-xs font-bold uppercase tracking-widest">Seydi Rehber İşletme Yönetimi</p>
+            <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Esnaf Girişi</h1>
+            <p className="text-slate-500 mt-3 text-sm font-medium">Seydi Rehber İşletme Yönetimi</p>
           </div>
           
           <form onSubmit={handleLogin} className="space-y-6">
             <div className="space-y-2">
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Kullanıcı Adı</label>
-              <input 
-                type="text" 
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="isletme_adi"
-                className="block w-full bg-slate-800/50 rounded-xl border border-white/10 text-white p-4 focus:border-blue-500 focus:ring-0 transition-all placeholder:text-slate-600" 
-                required 
-              />
+              <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Kullanıcı Adı</label>
+              <div className="relative group">
+                <input 
+                  type="text" 
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="isletme_adi"
+                  className="block w-full bg-slate-50/50 rounded-2xl border border-slate-200 text-slate-900 px-5 py-4 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all outline-none placeholder:text-slate-300 font-medium" 
+                  required 
+                />
+              </div>
             </div>
             <div className="space-y-2">
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Şifre</label>
-              <input 
-                type="password" 
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="block w-full bg-slate-800/50 rounded-xl border border-white/10 text-white p-4 focus:border-blue-500 focus:ring-0 transition-all placeholder:text-slate-600" 
-                required 
-              />
+              <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Şifre</label>
+              <div className="relative group">
+                <input 
+                  type="password" 
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="block w-full bg-slate-50/50 rounded-2xl border border-slate-200 text-slate-900 px-5 py-4 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all outline-none placeholder:text-slate-300 font-medium" 
+                  required 
+                />
+              </div>
             </div>
             
             {loginError && (
-              <div className="bg-rose-500/10 border border-rose-500/20 p-3 rounded-lg flex items-center text-rose-400">
-                <AlertCircle className="h-4 w-4 mr-2" />
-                <p className="text-[11px] font-bold uppercase">{loginError}</p>
+              <div className="bg-rose-50 border border-emerald-100 p-4 rounded-2xl flex items-center text-rose-600 animate-in fade-in slide-in-from-top-2">
+                <AlertCircle className="h-5 w-5 mr-3 flex-shrink-0" />
+                <p className="text-sm font-semibold">{loginError}</p>
               </div>
             )}
             
             <button 
               type="submit" 
               disabled={isLoggingIn}
-              className="w-full relative group overflow-hidden rounded-xl"
+              className="w-full bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 disabled:from-slate-200 disabled:to-slate-200 text-white py-5 rounded-2xl font-bold text-lg shadow-xl shadow-indigo-500/20 disabled:shadow-none transition-all active:scale-[0.98] flex items-center justify-center gap-3"
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-600 transition-all group-hover:scale-105 active:scale-95" />
-              <div className="relative py-4 px-4 text-sm font-black text-white uppercase tracking-[0.2em]">
-                {isLoggingIn ? "Bağlanılıyor..." : "Sisteme Gir"}
-              </div>
+              {isLoggingIn ? (
+                <RefreshCw className="h-6 w-6 animate-spin text-white/50" />
+              ) : (
+                "Sisteme Giriş Yap"
+              )}
             </button>
           </form>
           
-          <div className="mt-8 pt-8 border-t border-white/5 space-y-3">
-             <p className="text-center text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-4">
-               DESTEK VE İLETİŞİM
-             </p>
-             <div className="grid grid-cols-2 gap-3">
-               <a 
-                 href="tel:+905456962060"
-                 className="flex items-center justify-center space-x-2 bg-white/5 hover:bg-blue-500/10 text-slate-300 hover:text-blue-400 p-3 rounded-xl border border-white/5 transition-all text-xs font-bold"
-               >
-                 <Phone className="h-4 w-4" />
-                 <span>Yöneticiyi Ara</span>
-               </a>
+          <div className="mt-10 pt-8 border-t border-slate-50 flex flex-col items-center gap-4">
+             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">Destek ve İletişim</p>
+             <div className="flex gap-4 w-full">
                <a 
                  href="https://wa.me/905456962060"
                  target="_blank"
                  rel="noopener noreferrer"
-                 className="flex items-center justify-center space-x-2 bg-emerald-500/5 hover:bg-emerald-500/10 text-slate-300 hover:text-emerald-400 p-3 rounded-xl border border-white/5 transition-all text-xs font-bold"
+                 className="flex-1 flex items-center justify-center gap-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 p-4 rounded-2xl border border-emerald-100/50 transition-all font-bold text-xs"
                >
                  <MessageCircle className="h-4 w-4" />
-                 <span>WhatsApp</span>
+                 WhatsApp
+               </a>
+               <a 
+                 href="tel:+905456962060"
+                 className="flex-1 flex items-center justify-center gap-2 bg-slate-50 hover:bg-slate-100 text-slate-600 p-4 rounded-2xl border border-slate-200/50 transition-all font-bold text-xs"
+               >
+                 <Phone className="h-4 w-4" />
+                 Ara
                </a>
              </div>
           </div>
@@ -259,234 +333,294 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0f172a] text-slate-200">
-      {/* Navbar Upgrade */}
-      <nav className="bg-slate-900/50 backdrop-blur-md border-b border-white/10 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-20">
-            <div className="flex items-center space-x-3">
-              <div className="h-10 w-10 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
-                <Building2 className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-black bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">ESNAF PANELİ</h1>
-                <p className="text-[10px] uppercase tracking-widest text-blue-400 font-bold">Seydi Rehber Pro</p>
-              </div>
+    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-indigo-100 relative overflow-hidden">
+      {/* Dynamic Background */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-200/20 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-emerald-200/20 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
+      </div>
+
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-white/70 backdrop-blur-xl border-b border-slate-200/50">
+        <div className="container mx-auto px-4 py-4 flex justify-between items-center max-w-7xl">
+          <div className="flex items-center gap-4 group cursor-default">
+            <div className="bg-gradient-to-br from-indigo-600 to-violet-600 p-2.5 rounded-2xl shadow-lg shadow-indigo-200 group-hover:scale-105 transition-transform duration-500">
+              <Building2 className="w-6 h-6 text-white" />
             </div>
-            <div className="flex items-center space-x-6">
-              <div className="hidden md:flex flex-col items-end">
-                <span className="text-sm font-bold text-white flex items-center">
-                  <User className="h-3 w-3 mr-1 text-blue-400" />
-                  {usernameText}
-                </span>
-                <span className="text-[10px] text-slate-500 uppercase">İşletme Yetkilisi</span>
+            <div>
+              <h1 className="text-2xl font-black tracking-tight text-slate-900 leading-none drop-shadow-sm">
+                {companyName || 'Yükleniyor...'}
+              </h1>
+              <div className="flex items-center gap-2 mt-1.5">
+                <div className="flex items-center gap-1 px-2 py-0.5 bg-indigo-50 rounded-md">
+                  <span className="w-1 h-1 bg-indigo-500 rounded-full animate-pulse" />
+                  <p className="text-[9px] font-black text-indigo-600 uppercase tracking-[0.15em] leading-none">KURUMSAL PANEL</p>
+                </div>
               </div>
-              <button 
-                onClick={handleLogout}
-                className="group flex items-center space-x-2 bg-white/5 hover:bg-red-500/10 text-slate-400 hover:text-red-400 px-4 py-2 rounded-lg transition-all border border-white/5 hover:border-red-500/20"
-              >
-                <LogOut className="h-4 w-4 transform group-hover:-translate-x-1 transition-transform" />
-                <span className="text-sm font-bold uppercase tracking-tight">Çıkış</span>
-              </button>
             </div>
           </div>
+          <button 
+            onClick={handleLogout}
+            className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all duration-300 border border-transparent hover:border-red-100"
+          >
+            <LogOut className="w-4 h-4" />
+            Çıkış Yap
+          </button>
         </div>
-      </nav>
+      </header>
 
-      <main className="max-w-4xl mx-auto py-10 px-4 space-y-8">
+      <main className="container mx-auto px-4 py-10 relative z-10 max-w-7xl">
         {!companyId ? (
-          <div className="bg-amber-500/10 border-l-4 border-amber-500 p-6 rounded-2xl flex items-center space-x-4">
-            <AlertCircle className="h-8 w-8 text-amber-500" />
+          <div className="bg-white/80 backdrop-blur-md border border-amber-100 p-8 rounded-[2.5rem] shadow-xl flex items-center gap-6 max-w-2xl mx-auto">
+            <div className="p-4 bg-amber-50 rounded-2xl text-amber-500">
+              <AlertCircle className="w-10 h-10" />
+            </div>
             <div>
-              <h3 className="text-amber-500 font-bold">Yetki Sorunu</h3>
-              <p className="text-sm text-amber-200/70">Hesabınıza atanmış bir firma bulunamadı.</p>
+              <h3 className="text-xl font-bold text-amber-900">Yetki Bekleniyor</h3>
+              <p className="text-slate-600 font-medium">Hesabınıza atanmış bir firma bulunamadı. Lütfen yönetici ile iletişime geçin.</p>
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Verification Form Card */}
-            <div className="space-y-6">
-              <div className="bg-slate-900 border border-white/5 rounded-3xl shadow-2xl shadow-blue-500/5 overflow-hidden">
-                <div className="px-8 py-10">
-                  <div className="flex flex-col items-center text-center mb-10">
-                    <div className="h-20 w-20 bg-blue-600/10 rounded-2xl flex items-center justify-center mb-6 border border-blue-500/20">
-                      <KeyRound className="h-10 w-10 text-blue-500" />
-                    </div>
-                    <h2 className="text-3xl font-black text-white italic">KUPON DOĞRULA</h2>
-                    <p className="mt-2 text-slate-400 text-sm font-medium">6 haneli müşteri kodunu buraya giriniz</p>
-                  </div>
+          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            {/* Tabs Navigation */}
+            <nav className="flex items-center gap-2 p-1.5 bg-white/50 backdrop-blur-sm rounded-3xl border border-white max-w-fit mx-auto lg:mx-0">
+              <button 
+                onClick={() => setActiveTab('dashboard')}
+                className={`px-6 py-2.5 rounded-2xl text-xs font-bold transition-all duration-300 flex items-center gap-2 ${activeTab === 'dashboard' ? 'bg-white text-indigo-600 shadow-md' : 'text-slate-400 hover:text-slate-600'}`}
+              >
+                <BarChart3 className="w-4 h-4" /> Panel
+              </button>
+              <button 
+                onClick={() => setActiveTab('coupons')}
+                className={`px-6 py-2.5 rounded-2xl text-xs font-bold transition-all duration-300 flex items-center gap-2 ${activeTab === 'coupons' ? 'bg-white text-indigo-600 shadow-md' : 'text-slate-400 hover:text-slate-600'}`}
+              >
+                <Ticket className="w-4 h-4" /> Kuponlarım
+              </button>
+              <button 
+                onClick={() => setActiveTab('support')}
+                className={`px-6 py-2.5 rounded-2xl text-xs font-bold transition-all duration-300 flex items-center gap-2 ${activeTab === 'support' ? 'bg-white text-indigo-600 shadow-md' : 'text-slate-400 hover:text-slate-600'}`}
+              >
+                <MessageCircle className="w-4 h-4" /> Destek
+              </button>
+            </nav>
 
-                  <form onSubmit={handleVerify} className="space-y-8">
-                    <div className="relative">
-                      <input
-                        type="text"
-                        maxLength={6}
-                        value={couponCode}
-                        onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                        placeholder="______"
-                        className="block w-full bg-slate-800/50 text-center text-5xl tracking-[0.5em] uppercase font-mono rounded-2xl border-2 border-white/10 text-white placeholder:text-slate-700 focus:border-blue-500 focus:ring-0 transition-all p-6 shadow-inner"
-                        required
-                      />
-                      <div className="absolute inset-0 pointer-events-none rounded-2xl ring-1 ring-inset ring-white/5" />
-                    </div>
-                    
-                    {verifyStatus && (
-                      <div className={`p-4 rounded-xl flex items-center animate-in fade-in slide-in-from-top-2 duration-300 ${
-                        verifyStatus.type === 'success' 
-                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
-                          : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
-                      }`}>
-                        {verifyStatus.type === 'success' ? <CheckCircle2 className="h-5 w-5 mr-3" /> : <AlertCircle className="h-5 w-5 mr-3" />}
-                        <span className="text-[13px] font-bold uppercase tracking-wide">{verifyStatus.msg}</span>
+            {activeTab === 'dashboard' && (
+              <div className="grid lg:grid-cols-3 gap-10">
+                {/* Left Column: Verification */}
+                <div className="lg:col-span-2 space-y-10">
+                  <section className="bg-white/80 backdrop-blur-md rounded-[2.5rem] p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white hover:shadow-[0_8px_40px_rgb(0,0,0,0.08)] transition-all duration-700 group">
+                    <div className="flex items-center gap-5 mb-10">
+                      <div className="p-4 bg-indigo-50 rounded-[1.5rem] text-indigo-600 group-hover:rotate-6 transition-transform duration-500">
+                        <KeyRound className="w-8 h-8" />
                       </div>
-                    )}
-                    
-                    <button
-                      type="submit"
-                      disabled={isVerifying || couponCode.length !== 6}
-                      className="group relative w-full overflow-hidden"
-                    >
-                      <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-600 transition-all duration-300 group-hover:scale-105 group-active:scale-95" />
-                      <div className="relative flex items-center justify-center py-5 rounded-2xl text-white font-black text-lg tracking-widest uppercase disabled:opacity-50 transition-all">
+                      <div>
+                        <h2 className="text-2xl font-bold text-slate-900">Kupon Doğrulama</h2>
+                        <p className="text-slate-500 font-medium">Müşterinin getirdiği 6 haneli kodu buraya girerek doğrulayın.</p>
+                      </div>
+                    </div>
+
+                    <form onSubmit={handleVerify} className="space-y-8">
+                      <div className="relative group/input">
+                        <input
+                          type="text"
+                          value={couponCode}
+                          onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                          placeholder="• • • • • •"
+                          maxLength={6}
+                          className="w-full text-center text-6xl font-black tracking-[0.3em] py-10 rounded-[2rem] border-2 border-slate-100 bg-slate-50/30 hover:bg-white focus:bg-white focus:border-indigo-500 focus:ring-8 focus:ring-indigo-500/5 outline-none transition-all duration-500 placeholder:text-slate-200"
+                        />
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={isVerifying || couponCode.length !== 6}
+                        className="w-full bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 disabled:from-slate-200 disabled:to-slate-200 text-white py-6 rounded-[1.75rem] font-bold text-xl shadow-2xl shadow-indigo-500/20 disabled:shadow-none transition-all duration-300 active:scale-[0.98] flex items-center justify-center gap-4 group/btn"
+                      >
                         {isVerifying ? (
-                          <RefreshCw className="h-6 w-6 animate-spin" />
+                          <RefreshCw className="w-8 h-8 animate-spin" />
                         ) : (
-                          "ONAYLA VE KULLAN"
+                          <>
+                            <CheckCircle2 className="w-8 h-8 group-hover/btn:scale-110 transition-transform" />
+                            Doğrula ve Kuponu Kullan
+                          </>
                         )}
-                      </div>
-                    </button>
-                  </form>
-                </div>
-                
-                <div className="bg-white/5 px-8 py-4 flex items-center justify-center space-x-2">
-                  <Ticket className="h-4 w-4 text-slate-500" />
-                  <p className="text-[11px] text-slate-500 font-bold uppercase tracking-tighter">
-                    Her kupon tek kullanımlıktır • İşlem geri alınamaz
-                  </p>
-                </div>
-              </div>
-            </div>
+                      </button>
 
-            {/* Reporting Section Card */}
-            <div className="space-y-6">
-              <div className="bg-slate-900 border border-white/5 rounded-3xl shadow-2xl p-8 h-full">
-                <div className="flex items-center justify-between mb-8">
-                  <div className="flex items-center space-x-3">
-                    <div className="h-10 w-10 bg-indigo-600/10 rounded-xl flex items-center justify-center border border-indigo-500/20">
-                      <BarChart3 className="h-6 w-6 text-indigo-400" />
-                    </div>
-                    <h3 className="text-xl font-black text-white italic uppercase tracking-wider">RAPORLAMA</h3>
-                  </div>
-                  <button 
-                    onClick={() => companyId && fetchStats(companyId)}
-                    disabled={isStatsLoading}
-                    className="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-all"
-                    title="Yenile"
-                  >
-                    <RefreshCw className={`h-5 w-5 ${isStatsLoading ? 'animate-spin' : ''}`} />
-                  </button>
-                </div>
-
-                {isStatsLoading ? (
-                  <div className="space-y-4 animate-pulse">
-                    {[1, 2, 3].map(i => (
-                      <div key={i} className="h-16 bg-white/5 rounded-2xl w-full" />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="space-y-6">
-                    {/* Total Stats Card */}
-                    <div className="bg-gradient-to-br from-indigo-500/20 to-blue-500/20 border border-white/5 rounded-2xl p-6 relative overflow-hidden">
-                      <div className="relative z-10 text-center">
-                        <span className="text-[10px] font-black text-indigo-300 uppercase tracking-[0.2em]">Toplam Kullanım</span>
-                        <div className="text-5xl font-black text-white mt-1 leading-tight">{stats?.totalUsed || 0}</div>
-                        <p className="text-[11px] text-slate-400 mt-2 font-medium">Onaylanan Tüm Fırsatlar</p>
-                      </div>
-                      <BarChart3 className="absolute -bottom-4 -right-4 h-24 w-24 text-white/5" />
-                    </div>
-
-                    {/* Breakdown List */}
-                    <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-                      <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest pl-2">Kupon Bazlı Dağılım</h4>
-                      {stats?.byCoupon && stats.byCoupon.length > 0 ? (
-                        stats.byCoupon.map((item) => (
-                          <div 
-                            key={item.id}
-                            className="flex items-center justify-between bg-white/[0.03] hover:bg-white/[0.06] transition-colors p-4 rounded-2xl border border-white/5 group"
-                          >
-                            <div className="flex items-center space-x-3">
-                              <div className="h-8 w-8 bg-blue-500/10 rounded-lg flex items-center justify-center border border-blue-500/10 group-hover:bg-blue-500/20 transition-colors">
-                                <Ticket className="h-4 w-4 text-blue-400" />
-                              </div>
-                              <span className="text-sm font-bold text-slate-300 truncate max-w-[140px]">{item.title}</span>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <span className="text-lg font-black text-white">{item.count}</span>
-                              <span className="text-[10px] text-slate-500 font-bold uppercase">Adet</span>
-                            </div>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="text-center py-10 text-slate-500">
-                          <Ticket className="h-10 w-10 mx-auto mb-3 opacity-20" />
-                          <p className="text-xs font-bold uppercase tracking-tight">Henüz Kayıt Yok</p>
+                      {verifyStatus && (
+                        <div className={`flex items-center gap-4 p-6 rounded-[1.5rem] border animate-shake ${
+                          verifyStatus.type === 'success' 
+                            ? 'bg-emerald-50 border-emerald-100 text-emerald-800' 
+                            : 'bg-rose-50 border-rose-100 text-rose-800'
+                        }`}>
+                          {verifyStatus.type === 'success' ? <CheckCircle2 className="w-6 h-6 flex-shrink-0" /> : <AlertCircle className="w-6 h-6 flex-shrink-0" />}
+                          <p className="text-sm font-bold uppercase tracking-wide">{verifyStatus.msg}</p>
                         </div>
                       )}
+                    </form>
+
+                    <div className="mt-8 flex items-center justify-center gap-2 text-slate-400">
+                      <Ticket className="w-4 h-4" />
+                      <p className="text-[10px] font-bold uppercase tracking-widest">Her kupon tek kullanımlıktır ve geri alınamaz</p>
                     </div>
-                  </div>
-                )}
+                  </section>
+                </div>
+
+                <div className="space-y-10">
+                  <section className="bg-white/80 backdrop-blur-md rounded-[2.5rem] p-8 shadow-sm border border-white">
+                    <div className="flex items-center justify-between mb-8">
+                      <div className="flex items-center gap-3">
+                        <div className="p-3 bg-emerald-50 rounded-2xl text-emerald-600">
+                          <BarChart3 className="w-6 h-6" />
+                        </div>
+                        <h2 className="text-xl font-bold text-slate-900">Raporlar</h2>
+                      </div>
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-100 text-emerald-700 text-[10px] font-black uppercase tracking-widest rounded-full">
+                        {isStatsLoading ? <RefreshCw className="w-3 h-3 animate-spin mr-1" /> : <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />}
+                        CANLI
+                      </div>
+                    </div>
+
+                    <div className="space-y-10">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="p-5 bg-slate-50/50 rounded-2xl border border-slate-100/50">
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Toplam</p>
+                          <p className="text-2xl font-black text-slate-900">{stats?.totalUsed || 0}</p>
+                        </div>
+                        <div className="p-5 bg-indigo-50/50 rounded-2xl border border-indigo-100/30">
+                          <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-1">Yeni</p>
+                          <p className="text-2xl font-black text-indigo-600">
+                            {/* @ts-ignore */}
+                            {stats?.dailyTrend?.reduce((acc: number, curr: any) => acc + curr.count, 0) || 0}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] px-2">
+                           Son İşlemler
+                        </h3>
+                        <div className="space-y-3">
+                          {stats?.recentUses?.map((use, idx) => (
+                            <div key={idx} className="flex items-center gap-4 p-4 bg-slate-50/30 rounded-2xl border border-slate-100/30 group hover:bg-white hover:shadow-lg hover:shadow-slate-200/50 transition-all duration-300">
+                              <div className="bg-white p-2 rounded-xl shadow-sm group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
+                                <CheckCircle2 className="w-4 h-4" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs font-bold text-slate-900 truncate">{use.couponTitle}</p>
+                                <p className="text-[10px] text-slate-400 font-medium">
+                                  {use.code} • {use.usedAt?.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                          {(!stats?.recentUses || stats.recentUses.length === 0) && (
+                             <p className="text-center py-6 text-[10px] font-bold text-slate-300 uppercase tracking-widest">İşlem Bulunmuyor</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+                </div>
               </div>
-            </div>
+            )}
+
+            {activeTab === 'coupons' && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {coupons.map((coupon, idx) => (
+                    <div key={idx} className="bg-white/80 backdrop-blur-md rounded-[2rem] p-8 shadow-sm border border-white hover:shadow-[0_20px_40px_rgb(0,0,0,0.05)] transition-all duration-500 group">
+                      <div className="flex justify-between items-start mb-6">
+                        <div className="p-4 bg-indigo-50 rounded-2xl text-indigo-600 group-hover:scale-110 transition-transform duration-500">
+                          <Ticket className="w-6 h-6" />
+                        </div>
+                        <span className="px-3 py-1 bg-emerald-50 text-emerald-600 text-[10px] font-black rounded-lg">
+                          %{coupon.discountPercentage || coupon.discount_value || 0} İNDİRİM
+                        </span>
+                      </div>
+                      <h3 className="text-lg font-bold text-slate-900 mb-2 truncate">{coupon.title}</h3>
+                      <p className="text-sm text-slate-500 line-clamp-2 mb-6 font-medium leading-relaxed">{coupon.description}</p>
+                      
+                      <div className="pt-6 border-t border-slate-100 flex items-center justify-between">
+                        <div>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Toplam Kullanım</p>
+                          <p className="text-xl font-black text-slate-900">{coupon.used_count || 0}</p>
+                        </div>
+                        {coupon.total_limit && (
+                          <div className="text-right">
+                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Limit</p>
+                             <p className="text-sm font-bold text-slate-700">{coupon.used_count || 0} / {coupon.total_limit}</p>
+                          </div>
+                        )}
+                        {!coupon.total_limit && (
+                           <div className="text-right">
+                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Durum</p>
+                             <p className="text-sm font-bold text-emerald-500">Sınırsız İndirim</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  {coupons.length === 0 && (
+                    <div className="col-span-full py-20 text-center space-y-4">
+                      <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-slate-300">
+                        <Ticket className="w-10 h-10" />
+                      </div>
+                      <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Henüz bir kuponunuz bulunmuyor</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'support' && (
+              <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                <div className="bg-slate-900 rounded-[2.5rem] p-10 text-white shadow-2xl relative overflow-hidden group border border-white/5">
+                  <div className="absolute -top-4 -right-4 p-4 opacity-10 group-hover:scale-125 transition-transform duration-700">
+                    <MessageCircle className="w-24 h-24" />
+                  </div>
+                  <h4 className="text-slate-400 text-xs font-black uppercase tracking-[0.2em] mb-4">Anında Çözüm</h4>
+                  <h3 className="text-2xl font-bold mb-6">WhatsApp Destek Hattı</h3>
+                  <p className="text-slate-400 mb-8 font-medium leading-relaxed">Sistemle ilgili tüm soru ve sorunlarınız için direct olarak ekibimize ulaşabilirsiniz.</p>
+                  <a 
+                    href="https://wa.me/905456962060" 
+                    target="_blank"
+                    className="inline-flex items-center gap-3 bg-emerald-500 hover:bg-emerald-600 px-8 py-4 rounded-2xl transition-all font-bold text-white shadow-[0_8px_25px_-4px_rgba(16,185,129,0.4)]"
+                  >
+                    Hemen Yazın <MessageCircle className="w-5 h-5" />
+                  </a>
+                </div>
+
+                <div className="bg-gradient-to-br from-indigo-600 to-violet-600 rounded-[2.5rem] p-10 text-white shadow-2xl relative overflow-hidden group border border-white/10">
+                  <div className="absolute -top-4 -right-4 p-4 opacity-10 group-hover:scale-125 transition-transform duration-700">
+                    <User className="w-24 h-24" />
+                  </div>
+                  <h4 className="text-indigo-100/60 text-xs font-black uppercase tracking-[0.2em] mb-4">Kurumsal İletişim</h4>
+                  <h3 className="text-2xl font-bold mb-6">Mail ile Bize Ulaşın</h3>
+                  <p className="text-indigo-100/70 mb-8 font-medium leading-relaxed">Resmi evraklar veya daha detaylı talepleriniz için mail adresimizi kullanabilirsiniz.</p>
+                  <a 
+                    href="mailto:seydirehber@gmail.com" 
+                    className="inline-flex items-center gap-3 bg-white/10 hover:bg-white/20 px-8 py-4 rounded-2xl backdrop-blur-md transition-all font-bold border border-white/20"
+                  >
+                    seydirehber@gmail.com <User className="w-5 h-5" />
+                  </a>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </main>
 
-      {/* Floating Right Support Sidebar (Desktop) / Bottom Bar (Mobile) */}
-      {companyId && (
-        <div className="fixed bottom-6 right-6 lg:top-1/2 lg:-translate-y-1/2 flex flex-col items-end space-y-4 z-[100] group">
-          <div className="bg-slate-900/90 backdrop-blur-sm border border-white/10 px-4 py-2 rounded-full mb-2 shadow-2xl animate-bounce">
-            <span className="text-[10px] font-black text-blue-400 uppercase tracking-[0.1em]">
-              Yönetici ile İletişime Geç
-            </span>
-          </div>
-          
-          <div className="flex flex-col space-y-4">
-            <a 
-              href="https://wa.me/905456962060"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center space-x-4 group"
-            >
-              <span className="hidden lg:block bg-slate-900/80 backdrop-blur-sm px-4 py-2 rounded-xl text-white text-xs font-bold border border-white/5 opacity-0 group-hover:opacity-100 transition-all shadow-xl">
-                WhatsApp İle Yaz
-              </span>
-              <div className="h-20 w-20 bg-emerald-500 rounded-[2rem] shadow-2xl shadow-emerald-500/40 hover:scale-110 active:scale-95 transition-all border-4 border-[#0f172a] flex flex-col items-center justify-center">
-                <MessageCircle className="h-8 w-8 text-white" />
-                <span className="text-[10px] font-black text-white/80 uppercase mt-1">Destek</span>
-              </div>
-            </a>
-
-            <a 
-              href="tel:+905456962060"
-              className="flex items-center space-x-4 group"
-            >
-              <span className="hidden lg:block bg-slate-900/80 backdrop-blur-sm px-4 py-2 rounded-xl text-white text-xs font-bold border border-white/5 opacity-0 group-hover:opacity-100 transition-all shadow-xl">
-                Yöneticiyi Ara
-              </span>
-              <div className="h-20 w-20 bg-blue-600 rounded-[2rem] shadow-2xl shadow-blue-500/40 hover:scale-110 active:scale-95 transition-all border-4 border-[#0f172a] flex flex-col items-center justify-center">
-                <Phone className="h-8 w-8 text-white" />
-                <span className="text-[10px] font-black text-white/80 uppercase mt-1">İletişim</span>
-              </div>
-            </a>
-          </div>
-        </div>
-      )}
-
       <style>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          25% { transform: translateX(-4px); }
+          75% { transform: translateX(4px); }
+        }
+        .animate-shake { animation: shake 0.4s ease-in-out; }
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.05); border-radius: 20px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.1); }
       `}</style>
     </div>
   );

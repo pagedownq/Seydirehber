@@ -6,7 +6,14 @@ service cloud.firestore {
     function isAdmin() {
       return request.auth != null && 
         (request.auth.token.email == 'mehmetirem305@gmail.com' || 
-         request.auth.token.email == 'bilgimgverse@gmail.com');
+         request.auth.token.email == 'bilgimgverse@gmail.com' ||
+         request.auth.token.email == 'seydirehber@gmail.com' ||
+         exists(/databases/$(database)/documents/admins/$(request.auth.token.email)));
+    }
+
+    match /admins/{email} {
+      allow read: if request.auth != null && (request.auth.token.email == email || isAdmin());
+      allow write: if isAdmin();
     }
 
     // Esnaf yetki kontrolü kaldırıldı (Auth kullanılmadığı için kurallar esnetildi)
@@ -60,6 +67,7 @@ service cloud.firestore {
     match /coupons/{docId} {
       // Kuponları uygulamadaki herkes okuyabilir, sadece admin oluşturup silebilir.
       allow read: if true;
+      allow update: if isAdmin() || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['used_count']));
       allow write: if isAdmin();
     }
 

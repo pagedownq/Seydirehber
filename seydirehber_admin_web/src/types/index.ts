@@ -97,6 +97,7 @@ export const COLLECTIONS: Record<string, { title: string; bucket: string | null;
       { key: 'website', label: 'Web Sitesi' },
       { key: 'instagram', label: 'Instagram (Kullanıcı adı veya Link)' },
       { key: 'expiry_date', label: 'Bitiş Tarihi (Sona Erme)', isDate: true },
+      { key: 'order', label: 'Sıra (Görünüm Sırası)', isNumber: true },
     ],
   },
   yardim_destek: {
@@ -141,6 +142,17 @@ export const COLLECTIONS: Record<string, { title: string; bucket: string | null;
       { key: 'discountPercentage', label: 'İndirim Yüzdesi (Örn: 20)', isNumber: true, required: true },
       { key: 'companyId', label: 'Geçerli Firma', isCompanyPicker: true, required: true },
       { key: 'companyName', label: 'Firma Adı (Gösterim İçin)', required: true },
+      { key: 'expiry_date', label: 'Bitiş Tarihi (Opsiyonel)', isDate: true },
+      { key: 'total_limit', label: 'Kupon Sayısı (Sınır - Opsiyonel)', isNumber: true },
+      { key: 'isActive', label: 'Aktif Mi?', isBoolean: true },
+    ]
+  },
+  admins: {
+    title: 'Admin Yönetimi',
+    bucket: null,
+    fields: [
+      { key: 'email', label: 'Admin Email', required: true },
+      { key: 'ad_soyad', label: 'Ad Soyad', required: true },
       { key: 'isActive', label: 'Aktif Mi?', isBoolean: true },
     ]
   }

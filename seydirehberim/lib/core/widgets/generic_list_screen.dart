@@ -11,7 +11,7 @@ import 'error_view.dart';
 
 class GenericListScreen extends ConsumerWidget {
   final String title;
-  final StreamProvider<QuerySnapshot<Map<String, dynamic>>> provider;
+  final StreamProvider<List<QueryDocumentSnapshot<Map<String, dynamic>>>> provider;
   final String routePrefix;
   final bool showViewCount;
   final String? cacheKey;
@@ -91,11 +91,9 @@ class GenericListScreen extends ConsumerWidget {
             onRetry: () => ref.refresh(provider),
           );
         },
-        data: (snapshot) {
-          final docs = snapshot.docs;
-
+        data: (docs) {
           // Save to manual local cache for extra redundancy
-          if (cacheKey != null && docs.isNotEmpty && !snapshot.metadata.isFromCache) {
+          if (cacheKey != null && docs.isNotEmpty) {
             final dataList = docs.map((d) {
               final map = d.data();
               map['id'] = d.id; // Store ID as well for navigation
@@ -105,7 +103,8 @@ class GenericListScreen extends ConsumerWidget {
           }
 
           if (docs.isEmpty) {
-            if (cacheKey != null && snapshot.metadata.isFromCache) {
+            // Check manual cache if data is empty (e.g. offline)
+            if (cacheKey != null) {
               final manualCache = LocalCacheService.getList(cacheKey!);
               if (manualCache != null && manualCache.isNotEmpty) {
                 return _buildList(context, manualCache, true);
@@ -171,7 +170,7 @@ class GenericListScreen extends ConsumerWidget {
           final address = rawAdres.isNotEmpty ? rawAdres : (rawKonum.startsWith('http') ? '' : rawKonum);
           
           final createdAt = data['created_at'] as Timestamp?;
-          final isNew = createdAt != null &&
+          final isNew = routePrefix == 'companies' && createdAt != null &&
               DateTime.now().difference(createdAt.toDate()).inDays < 30;
 
           return _buildVerticalCard(context, id, name, imageUrl, category, address, isFromManualCache, isNew);
@@ -259,7 +258,7 @@ class GenericListScreen extends ConsumerWidget {
                     // NEW Badge
                     () {
                       final createdAt = data['created_at'] as Timestamp?;
-                      final isNew = createdAt != null &&
+                      final isNew = routePrefix == 'companies' && createdAt != null &&
                           DateTime.now().difference(createdAt.toDate()).inDays < 30;
                       if (!isNew) return const SizedBox.shrink();
                       

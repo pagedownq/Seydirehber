@@ -10,23 +10,27 @@ class AdminScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isAdmin = ref.watch(isAdminProvider);
+    final isAdminAsync = ref.watch(isAdminProvider);
 
-    if (!isAdmin) {
-      return const Scaffold(
-        body: Center(child: Text('Yetkiniz yok')),
-      );
-    }
+    return isAdminAsync.when(
+      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (_, __) => const Scaffold(body: Center(child: Text('Yetki kontrolü hatası'))),
+      data: (isAdmin) {
+        if (!isAdmin) {
+          return const Scaffold(
+            body: Center(child: Text('Yetkiniz yok')),
+          );
+        }
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text('Yönetim Paneli', style: AppTextStyles.appBarTitle),
-        backgroundColor: AppColors.white,
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
+        return Scaffold(
+          backgroundColor: AppColors.background,
+          appBar: AppBar(
+            title: Text('Yönetim Paneli', style: AppTextStyles.appBarTitle),
+            backgroundColor: AppColors.white,
+          ),
+          body: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
           _AdminCard(
             icon: Icons.photo_library,
             title: 'Banner Yönetimi',
@@ -128,7 +132,6 @@ class AdminScreen extends ConsumerWidget {
               'bucket': null,
             }),
           ),
-          const SizedBox(height: 12),
           _AdminCard(
             icon: Icons.confirmation_number,
             title: 'Kupon Yönetimi',
@@ -139,9 +142,22 @@ class AdminScreen extends ConsumerWidget {
               'bucket': null,
             }),
           ),
+          const SizedBox(height: 12),
+          _AdminCard(
+            icon: Icons.admin_panel_settings,
+            title: 'Admin Yönetimi',
+            color: const Color(0xFF263238),
+            onTap: () => context.push('/admin/manage', extra: {
+              'collection': 'admins',
+              'title': 'Admin Yönetimi',
+              'bucket': null,
+            }),
+          ),
         ],
       ),
     );
+  },
+);
   }
 }
 

@@ -279,7 +279,8 @@ class _CouponDetailScreenState extends ConsumerState<CouponDetailScreen> {
     });
 
     try {
-      final String code = _generateRandomCode();
+      final companyName = _currentCouponData?['companyName'] as String? ?? 'SY';
+      final String code = _generateRandomCode(companyName);
       final now = DateTime.now();
       final expiresAt = now.add(const Duration(minutes: 5));
 
@@ -309,114 +310,41 @@ class _CouponDetailScreenState extends ConsumerState<CouponDetailScreen> {
     }
   }
 
-  String _generateRandomCode() {
+  String _generateRandomCode(String companyName) {
+    // Get first 2 letters, uppercase, default to SY if needed
+    String prefix = 'SY';
+    if (companyName.length >= 2) {
+      prefix = companyName.substring(0, 2).toUpperCase();
+    } else if (companyName.isNotEmpty) {
+      prefix = (companyName[0] + 'X').toUpperCase();
+    }
+    
+    // Normalize Turkish characters
+    prefix = prefix
+      .replaceAll('İ', 'I')
+      .replaceAll('Ğ', 'G')
+      .replaceAll('Ü', 'U')
+      .replaceAll('Ş', 'S')
+      .replaceAll('Ö', 'O')
+      .replaceAll('Ç', 'C');
+
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     final random = Random();
-    return String.fromCharCodes(Iterable.generate(
-      6,
+    final suffix = String.fromCharCodes(Iterable.generate(
+      4, // 2 (prefix) + 4 (suffix) = 6 chars
       (_) => chars.codeUnitAt(random.nextInt(chars.length)),
     ));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_isChecking) {
-      return Scaffold(
-        backgroundColor: AppColors.background,
-        appBar: AppBar(title: const Text('Kupon Detayı')),
-        body: const Center(child: CircularProgressIndicator()),
-      );
-    }
-
-    if (_activeCodeId != null) {
-      return Scaffold(
-        backgroundColor: AppColors.background,
-        appBar: AppBar(
-          title: const Text('Kupon Kodu'),
-          surfaceTintColor: Colors.transparent,
-        ),
-        body: _buildActiveCodeView(),
-      );
-    }
-
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Kupon Detayı'),
-        surfaceTintColor: Colors.transparent,
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _buildCouponHeader(),
-            Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Kupon Hakkında',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    _currentCouponData?['description'] ?? 'Detaylı bilgi bulunmuyor.',
-                    style: const TextStyle(
-                      fontSize: 15,
-                      height: 1.5,
-                      color: AppColors.textLight,
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: ElevatedButton(
-                      onPressed: _isGenerating || _isUsed ? null : _generateCode,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _isUsed ? Colors.grey : AppColors.primary,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: _isGenerating
-                          ? const SizedBox(
-                              height: 24,
-                              width: 24,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : Text(
-                              _isUsed ? 'Bu Kuponu Kullandınız' : 'Kuponu Kullan',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+    
+    return prefix + suffix;
   }
 
   Widget _buildCouponHeader() {
     final title = _currentCouponData?['title'] ?? 'Kupon';
     final companyName = _currentCouponData?['companyName'] ?? '';
     final discount = _currentCouponData?['discountPercentage'] ?? 0;
+    final expiry = _currentCouponData?['expiry_date'] as Timestamp?;
+    final totalLimit = _currentCouponData?['total_limit'] as int?;
+    final usedCount = _currentCouponData?['used_count'] as int? ?? 0;
 
     return Container(
       padding: const EdgeInsets.all(24),
@@ -469,7 +397,146 @@ class _CouponDetailScreenState extends ConsumerState<CouponDetailScreen> {
               ),
             ],
           ),
+          if (expiry != null || totalLimit != null) ...[
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (expiry != null) ...[
+                  const Icon(Icons.event_available, color: Colors.white70, size: 14),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Bitiş: ${DateFormat('dd.MM.yyyy').format(expiry.toDate())}',
+                    style: const TextStyle(color: Colors.white70, fontSize: 13),
+                  ),
+                  if (totalLimit != null) const SizedBox(width: 12),
+                ],
+                if (totalLimit != null) ...[
+                  const Icon(Icons.group, color: Colors.white70, size: 14),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Limit: $usedCount/$totalLimit',
+                    style: const TextStyle(color: Colors.white70, fontSize: 13),
+                  ),
+                ],
+              ],
+            ),
+          ],
         ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isChecking) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(title: const Text('Kupon Detayı')),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_activeCodeId != null) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          title: const Text('Kupon Kodu'),
+          surfaceTintColor: Colors.transparent,
+        ),
+        body: _buildActiveCodeView(),
+      );
+    }
+
+    final now = DateTime.now();
+    final expiry = _currentCouponData?['expiry_date'] as Timestamp?;
+    final isExpiredGlobal = expiry != null && expiry.toDate().isBefore(now);
+    
+    final totalLimit = _currentCouponData?['total_limit'] as int?;
+    final usedCount = _currentCouponData?['used_count'] as int? ?? 0;
+    final isLimitReached = totalLimit != null && usedCount >= totalLimit;
+
+    String buttonText = 'Kuponu Kullan';
+    bool isButtonDisabled = _isGenerating || _isUsed || isExpiredGlobal || isLimitReached;
+
+    if (_isUsed) {
+      buttonText = 'Bu Kuponu Kullandınız';
+    } else if (isExpiredGlobal) {
+      buttonText = 'Kupon Süresi Doldu';
+    } else if (isLimitReached) {
+      buttonText = 'Kupon Stoğu Tükendi';
+    }
+
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: const Text('Kupon Detayı'),
+        surfaceTintColor: Colors.transparent,
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildCouponHeader(),
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Kupon Hakkında',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    _currentCouponData?['description'] ?? 'Detaylı bilgi bulunmuyor.',
+                    style: const TextStyle(
+                      fontSize: 15,
+                      height: 1.5,
+                      color: AppColors.textLight,
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: isButtonDisabled ? null : _generateCode,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: (isButtonDisabled && !_isGenerating) ? Colors.grey : AppColors.primary,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: _isGenerating
+                          ? const SizedBox(
+                              height: 24,
+                              width: 24,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Text(
+                              buttonText,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -5,11 +5,14 @@ import DashboardOverview from './components/DashboardOverview';
 import ManageCollection from './components/ManageCollection';
 import { auth } from './lib/firebase';
 import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
+import { getDoc, doc } from 'firebase/firestore';
 import { LogOut, Loader2 } from 'lucide-react';
+import { db } from './lib/firebase';
 
 const ADMIN_EMAILS = [
   'mehmetirem305@gmail.com',
-  'bilgimgverse@gmail.com'
+  'bilgimgverse@gmail.com',
+  'seydirehber@gmail.com'
 ];
 
 function App() {
@@ -18,13 +21,30 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  const checkAdminStatus = async (u: any) => {
+    if (ADMIN_EMAILS.includes(u.email || '')) return true;
+    
+    try {
+      const adminDoc = await getDoc(doc(db, 'admins', u.email || ''));
+      return adminDoc.exists() && adminDoc.data()?.isActive !== false;
+    } catch (err) {
+      console.error('Admin check error:', err);
+      return false;
+    }
+  };
+
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (u) => {
-      if (u && ADMIN_EMAILS.includes(u.email || '')) {
-        setUser(u);
-      } else if (u) {
-        signOut(auth);
-        setError('Bu hesabı kullanma yetkiniz yok.');
+    const unsubscribe = onAuthStateChanged(auth, async (u) => {
+      if (u) {
+        setLoading(true);
+        const isAdmin = await checkAdminStatus(u);
+        if (isAdmin) {
+          setUser(u);
+        } else {
+          await signOut(auth);
+          setError('Bu hesabı kullanma yetkiniz yok.');
+          setUser(null);
+        }
       } else {
         setUser(null);
       }
@@ -40,10 +60,14 @@ function App() {
     try {
       const result = await signInWithPopup(auth, provider);
       const u = result.user;
-      if (!ADMIN_EMAILS.includes(u.email || '')) {
+      const isAdmin = await checkAdminStatus(u);
+      
+      if (!isAdmin) {
         await signOut(auth);
         setError('Yetkisiz giriş: Bu e-posta admin listesinde değil.');
         setUser(null);
+      } else {
+        setUser(u);
       }
     } catch (err: any) {
       setError('Giriş başarısız: ' + err.message);

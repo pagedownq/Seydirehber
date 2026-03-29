@@ -43,52 +43,63 @@ class PoliciesScreen extends StatelessWidget {
   }
 
   static const String privacyPolicyContent = '''
-Seydi Rehber olarak verilerinizin güvenliği ve gizliliği bizim için en önemli önceliktir. Google Play Veri Güvenliği politikalarıyla tam uyumlu hareket etmekteyiz.
+Son Güncelleme: 29 Mart 2026
 
-1. Toplanan Veriler ve Amacı:
-- Hesap Bilgileri: Google ile giriş yaptığınızda adınız, e-posta adresiniz ve profil fotoğrafınız Firebase (Google) üzerinden alınır. Bu bilgiler sadece kimliğinizi doğrulamak ve size özel bir deneyim sunmak (favoriler, destek talepleri vb.) için kullanılır.
-- Cihaz Bilgileri: Uygulama performansı ve hata raporlarını takip etmek amacıyla anonim cihaz bilgileri (model, işletim sistemi sürümü) toplanabilir.
-- Konum Verileri: Uygulamadaki mekanların size olan uzaklığını hesaplayabilmeniz için (izniniz dahilinde) konum bilgisi kullanılabilir. Bu veri asla sunucularımızda saklanmaz.
+Seydi Rehber olarak, kullanıcılarımızın kişisel verilerinin güvenliği ve gizliliği en temel önceliğimizdir. Bu politika, hangi verileri ne amaçla topladığımızı ve nasıl koruduğumuzu açıklar.
 
-2. Veri Paylaşımı:
-- Verileriniz asla üçüncü taraflara satılmaz veya ticari amaçlarla paylaşılmaz. Sadece uygulamanın çalışması için gerekli olan güvenli altyapı sağlayıcıları (Firebase/Google) ile sınırlıdır.
+1. Toplanan Veriler ve Kullanım Amaçları:
+• Kimlik ve İletişim: Google ile giriş yapıldığında; ad, soyad ve e-posta adresi bilgileri Firebase altyapısı üzerinden alınır. Bu veriler sadece profilinizi oluşturmak, destek taleplerinizi yönetmek ve size özel içerikler sunmak için kullanılır.
+• Konum Verileri: Uygulama içindeki mekanların (eczane, etkinlik vb.) size olan uzaklığını gösterebilmek için "Uygulamayı kullanırken" izniyle anlık konumunuz kullanılır. Bu veri sunucularımıza ASLA kaydedilmez ve üçüncü taraflarla paylaşılmaz.
+• Cihaz ve Kullanım Bilgisi: Uygulama performansını artırmak ve hataları tespit etmek amacıyla anonim cihaz bilgileri (model, işletim sistemi) Google Analytics ve Crashlytics üzerinden işlenir.
 
-3. Veri Güvenliği:
-- Tüm verileriniz endüstri standardı olan SSL/TLS şifreleme yöntemleri ile korunmaktadır. Veri tabanımız Google'ın yüksek güvenlikli sunucularında barındırılır.
+2. Veri Güvenliği ve Paylaşımı:
+• Verileriniz uçtan uca SSL/TLS şifreleme ile korunur.
+• Verileriniz asla reklam ağlarına veya üçüncü şahıslara SATILMAZ.
+• Veri işleme süreçleri sadece güvenli Google Cloud/Firebase altyapısı ile sınırlıdır.
 
-4. Veri Silme Hakkı:
-- Kullanıcılarımız diledikleri zaman tüm verilerinin silinmesini talep edebilirler.
-- Hesabınızı uygulama içinden (Ayarlar > Hesabımı Sil) doğrudan silebilirsiniz.
-- Ayrıca, seydirehber@gmail.com adresine e-posta göndererek verilerinizin tamamen silinmesini talep edebilirsiniz. Talebiniz 7 iş günü içerisinde yerine getirilecektir.
+3. Veri Saklama ve Silme:
+• Kullanıcılar diledikleri zaman "Ayarlar > Hesabımı Sil" üzerinden veya seydirehber@gmail.com adresine yazarak tüm verilerinin kalıcı olarak silinmesini talep edebilirler. Talepler 7 gün içinde sonuçlandırılır.
+
+4. Çerezler:
+Uygulamamız oturum yönetimi ve analiz amaçlı güvenli dijital belirteçler (token) kullanmaktadır.
 ''';
 
   static const String termsOfServiceContent = '''
-Seydi Rehber uygulamasını kullanarak aşağıdaki topluluk kurallarını ve kullanım şartlarını kabul etmiş sayılırsınız:
+Son Güncelleme: 29 Mart 2026
 
-1. Hizmet Kapsamı:
-Bu uygulama Seydişehir ilçesindeki sosyal hayatı zenginleştirmek için bilgi sunar. Sunulan bilgilerin doğruluğu için çalışılsa da, güncel durum değişikliklerinden kaynaklanan hatalardan kullanıcı sorumludur.
+Seydi Rehber uygulamasını kullanarak aşağıdaki şartları kabul etmiş sayılırsınız:
 
-2. Kullanıcı Tarafından Oluşturulan İçerikler (UGC):
-- Yorumlar ve Değerlendirmeler: Kullanıcıların yaptığı yorumlar tamamen kendilerine aittir.
-- Yasaklı İçerikler: Küfür, hakaret, şiddet içerikli, yasa dışı veya toplumu rahatsız edici hiçbir içerik paylaşılamaz.
-- Denetim: Uygulama yöneticileri, kuralları ihlal eden içerikleri önceden haber vermeksizin silme ve ilgili hesabın erişimini engelleme hakkına sahiptir.
-- Şikayet Mekanizması: Uygunsuz bulduğunuz bir içeriği "Bildir" butonu veya destek bölümü aracılığıyla bize iletebilirsiniz. Şikayetler en geç 24 saat içinde incelenerek sonuçlandırılır.
+1. Hizmetin Doğası:
+Bu uygulama, Seydişehir ilçesindeki sosyal hayatı kolaylaştırmak amacıyla bilgi sunan bir platformdur. Bilgilerin (saatler, konumlara ait veriler vb.) doğruluğu için azami gayret gösterilse de, kurumsal olmayan veya anlık değişen verilerdeki hatalardan Seydi Rehber sorumlu tutulamaz.
 
-3. Telif Hakları:
-Uygulama tasarımı, logoları ve belirli içerikler Seydi Rehber'in fikri mülkiyetidir. İzinsiz kopyalanması kesinlikle yasaktır.
+2. Kullanıcı Yükümlülükleri:
+• Kullanıcılar, uygulama içinde yorum veya geri bildirim paylaşırken; küfür, hakaret, toplumu rahatsız edici öğeler veya yasa dışı içerikler paylaşmamayı taahhüt eder.
+• Kural ihlali durumunda, ilgili içeriğin silinmesi ve kullanıcının erişiminin kalıcı olarak engellenmesi hakkı saklıdır.
+
+3. Şikayet ve Denetim (UGC):
+• Uygunsuz içerikler "Bildir" butonu veya destek hattı üzerinden raporlanabilir. Bildirilen içerikler 24 saat içinde moderatörlerimiz tarafından incelenir ve ihlal durumunda kalıcı olarak kaldırılır.
+
+4. Sorumluluk Sınırı:
+Seydi Rehber, hizmetin kesintisizliği veya üçüncü taraf harita servislerinden kaynaklanan aksaklıklardan sorumlu değildir.
 ''';
 
   static const String kvkkContent = '''
-6698 sayılı Kişisel Verilerin Korunması Kanunu uyarınca:
+Son Güncelleme: 29 Mart 2026
 
-Seydi Rehber, kişisel verilerinizi kanuna uygun olarak işlemektedir. Verileriniz, ilçemizdeki sosyal hayatı kolaylaştırmak ve destek taleplerinizi yanıtlamak amacıyla işlenmektedir.
+6698 sayılı Kişisel Verilerin Korunması Kanunu (KVKK) uyarınca Seydi Rehber, "Veri Sorumlusu" sıfatıyla aşağıdaki bilgilendirmeyi yapar:
 
-Kullanıcılar olarak;
-- Verilerinizin işlenip işlenmediğini öğrenme,
-- Yanlış verilerin düzeltilmesini isteme,
-- Verilerin silinmesini talep etme haklarına sahipsiniz.
+1. Kişisel Verilerin İşlenme Amacı:
+Kişisel verileriniz, uygulama hizmetlerinin sunulması, kullanıcı güvenliğinin sağlanması ve yasal yükümlülüklerin yerine getirilmesi amacıyla kanunlara uygun olarak işlenmektedir.
 
-Her türlü KVKK talebiniz için "Ayarlar > Yardım ve Destek" bölümünden bize ulaşabilirsiniz.
+2. Haklarınız:
+KVKK'nın 11. maddesi uyarınca;
+• Verilerinizin işlenip işlenmediğini öğrenme,
+• İşleme amacını öğrenme,
+• Eksik veya yanlış verilerin düzeltilmesini isteme,
+• Verilerin silinmesini veya yok edilmesini talep etme haklarına sahipsiniz.
+
+3. Başvuru:
+Veri sahibi olarak tüm taleplerinizi seydirehber@gmail.com adresine veya uygulama içindeki iletişim kanalları üzerinden bize iletebilirsiniz. Başvurularınız en geç 30 gün içinde yanıtlanacaktır.
 ''';
 
   Widget _buildPolicyItem(

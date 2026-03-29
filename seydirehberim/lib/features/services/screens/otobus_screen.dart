@@ -49,48 +49,24 @@ class OtobusScreen extends ConsumerWidget {
             ),
           );
         },
-        data: (snapshot) {
-          final docs = snapshot.docs;
-
+        data: (docs) {
           // Save to manual local cache for extra redundancy
-          if (docs.isNotEmpty && !snapshot.metadata.isFromCache) {
+          if (docs.isNotEmpty) {
             final dataList = docs.map((d) => d.data()).toList();
             LocalCacheService.saveList('otobus_saatleri', dataList);
-          } else if (docs.isEmpty && snapshot.metadata.isFromCache) {
-             // If Firestore cache is empty or wiped, try our manual backup
-             final manualCache = LocalCacheService.getList('otobus_saatleri');
-             if (manualCache != null && manualCache.isNotEmpty) {
-               return _buildBusList(context, manualCache, isFromManualCache: true);
-             }
           }
 
           if (docs.isEmpty) {
+            // If docs is empty, try our manual backup
+            final manualCache = LocalCacheService.getList('otobus_saatleri');
+            if (manualCache != null && manualCache.isNotEmpty) {
+              return _buildBusList(context, manualCache, isFromManualCache: true);
+            }
             return const Center(child: Text('Henüz otobüs saati eklenmemiş'));
           }
 
           final items = docs.map((d) => d.data()).toList();
-          return Column(
-            children: [
-              if (snapshot.metadata.isFromCache)
-                Container(
-                  width: double.infinity,
-                  color: Colors.orange.shade50,
-                  padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.cloud_off, size: 14, color: Colors.orange),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Çevrimdışı moddasınız (Sadece kayıtlı veriler gösteriliyor)',
-                        style: AppTextStyles.bodySmall.copyWith(color: Colors.orange.shade900),
-                      ),
-                    ],
-                  ),
-                ),
-              Expanded(child: _buildBusList(context, items)),
-            ],
-          );
+          return _buildBusList(context, items);
         },
       ),
     );

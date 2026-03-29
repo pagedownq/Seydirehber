@@ -58,63 +58,176 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
             return const Center(child: Text('Henüz veri yok'));
           }
 
-          final docs = snapshot.data!.docs;
+          final docs = List<DocumentSnapshot>.from(snapshot.data!.docs);
+          
+          // Apply local sorting matching web admin logic
+          if (widget.collection == 'firmalar') {
+            docs.sort((a, b) {
+              final aData = a.data() as Map<String, dynamic>;
+              final bData = b.data() as Map<String, dynamic>;
+              final aOrder = aData['order'] is num ? aData['order'] : 999999;
+              final bOrder = bData['order'] is num ? bData['order'] : 999999;
+              if (aOrder != bOrder) return (aOrder as num).compareTo(bOrder as num);
+              return (aData['ad'] ?? '').toString().toLowerCase().compareTo((bData['ad'] ?? '').toString().toLowerCase());
+            });
+          } else if (widget.collection == 'banners') {
+            docs.sort((a, b) {
+              final aOrder = (a.data() as Map<String, dynamic>)['order'] is num ? (a.data() as Map<String, dynamic>)['order'] : 999999;
+              final bOrder = (b.data() as Map<String, dynamic>)['order'] is num ? (b.data() as Map<String, dynamic>)['order'] : 999999;
+              return (aOrder as num).compareTo(bOrder as num);
+            });
+          }
+
+          final isReorderable = widget.collection == 'firmalar' || widget.collection == 'banners';
+
+          if (isReorderable) {
+            return ReorderableListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: docs.length,
+              onReorder: (oldIndex, newIndex) async {
+                if (newIndex > oldIndex) newIndex -= 1;
+                final movedItem = docs.removeAt(oldIndex);
+                docs.insert(newIndex, movedItem);
+
+                // Batch update orders in Firestore
+                final batch = FirebaseFirestore.instance.batch();
+                for (int i = 0; i < docs.length; i++) {
+                  final docRef = FirebaseFirestore.instance
+                      .collection(widget.collection)
+                      .doc(docs[i].id);
+                  batch.update(docRef, {'order': i});
+                }
+                await batch.commit();
+              },
+              proxyDecorator: (child, index, animation) {
+                return AnimatedBuilder(
+                  animation: animation,
+                  builder: (context, child) {
+                    return Material(
+                      elevation: 0,
+                      color: Colors.transparent,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.2),
+                              blurRadius: 15,
+                              spreadRadius: 2,
+                            )
+                          ],
+                        ),
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: child,
+                );
+              },
+              itemBuilder: (context, index) {
+                final doc = docs[index];
+                return _buildListItem(doc, index, key: ValueKey(doc.id));
+              },
+            );
+          }
+
           return ListView.separated(
             padding: const EdgeInsets.all(16),
             itemCount: docs.length,
             separatorBuilder: (_, __) => const SizedBox(height: 10),
             itemBuilder: (context, index) {
-              final doc = docs[index];
-              final data = doc.data() as Map<String, dynamic>;
-              final name = data['ad'] as String? ??
-                  data['title'] as String? ??
-                  data['username'] as String? ??
-                  data['name'] as String? ??
-                  data['guzergah'] as String? ??
-                  'İsimsiz';
-              final imageUrl =
-                  data['image_url'] as String? ?? data['gorsel'] as String? ?? '';
-
-              return Container(
-                decoration: BoxDecoration(
-                  color: AppColors.white,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: ListTile(
-                  leading: CachedImageWidget(
-                    imageUrl: imageUrl,
-                    width: 50,
-                    height: 50,
-                    borderRadius: 8,
-                  ),
-                  title: Text(name,
-                      style: AppTextStyles.bodyMedium
-                          .copyWith(fontWeight: FontWeight.w600)),
-                  subtitle: _buildListSubtitle(data),
-                  trailing: PopupMenuButton(
-                    itemBuilder: (ctx) => [
-                      const PopupMenuItem(value: 'edit', child: Text('Düzenle')),
-                      const PopupMenuItem(value: 'delete', child: Text('Sil')),
-                    ],
-                    onSelected: (value) {
-                      if (value == 'edit') {
-                        _showAddEditDialog(docId: doc.id, existingData: data);
-                      } else if (value == 'delete') {
-                        _deleteDocument(doc.id, data);
-                      }
-                    },
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-              );
+              return _buildListItem(docs[index], index);
             },
           );
         },
       ),
     );
   }
+
+  Widget _buildListItem(DocumentSnapshot doc, int index, {Key? key}) {
+    final data = doc.data() as Map<String, dynamic>;
+    final name = data['ad'] as String? ??
+        data['title'] as String? ??
+        data['username'] as String? ??
+        data['name'] as String? ??
+        data['guzergah'] as String? ??
+        'İsimsiz';
+    final imageUrl =
+        data['image_url'] as String? ?? data['gorsel'] as String? ?? '';
+
+    final isReorderable = widget.collection == 'firmalar' || widget.collection == 'banners';
+
+    return Container(
+      key: key,
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(5),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ListTile(
+        leading: CachedImageWidget(
+          imageUrl: imageUrl,
+          width: 50,
+          height: 50,
+          borderRadius: 8,
+        ),
+        title: Row(
+          children: [
+            Expanded(
+              child: Text(name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.bodyMedium
+                      .copyWith(fontWeight: FontWeight.w600)),
+            ),
+            if (data['order'] != null)
+              Text(
+                ' #${data['order']}',
+                style: TextStyle(fontSize: 10, color: Colors.grey[400]),
+              ),
+          ],
+        ),
+        subtitle: _buildListSubtitle(data),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            PopupMenuButton(
+              icon: const Icon(Icons.more_vert),
+              itemBuilder: (ctx) => [
+                const PopupMenuItem(value: 'edit', child: Text('Düzenle')),
+                const PopupMenuItem(value: 'delete', child: Text('Sil')),
+              ],
+              onSelected: (value) {
+                if (value == 'edit') {
+                  _showAddEditDialog(docId: doc.id, existingData: data);
+                } else if (value == 'delete') {
+                  _deleteDocument(doc.id, data);
+                }
+              },
+            ),
+            if (isReorderable)
+              ReorderableDragStartListener(
+                index: index,
+                child: const Padding(
+                  padding: EdgeInsets.only(left: 4),
+                  child: Icon(Icons.drag_indicator, color: Colors.grey),
+                ),
+              ),
+          ],
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+        ),
+      ),
+    );
+  }
+
 
   Widget? _buildListSubtitle(Map<String, dynamic> data) {
     switch (widget.collection) {
@@ -144,8 +257,21 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
       case 'coupons':
         final isActive = data['isActive'] as bool? ?? false;
         final companyName = data['companyName'] as String? ?? '';
+        final expiry = data['expiry_date'] as Timestamp?;
+        final totalLimit = data['total_limit'] as int?;
+        final usedCount = data['used_count'] as int? ?? 0;
+
+        String sub = '${companyName.isNotEmpty ? companyName : 'Firma yok'} • ${isActive ? '✅ Aktif' : '❌ Pasif'}';
+        if (expiry != null) {
+          final date = expiry.toDate();
+          sub += '\nBitiş: ${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
+        }
+        if (totalLimit != null) {
+          sub += ' • Limit: $usedCount/$totalLimit';
+        }
+
         return Text(
-          '${companyName.isNotEmpty ? companyName : 'Firma yok'} • ${isActive ? '✅ Aktif' : '❌ Pasif'}',
+          sub,
           style: TextStyle(
             fontSize: 12,
             color: isActive ? Colors.green[700] : Colors.red,
@@ -165,6 +291,7 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
           _FieldConfig('url', 'Dış Bağlantı (Opsiyonel)'),
           _FieldConfig('company_id', 'Firma Yönlendirme (Opsiyonel)', isCompanyPicker: true),
           _FieldConfig('order', 'Sıra (0, 1, 2...)', isNumber: true),
+          _FieldConfig('aktif', 'Aktif mi?', isBoolean: true, defaultValue: true),
         ];
       case 'etkinlikler':
         return [
@@ -231,6 +358,14 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
           _FieldConfig('companyId', 'Firma Seç', isCompanyPicker: true, required: true),
           _FieldConfig('companyName', 'Firma Adı (Otomatik dolar)', readOnly: true),
           _FieldConfig('discountPercentage', 'İndirim Yüzdesi (Örn: 20)', isNumber: true),
+          _FieldConfig('expiry_date', 'Bitiş Tarihi (Opsiyonel)', isDate: true),
+          _FieldConfig('total_limit', 'Toplam Kupon Sayısı (Opsiyonel)', isNumber: true),
+          _FieldConfig('isActive', 'Aktif Mi?', isBoolean: true, defaultValue: true),
+        ];
+      case 'admins':
+        return [
+          _FieldConfig('email', 'Admin Email', required: true),
+          _FieldConfig('ad_soyad', 'Ad Soyad', required: true),
           _FieldConfig('isActive', 'Aktif Mi?', isBoolean: true, defaultValue: true),
         ];
       default:
@@ -541,18 +676,53 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
                                   docData['image_url'] = '';
                                 }
 
-                                if (docId == null) {
-                                  docData['created_at'] =
-                                      FieldValue.serverTimestamp();
-                                  await FirebaseFirestore.instance
-                                      .collection(widget.collection)
-                                      .add(docData);
-                                } else {
-                                  await FirebaseFirestore.instance
-                                      .collection(widget.collection)
-                                      .doc(docId)
-                                      .update(docData);
-                                }
+                                  if (docId == null) {
+                                    docData['created_at'] =
+                                        FieldValue.serverTimestamp();
+                                    
+                                    // Automatic order assignment for reorderable collections
+                                    if (widget.collection == 'firmalar' || widget.collection == 'banners') {
+                                      final query = await FirebaseFirestore.instance
+                                          .collection(widget.collection)
+                                          .orderBy('order', descending: true)
+                                          .limit(1)
+                                          .get();
+                                      
+                                      int nextOrder = 0;
+                                      if (query.docs.isNotEmpty) {
+                                        final lastOrder = query.docs.first.data()['order'];
+                                        if (lastOrder is num) {
+                                          nextOrder = lastOrder.toInt() + 1;
+                                        }
+                                      } else {
+                                        // Fallback if no order field exists yet
+                                        final allDocs = await FirebaseFirestore.instance.collection(widget.collection).get();
+                                        for (var doc in allDocs.docs) {
+                                          final order = (doc.data() as Map)['order'] ?? -1;
+                                          if (order is num && order >= nextOrder) nextOrder = order.toInt() + 1;
+                                        }
+                                      }
+                                      docData['order'] = nextOrder;
+                                    }
+
+                                    if (widget.collection == 'admins') {
+                                      final email = docData['email']?.toString().toLowerCase().trim() ?? '';
+                                      if (email.isEmpty) throw 'Email gereklidir';
+                                      await FirebaseFirestore.instance
+                                          .collection(widget.collection)
+                                          .doc(email)
+                                          .set(docData);
+                                    } else {
+                                      await FirebaseFirestore.instance
+                                          .collection(widget.collection)
+                                          .add(docData);
+                                    }
+                                  } else {
+                                    await FirebaseFirestore.instance
+                                        .collection(widget.collection)
+                                        .doc(docId)
+                                        .set(docData, SetOptions(merge: true));
+                                  }
 
                                 if (ctx.mounted) Navigator.pop(ctx);
                                 if (mounted) {

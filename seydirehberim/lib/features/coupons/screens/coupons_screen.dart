@@ -21,10 +21,28 @@ class CouponsScreen extends ConsumerWidget {
       body: couponsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, StackTrace) => Center(child: Text('Hata oluştu: $error')),
-        data: (snapshot) {
-          final docs = snapshot.docs.where((doc) {
+        data: (allDocs) {
+          final now = DateTime.now();
+          final docs = allDocs.where((doc) {
             final data = doc.data();
-            return data['isActive'] == true;
+            
+            // Basic active check
+            if (data['isActive'] != true) return false;
+
+            // Expiry check
+            final expiry = data['expiry_date'] as Timestamp?;
+            if (expiry != null && expiry.toDate().isBefore(now)) {
+              return false;
+            }
+
+            // Limit check
+            final totalLimit = data['total_limit'] as int?;
+            final usedCount = data['used_count'] as int? ?? 0;
+            if (totalLimit != null && usedCount >= totalLimit) {
+              return false;
+            }
+
+            return true;
           }).toList();
 
           docs.sort((a, b) {

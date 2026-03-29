@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { db } from '../lib/firebase';
 import { collection, query, onSnapshot, where } from 'firebase/firestore';
-import { Users, Activity, Award, Clock } from 'lucide-react';
+import { Users, Activity, Award, Clock, MapPin, Bus, Tag, MessageSquare, ShieldCheck, Image, Store, CheckCircle2 } from 'lucide-react';
 
 const DashboardOverview = () => {
   const [stats, setStats] = useState({
@@ -9,23 +9,45 @@ const DashboardOverview = () => {
     etkinlikler: 0,
     gezilecek_yerler: 0,
     destek_bekleyen: 0,
+    noterler: 0,
+    pazarlar: 0,
+    otobus_saatleri: 0,
+    banners: 0,
+    reviews: 0,
+    esnaf_users: 0,
+    coupons: 0
   });
 
-  React.useEffect(() => {
-    // Standard collections count
-    ['firmalar', 'etkinlikler', 'gezilecek_yerler'].forEach(col => {
-      onSnapshot(collection(db, col), (snap) => {
+  useEffect(() => {
+    const collectionsToCount = [
+      'firmalar', 'etkinlikler', 'gezilecek_yerler', 
+      'noterler', 'pazarlar', 'otobus_saatleri', 
+      'banners', 'reviews', 'esnaf_users', 'coupons'
+    ];
+
+    const unsubscribes = collectionsToCount.map(col => {
+      return onSnapshot(collection(db, col), (snap) => {
         setStats(prev => ({ ...prev, [col]: snap.size }));
       });
     });
 
-    // Support pending count specifically
-    const q = query(collection(db, 'yardim_destek'), where('durum', '==', 'Bekliyor'));
-    const unsubscribe = onSnapshot(q, (snap) => {
+    const qSupport = query(collection(db, 'yardim_destek'), where('durum', '==', 'Bekliyor'));
+    const unsubscribeSupport = onSnapshot(qSupport, (snap) => {
       setStats(prev => ({ ...prev, destek_bekleyen: snap.size }));
     });
 
-    return () => unsubscribe();
+    // Count ACTUAL used coupons
+    const qUsed = query(collection(db, 'generated_codes'), where('status', '==', 'used'));
+    const unsubscribeUsed = onSnapshot(qUsed, (snap) => {
+      // @ts-ignore
+      setStats(prev => ({ ...prev, used_coupons: snap.size }));
+    });
+
+    return () => {
+      unsubscribes.forEach(unsub => unsub());
+      unsubscribeSupport();
+      unsubscribeUsed();
+    };
   }, []);
 
   return (
@@ -40,6 +62,14 @@ const DashboardOverview = () => {
         <StatCard icon={Activity} label="Aktif Etkinlik" value={stats.etkinlikler} color="#ec4899" />
         <StatCard icon={Users} label="Gezilecek Yer" value={stats.gezilecek_yerler} color="#a855f7" />
         <StatCard icon={Clock} label="Bekleyen Destek" value={stats.destek_bekleyen} color="#f59e0b" />
+        <StatCard icon={MapPin} label="Noterler" value={stats.noterler} color="#ef4444" />
+        <StatCard icon={Store} label="Pazarlar" value={stats.pazarlar} color="#10b981" />
+        <StatCard icon={Bus} label="Otobüs Saatleri" value={stats.otobus_saatleri} color="#0ea5e9" />
+        <StatCard icon={Tag} label="Kupon Sayısı" value={stats.coupons} color="#f97316" />
+        <StatCard icon={CheckCircle2} label="Kullanılan Kuponlar" value={(stats as any).used_coupons || 0} color="#22c55e" />
+        <StatCard icon={MessageSquare} label="Yorumlar" value={stats.reviews} color="#8b5cf6" />
+        <StatCard icon={ShieldCheck} label="Esnaf Hesapları" value={stats.esnaf_users} color="#06b6d4" />
+        <StatCard icon={Image} label="Bannerler" value={stats.banners} color="#db2777" />
       </div>
 
       <div className="card" style={{ marginTop: '2rem' }}>
