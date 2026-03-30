@@ -122,9 +122,9 @@ class _NewsCard extends StatelessWidget {
                       color: AppColors.primary.withOpacity(0.9),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Text(
-                      'Haberler',
-                      style: TextStyle(
+                    child: Text(
+                      news.source,
+                      style: const TextStyle(
                           color: Colors.white,
                           fontSize: 10,
                           fontWeight: FontWeight.bold),

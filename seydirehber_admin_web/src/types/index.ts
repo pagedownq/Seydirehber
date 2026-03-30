@@ -28,6 +28,7 @@ export const COLLECTIONS: Record<string, { title: string; bucket: string | null;
       { key: 'url', label: 'Banner Linki (Opsiyonel)' },
       { key: 'company_id', label: 'Uygulama İçi Firma Linki', isCompanyPicker: true },
       { key: 'order', label: 'Sıra (0, 1, 2...)', isNumber: true },
+      { key: 'aktif', label: 'Aktif mi?', isBoolean: true },
     ],
   },
   etkinlikler: {
@@ -82,6 +83,7 @@ export const COLLECTIONS: Record<string, { title: string; bucket: string | null;
       { key: 'tarihce', label: 'Tarihçe', multiline: true },
       { key: 'adres', label: 'Görünecek Adres', required: true },
       { key: 'konum', label: 'Harita Konumu (Link, Koordinat veya DMS)' },
+      { key: 'order', label: 'Sıra (Görünüm Sırası)', isNumber: true },
     ],
   },
   firmalar: {
@@ -131,6 +133,7 @@ export const COLLECTIONS: Record<string, { title: string; bucket: string | null;
       { key: 'username', label: 'E-posta (Esnaf Girişi İçin)', required: true },
       { key: 'password', label: 'Şifre', required: true },
       { key: 'companyId', label: 'İlişkili Firma', isCompanyPicker: true, required: true },
+      { key: 'companyName', label: 'Firma Adı', required: true },
     ]
   },
   coupons: {

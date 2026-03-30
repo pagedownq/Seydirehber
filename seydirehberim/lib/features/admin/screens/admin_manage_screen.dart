@@ -61,7 +61,7 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
           final docs = List<DocumentSnapshot>.from(snapshot.data!.docs);
           
           // Apply local sorting matching web admin logic
-          if (widget.collection == 'firmalar') {
+          if (widget.collection == 'firmalar' || widget.collection == 'gezilecek_yerler') {
             docs.sort((a, b) {
               final aData = a.data() as Map<String, dynamic>;
               final bData = b.data() as Map<String, dynamic>;
@@ -78,7 +78,7 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
             });
           }
 
-          final isReorderable = widget.collection == 'firmalar' || widget.collection == 'banners';
+          final isReorderable = widget.collection == 'firmalar' || widget.collection == 'banners' || widget.collection == 'gezilecek_yerler';
 
           if (isReorderable) {
             return ReorderableListView.builder(
@@ -147,14 +147,19 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
     final data = doc.data() as Map<String, dynamic>;
     final name = data['ad'] as String? ??
         data['title'] as String? ??
+        data['baslik'] as String? ??
+        data['ad_soyad'] as String? ??
+        data['companyName'] as String? ??
+        data['userName'] as String? ??
         data['username'] as String? ??
+        data['email'] as String? ??
         data['name'] as String? ??
         data['guzergah'] as String? ??
         'İsimsiz';
     final imageUrl =
         data['image_url'] as String? ?? data['gorsel'] as String? ?? '';
 
-    final isReorderable = widget.collection == 'firmalar' || widget.collection == 'banners';
+    final isReorderable = widget.collection == 'firmalar' || widget.collection == 'banners' || widget.collection == 'gezilecek_yerler';
 
     return Container(
       key: key,
@@ -249,9 +254,10 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
           ),
         );
       case 'esnaf_users':
-        final companyId = data['company_id'] as String? ?? '';
+        final companyId = data['companyId'] as String? ?? '';
+        final companyName = data['companyName'] as String? ?? '';
         return Text(
-          'Firma ID: ${companyId.isNotEmpty ? companyId : 'Bağlı değil'}',
+          'Firma: ${companyName.isNotEmpty ? companyName : (companyId.isNotEmpty ? companyId : 'Bağlı değil')}',
           style: const TextStyle(fontSize: 12),
         );
       case 'coupons':
@@ -261,7 +267,7 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
         final totalLimit = data['total_limit'] as int?;
         final usedCount = data['used_count'] as int? ?? 0;
 
-        String sub = '${companyName.isNotEmpty ? companyName : 'Firma yok'} • ${isActive ? '✅ Aktif' : '❌ Pasif'}';
+        String sub = 'Firma: ${companyName.isNotEmpty ? companyName : 'Bilinmiyor'} • ${isActive ? '✅ Aktif' : '❌ Pasif'}';
         if (expiry != null) {
           final date = expiry.toDate();
           sub += '\nBitiş: ${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
@@ -332,6 +338,7 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
           _FieldConfig('tarihce', 'Tarihçe', multiline: true),
           _FieldConfig('adres', 'Görünecek Adres'),
           _FieldConfig('konum', 'Harita Konumu (Link, Koordinat veya DMS)'),
+          _FieldConfig('order', 'Sıra (Görünüm Sırası)', isNumber: true),
         ];
       case 'firmalar':
         return [
@@ -344,12 +351,14 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
           _FieldConfig('website', 'Web Sitesi'),
           _FieldConfig('instagram', 'Instagram (Kullanıcı adı veya Link)'),
           _FieldConfig('expiry_date', 'Firma Bitiş Tarihi', isDate: true),
+          _FieldConfig('order', 'Sıra (Görünüm Sırası)', isNumber: true),
         ];
       case 'esnaf_users':
         return [
           _FieldConfig('username', 'Kullanıcı Adı', required: true),
           _FieldConfig('password', 'Şifre', required: true),
-          _FieldConfig('company_id', 'Bağlı Olduğu Firma', isCompanyPicker: true, required: true),
+          _FieldConfig('companyId', 'Bağlı Olduğu Firma', isCompanyPicker: true, required: true),
+          _FieldConfig('companyName', 'Firma Adı', required: true),
         ];
       case 'coupons':
         return [
@@ -681,7 +690,7 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
                                         FieldValue.serverTimestamp();
                                     
                                     // Automatic order assignment for reorderable collections
-                                    if (widget.collection == 'firmalar' || widget.collection == 'banners') {
+                                    if (widget.collection == 'firmalar' || widget.collection == 'banners' || widget.collection == 'gezilecek_yerler') {
                                       final query = await FirebaseFirestore.instance
                                           .collection(widget.collection)
                                           .orderBy('order', descending: true)

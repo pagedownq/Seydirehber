@@ -3,6 +3,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../home/screens/home_screen.dart';
 import '../../news/screens/news_screen.dart';
 import '../../settings/screens/settings_screen.dart';
+import '../../../core/services/update_service.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -19,6 +20,15 @@ class _MainShellState extends State<MainShell> {
     NewsScreen(),
     SettingsScreen(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    // Uygulama açılışında güncelleme kontrolü
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      UpdateService.checkForUpdate();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

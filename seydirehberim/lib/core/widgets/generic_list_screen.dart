@@ -64,7 +64,7 @@ class GenericListScreen extends ConsumerWidget {
                 padding: const EdgeInsets.all(16),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
-                  childAspectRatio: 0.65,
+                  childAspectRatio: 0.58,
                   crossAxisSpacing: 16,
                   mainAxisSpacing: 16,
                 ),
@@ -154,7 +154,7 @@ class GenericListScreen extends ConsumerWidget {
         padding: const EdgeInsets.fromLTRB(16, 20, 16, 40),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          childAspectRatio: 0.65,
+          childAspectRatio: 0.58,
           crossAxisSpacing: 16,
           mainAxisSpacing: 24,
         ),

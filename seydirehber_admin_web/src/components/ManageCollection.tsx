@@ -80,7 +80,7 @@ const ManageCollection: React.FC<ManageCollectionProps> = ({ collectionId }) => 
       let docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as any }));
       
       // Perform manual sorting for specific collections
-      if (collectionId === 'firmalar' || collectionId === 'banners') {
+      if (collectionId === 'firmalar' || collectionId === 'banners' || collectionId === 'gezilecek_yerler') {
         docs.sort((a, b) => {
           const aOrder = a.order ?? 999999;
           const bOrder = b.order ?? 999999;
@@ -221,7 +221,7 @@ const ManageCollection: React.FC<ManageCollectionProps> = ({ collectionId }) => 
       } else {
         cleanData.created_at = serverTimestamp();
         // Set order to last if it's a reorderable collection
-        if (collectionId === 'firmalar' || collectionId === 'banners') {
+        if (collectionId === 'firmalar' || collectionId === 'banners' || collectionId === 'gezilecek_yerler') {
             const existingOrders = items.map(i => i.order).filter(o => typeof o === 'number');
             const maxOrder = existingOrders.length > 0 ? Math.max(...existingOrders) : -1;
             cleanData.order = maxOrder + 1;
@@ -319,7 +319,7 @@ const ManageCollection: React.FC<ManageCollectionProps> = ({ collectionId }) => 
           <table className="table">
             <thead>
               <tr>
-                {(collectionId === 'firmalar' || collectionId === 'banners') && <th style={{ width: '40px' }}></th>}
+                {(collectionId === 'firmalar' || collectionId === 'banners' || collectionId === 'gezilecek_yerler') && <th style={{ width: '40px' }}></th>}
                 {config.bucket && <th>Görsel</th>}
                 <th>Bilgi / İçerik</th>
                 {collectionId === 'yardim_destek' && <th>Durum</th>}
@@ -329,7 +329,7 @@ const ManageCollection: React.FC<ManageCollectionProps> = ({ collectionId }) => 
             <SortableContext 
               items={filteredItems.map(i => i.id)} 
               strategy={verticalListSortingStrategy}
-              disabled={collectionId !== 'firmalar' && collectionId !== 'banners'}
+              disabled={collectionId !== 'firmalar' && collectionId !== 'banners' && collectionId !== 'gezilecek_yerler'}
             >
               <tbody>
                 {filteredItems.map((item) => (
@@ -338,7 +338,7 @@ const ManageCollection: React.FC<ManageCollectionProps> = ({ collectionId }) => 
                         item={item} 
                         collectionId={collectionId} 
                         config={config} 
-                        isDraggable={(collectionId === 'firmalar' || collectionId === 'banners') && searchTerm === ''} // Disable drag if searching
+                        isDraggable={(collectionId === 'firmalar' || collectionId === 'banners' || collectionId === 'gezilecek_yerler') && searchTerm === ''} // Disable drag if searching
                         handleOpenModal={handleOpenModal}
                         handleDelete={handleDelete}
                     />
@@ -427,7 +427,7 @@ const ManageCollection: React.FC<ManageCollectionProps> = ({ collectionId }) => 
                         onChange={(e) => {
                           const val = e.target.value;
                           const updates: any = { [field.key]: val };
-                          if (collectionId === 'coupons' && field.key === 'companyId') {
+                          if ((collectionId === 'coupons' || collectionId === 'esnaf_users') && field.key === 'companyId') {
                             const company = companies.find(c => c.id === val);
                             if (company) updates.companyName = company.ad;
                           }
@@ -518,7 +518,7 @@ const SortableRow = ({ item, collectionId, config, isDraggable, handleOpenModal,
 
   return (
     <tr ref={setNodeRef} style={style}>
-      {(collectionId === 'firmalar' || collectionId === 'banners') && (
+      {(collectionId === 'firmalar' || collectionId === 'banners' || collectionId === 'gezilecek_yerler') && (
         <td style={{ padding: '1rem', cursor: isDraggable ? 'grab' : 'default' }} {...attributes} {...listeners}>
           <GripVertical size={20} style={{ color: 'var(--text-muted)' }} />
         </td>
@@ -534,7 +534,7 @@ const SortableRow = ({ item, collectionId, config, isDraggable, handleOpenModal,
       )}
       <td style={{ padding: '1.25rem' }}>
         <div style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: '0.25rem', color: 'var(--text)' }}>
-          {item.ad || item.ad_soyad || item.baslik || item.guzergah || item.userName || item.username || item.title || 'İsimsiz'}
+          {item.ad || item.title || item.baslik || item.ad_soyad || item.companyName || item.userName || item.username || item.guzergah || 'İsimsiz'}
           {item.rating && <span style={{ color: '#f59e0b', marginLeft: '0.75rem', fontSize: '0.9rem' }}>★ {item.rating}</span>}
           {item.order !== undefined && <span style={{ color: 'var(--text-muted)', marginLeft: '0.75rem', fontSize: '0.8rem', fontWeight: 400 }}>(Sıra: {item.order})</span>}
         </div>
@@ -550,7 +550,7 @@ const SortableRow = ({ item, collectionId, config, isDraggable, handleOpenModal,
         </div>
 
         {/* Specialized Information Display */}
-        {(collectionId === 'yardim_destek' || collectionId === 'reviews') && (
+        {(collectionId === 'yardim_destek' || collectionId === 'reviews' || collectionId === 'coupons') && (
           <div style={{ 
             background: 'rgba(15, 23, 42, 0.4)', 
             padding: '1rem', 
@@ -584,10 +584,40 @@ const SortableRow = ({ item, collectionId, config, isDraggable, handleOpenModal,
                  "{item.comment}"
               </div>
             )}
+            {collectionId === 'coupons' && (
+              <>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginBottom: '0.5rem', fontSize: '0.85rem' }}>
+                  {item.companyName && (
+                    <span style={{ color: 'var(--text-muted)' }}>
+                      <strong style={{ color: 'var(--text)' }}>Firma:</strong> {item.companyName}
+                    </span>
+                  )}
+                  <span style={{ color: item.isActive ? '#22c55e' : '#ef4444' }}>
+                    <strong>{item.isActive ? '✅ AKTIF' : '❌ PASIF'}</strong>
+                  </span>
+                  {item.expiry_date?.toDate && (
+                    <span style={{ color: 'var(--text-muted)' }}>
+                      <strong style={{ color: 'var(--text)' }}>Bitiş:</strong> {format(item.expiry_date.toDate(), 'dd.MM.yyyy')}
+                    </span>
+                  )}
+                  {item.total_limit && (
+                    <span style={{ color: 'var(--text-muted)' }}>
+                      <strong style={{ color: 'var(--text)' }}>Limit:</strong> {item.used_count || 0} / {item.total_limit}
+                    </span>
+                  )}
+                </div>
+                {item.description && (
+                  <div style={{ fontSize: '0.9rem', color: 'var(--text)', lineHeight: '1.5' }}>
+                    <strong style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '4px' }}>Kupon Detayı:</strong>
+                    {item.description}
+                  </div>
+                )}
+              </>
+            )}
           </div>
         )}
 
-        {!(collectionId === 'yardim_destek' || collectionId === 'reviews') && (
+        {!(collectionId === 'yardim_destek' || collectionId === 'reviews' || collectionId === 'coupons') && (
           <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
             {(item.hakkinda || item.konum || '')?.substring(0, 100)}...
           </div>

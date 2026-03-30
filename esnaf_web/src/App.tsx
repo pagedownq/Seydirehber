@@ -74,12 +74,17 @@ function App() {
   const fetchCoupons = (fId: string) => {
     if (!fId) return () => {};
     const q = query(collection(db, "coupons"), where("companyId", "==", fId));
-    return onSnapshot(q, (snapshot) => {
-      setCoupons(snapshot.docs.map(d => ({
-        id: d.id,
-        ...d.data()
-      })));
-    });
+    return onSnapshot(q, 
+      (snapshot) => {
+        setCoupons(snapshot.docs.map(d => ({
+          id: d.id,
+          ...d.data()
+        })));
+      },
+      (error) => {
+        console.error("fetchCoupons error:", error);
+      }
+    );
   };
 
   const fetchStats = (fId: string) => {
@@ -94,42 +99,48 @@ function App() {
       limit(100)
     );
 
-    return onSnapshot(q, (snapshot) => {
-      try {
-        const dailyTrend: Record<string, number> = {};
-        const now = new Date();
-        const last7Days = Array.from({length: 7}, (_, i) => {
-          const d = new Date();
-          d.setDate(now.getDate() - i);
-          return d.toLocaleDateString('tr-TR');
-        }).reverse();
+    return onSnapshot(q, 
+      (snapshot) => {
+        try {
+          const dailyTrend: Record<string, number> = {};
+          const now = new Date();
+          const last7Days = Array.from({length: 7}, (_, i) => {
+            const d = new Date();
+            d.setDate(now.getDate() - i);
+            return d.toLocaleDateString('tr-TR');
+          }).reverse();
 
-        snapshot.docs.forEach((d: any) => {
-          const data = d.data();
-          if (data.usedAt) {
-            const dateStr = data.usedAt.toDate().toLocaleDateString('tr-TR');
-            if (last7Days.includes(dateStr)) {
-              dailyTrend[dateStr] = (dailyTrend[dateStr] || 0) + 1;
+          snapshot.docs.forEach((d: any) => {
+            const data = d.data();
+            if (data.usedAt) {
+              const dateStr = data.usedAt.toDate().toLocaleDateString('tr-TR');
+              if (last7Days.includes(dateStr)) {
+                dailyTrend[dateStr] = (dailyTrend[dateStr] || 0) + 1;
+              }
             }
-          }
-        });
+          });
 
-        setStats({
-          totalUsed: snapshot.size,
-          dailyTrend: last7Days.map(date => ({ date, count: dailyTrend[date] || 0 })),
-          recentUses: snapshot.docs.slice(0, 10).map(d => ({
-            id: d.id,
-            code: d.data().code,
-            usedAt: d.data().usedAt?.toDate(),
-            couponTitle: d.data().couponTitle || "Kupon"
-          }))
-        });
-      } catch (err) {
-        console.error("Stats refresh error:", err);
-      } finally {
+          setStats({
+            totalUsed: snapshot.size,
+            dailyTrend: last7Days.map(date => ({ date, count: dailyTrend[date] || 0 })),
+            recentUses: snapshot.docs.slice(0, 10).map(d => ({
+              id: d.id,
+              code: d.data().code,
+              usedAt: d.data().usedAt?.toDate(),
+              couponTitle: d.data().couponTitle || "Kupon"
+            }))
+          });
+        } catch (err) {
+          console.error("Stats processing error:", err);
+        } finally {
+          setIsStatsLoading(false);
+        }
+      },
+      (error) => {
+        console.error("fetchStats error:", error);
         setIsStatsLoading(false);
       }
-    });
+    );
   };
 
   const fetchCompanyName = async (fId: string) => {

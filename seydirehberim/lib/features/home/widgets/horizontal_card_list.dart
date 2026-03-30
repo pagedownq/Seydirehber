@@ -26,7 +26,7 @@ class HorizontalCardList extends ConsumerWidget {
 
     return dataAsync.when(
       loading: () => ShimmerListWidget(
-        itemHeight: type == CardType.company ? 220 : 280,
+        itemHeight: type == CardType.company ? 220 : 300,
         itemWidth: type == CardType.company ? 250 : 170,
         borderRadius: type == CardType.company ? 18 : 16,
       ),
@@ -72,7 +72,7 @@ class HorizontalCardList extends ConsumerWidget {
         }
 
         // Horizontal for companies, Vertical for events/places
-        final double listHeight = type == CardType.company ? 220 : 280;
+        final double listHeight = type == CardType.company ? 220 : 300;
 
         return SizedBox(
           height: listHeight,

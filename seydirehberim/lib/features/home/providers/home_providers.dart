@@ -30,12 +30,8 @@ final allEventsProvider = StreamProvider<FirestoreDocs>((ref) {
 // Places - last 5
 final latestPlacesProvider = StreamProvider<FirestoreDocs>((ref) {
   return ref
-      .watch(firestoreProvider)
-      .collection('gezilecek_yerler')
-      .orderBy('created_at', descending: true)
-      .limit(5)
-      .snapshots()
-      .map((s) => s.docs);
+      .watch(allPlacesProvider.stream)
+      .map((docs) => docs.take(5).toList());
 });
 
 // All places
@@ -43,9 +39,26 @@ final allPlacesProvider = StreamProvider<FirestoreDocs>((ref) {
   return ref
       .watch(firestoreProvider)
       .collection('gezilecek_yerler')
-      .orderBy('created_at', descending: true)
       .snapshots()
-      .map((s) => s.docs);
+      .map((snapshot) {
+    final docs = snapshot.docs.toList();
+    docs.sort((a, b) {
+      final aData = a.data();
+      final bData = b.data();
+      final dynamic aOrderVal = aData['order'];
+      final dynamic bOrderVal = bData['order'];
+      final num aOrder = (aOrderVal is num) ? aOrderVal : 999999;
+      final num bOrder = (bOrderVal is num) ? bOrderVal : 999999;
+      
+      final int orderComparison = aOrder.compareTo(bOrder);
+      if (orderComparison != 0) return orderComparison;
+      
+      final String aName = (aData['ad'] ?? '').toString().toLowerCase();
+      final String bName = (bData['ad'] ?? '').toString().toLowerCase();
+      return aName.compareTo(bName);
+    });
+    return docs;
+  });
 });
 
 // Companies - added in last 30 days (limit 10 for home)

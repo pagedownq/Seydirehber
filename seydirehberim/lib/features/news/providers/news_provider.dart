@@ -5,29 +5,54 @@ import 'dart:convert';
 import '../models/news_model.dart';
 
 final newsProvider = FutureProvider<List<NewsModel>>((ref) async {
-  final response = await http.get(Uri.parse('https://www.toroslargazetesi.com.tr/rss.xml'));
-  
-  if (response.statusCode == 200) {
-    // Correct encoding for Turkish characters (usually UTF-8 or ISO-8859-9)
-    // Most modern sites use UTF-8 now.
-    final xml = utf8.decode(response.bodyBytes);
-    final myTransformer = Xml2Json();
-    myTransformer.parse(xml);
-    
-    // Using GData convention as it's usually cleaner for RSS
-    final jsonStr = myTransformer.toGData();
-    final data = json.decode(jsonStr);
-    
-    final items = data['rss']?['channel']?['item'];
-    
-    if (items is List) {
-      return items.map((item) => NewsModel.fromXmlMap(item)).toList();
-    } else if (items is Map<String, dynamic>) {
-      return [NewsModel.fromXmlMap(items)];
-    }
-    
-    return [];
-  } else {
-    throw Exception('Haberler alınamadı: ${response.statusCode}');
+  final Map<String, String> sources = {
+    'Toroslar Gazetesi': 'https://www.toroslargazetesi.com.tr/rss.xml',
+    'Seydişehir Gündem': 'https://www.seydisehirgundem.com/rss.xml',
+    'Seydişehir\'in Sesi': 'https://www.seydisehirinsesi.com.tr/rss.xml',
+  };
+
+  final List<NewsModel> allNews = [];
+
+  final results = await Future.wait(
+    sources.entries.map((entry) async {
+      try {
+        final response = await http.get(Uri.parse(entry.value)).timeout(const Duration(seconds: 10));
+        if (response.statusCode == 200) {
+          final xml = utf8.decode(response.bodyBytes);
+          final myTransformer = Xml2Json();
+          myTransformer.parse(xml);
+          
+          final jsonStr = myTransformer.toGData();
+          final data = json.decode(jsonStr);
+          
+          final items = data['rss']?['channel']?['item'];
+          
+          List<NewsModel> sourceNews = [];
+          if (items is List) {
+            sourceNews = items.map((item) => NewsModel.fromXmlMap(item, entry.key)).toList();
+          } else if (items is Map<String, dynamic>) {
+            sourceNews = [NewsModel.fromXmlMap(items, entry.key)];
+          }
+          return sourceNews;
+        }
+      } catch (e) {
+        print('Error fetching RSS from ${entry.key}: $e');
+      }
+      return <NewsModel>[];
+    }),
+  );
+
+  for (var newsList in results) {
+    allNews.addAll(newsList);
   }
+
+  // Sort by date (newest first)
+  allNews.sort((a, b) {
+    if (a.date == null && b.date == null) return 0;
+    if (a.date == null) return 1;
+    if (b.date == null) return -1;
+    return b.date!.compareTo(a.date!);
+  });
+
+  return allNews;
 });
