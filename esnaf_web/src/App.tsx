@@ -43,10 +43,16 @@ function App() {
     let unsub: (() => void) | undefined;
     
     if (companyId) {
-      fetchCompanyName(companyId);
+      const unsubCompany = fetchCompanyName(companyId, (exists) => {
+        if (!exists) {
+          console.log("Firma silindi, oturum kapatılıyor...");
+          handleLogout();
+        }
+      });
       const unsubStats = fetchStats(companyId);
       const unsubCoupons = fetchCoupons(companyId);
       unsub = () => {
+        unsubCompany();
         unsubStats();
         unsubCoupons();
       };
@@ -60,6 +66,21 @@ function App() {
       if (unsub) unsub();
     };
   }, [companyId]);
+
+  // Admin hesabı silerse çıkış yapmasını sağlayan listener
+  useEffect(() => {
+    if (!userId) return;
+
+    const userDocRef = doc(db, "esnaf_users", userId);
+    const unsubscribe = onSnapshot(userDocRef, (snapshot) => {
+      if (!snapshot.exists()) {
+        console.log("Hesap silindi, oturum kapatılıyor...");
+        handleLogout();
+      }
+    });
+
+    return () => unsubscribe();
+  }, [userId]);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("esnaf_user_id");
@@ -143,18 +164,19 @@ function App() {
     );
   };
 
-  const fetchCompanyName = async (fId: string) => {
-    if (!fId) return;
-    try {
-      const { getDoc, doc } = await import("firebase/firestore");
-      const docRef = doc(db, "firmalar", fId);
-      const res = await getDoc(docRef);
-      if (res.exists()) {
-        setCompanyName(res.data().ad || "");
+  const fetchCompanyName = (fId: string, onUpdate?: (exists: boolean) => void) => {
+    if (!fId) return () => {};
+    const docRef = doc(db, "firmalar", fId);
+    return onSnapshot(docRef, (snapshot) => {
+      if (snapshot.exists()) {
+        setCompanyName(snapshot.data().ad || "");
+        onUpdate?.(true);
+      } else {
+        onUpdate?.(false);
       }
-    } catch (err) {
-      console.error("Firma adı çekilirken hata:", err);
-    }
+    }, (err) => {
+      console.error("Firma adı dinlenirken hata:", err);
+    });
   };
 
   const handleLogin = async (e: React.FormEvent) => {
