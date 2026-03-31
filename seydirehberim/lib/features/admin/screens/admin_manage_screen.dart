@@ -343,6 +343,7 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
       case 'firmalar':
         return [
           _FieldConfig('ad', 'Firma Adı', required: true),
+          _FieldConfig('kategori', 'Kategori (Örn: Restoran, Kafe, Market)'),
           _FieldConfig('yetkili_kisi', 'Yetkili Kişi'),
           _FieldConfig('hakkinda', 'Hakkında', multiline: true),
           _FieldConfig('iletisim', 'İletişim (Telefon)', isPhone: true),

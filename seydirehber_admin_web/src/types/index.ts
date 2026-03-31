@@ -91,6 +91,7 @@ export const COLLECTIONS: Record<string, { title: string; bucket: string | null;
     bucket: 'firmalar',
     fields: [
       { key: 'ad', label: 'Firma Adı', required: true },
+      { key: 'kategori', label: 'Kategori (Örn: Restoran, Kafe, Market)' },
       { key: 'yetkili_kisi', label: 'Yetkili Kişi' },
       { key: 'hakkinda', label: 'Hakkında', multiline: true },
       { key: 'iletisim', label: 'İletişim (Telefon)', isPhone: true },

@@ -241,15 +241,41 @@ class GenericListScreen extends ConsumerWidget {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                           decoration: BoxDecoration(
-                            color: AppColors.primary.withOpacity(0.95),
-                            borderRadius: BorderRadius.circular(10),
+                            gradient: const LinearGradient(
+                              colors: [
+                                Color(0xFFFF8F00), // Deep Amber
+                                Color(0xFFFF6F00), // Amber Accent
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.3),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.2),
+                              width: 1,
+                            ),
                           ),
                           child: Text(
-                            category,
+                            category.toUpperCase(),
                             style: const TextStyle(
                               color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.8,
+                              shadows: [
+                                Shadow(
+                                  color: Colors.black26,
+                                  offset: Offset(0, 1),
+                                  blurRadius: 2,
+                                ),
+                              ],
                             ),
                           ),
                         ),
@@ -266,14 +292,20 @@ class GenericListScreen extends ConsumerWidget {
                         top: 15,
                         right: 15,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
                           decoration: BoxDecoration(
-                            color: Colors.redAccent,
-                            borderRadius: BorderRadius.circular(8),
+                            gradient: const LinearGradient(
+                              colors: [
+                                Color(0xFFFF5252),
+                                Color(0xFFFF1744),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(10),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.2),
-                                blurRadius: 4,
+                                color: Colors.black.withOpacity(0.3),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
                               ),
                             ],
                           ),
@@ -282,7 +314,8 @@ class GenericListScreen extends ConsumerWidget {
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 10,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.5,
                             ),
                           ),
                         ),
@@ -422,19 +455,71 @@ class GenericListScreen extends ConsumerWidget {
                         fit: BoxFit.cover,
                       ),
                     ),
-                    if (isNew)
+                    if (category.isNotEmpty)
                       Positioned(
-                        top: 8,
-                        right: 8,
+                        top: 10,
+                        left: 10,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                           decoration: BoxDecoration(
-                            color: Colors.redAccent,
-                            borderRadius: BorderRadius.circular(6),
+                            gradient: const LinearGradient(
+                              colors: [
+                                Color(0xFFFF8F00), // Deep Amber
+                                Color(0xFFFF6F00), // Amber Accent
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(8),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
+                                color: Colors.black.withOpacity(0.2),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.2),
+                              width: 0.5,
+                            ),
+                          ),
+                          child: Text(
+                            category.toUpperCase(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.5,
+                              shadows: [
+                                Shadow(
+                                  color: Colors.black26,
+                                  offset: Offset(0, 1),
+                                  blurRadius: 2,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    if (isNew)
+                      Positioned(
+                        top: 10,
+                        right: 10,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [
+                                Color(0xFFFF5252),
+                                Color(0xFFFF1744),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.2),
                                 blurRadius: 4,
+                                offset: const Offset(0, 2),
                               ),
                             ],
                           ),
@@ -443,7 +528,8 @@ class GenericListScreen extends ConsumerWidget {
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 9,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.5,
                             ),
                           ),
                         ),
