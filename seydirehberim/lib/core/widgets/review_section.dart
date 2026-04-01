@@ -6,6 +6,7 @@ import '../widgets/review_card.dart';
 import '../widgets/post_review_bottom_sheet.dart';
 import '../constants/app_text_styles.dart';
 import '../../features/auth/providers/auth_provider.dart';
+import 'shimmer_widget.dart';
 
 class ReviewSection extends ConsumerWidget {
   final String targetId;
@@ -64,7 +65,7 @@ class ReviewSection extends ConsumerWidget {
             reviews.isEmpty ? 0.0 : reviews.fold(0.0, (sum, r) => sum + r.rating) / reviews.length, 
             reviews
           ),
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const SizedBox.shrink(),
           error: (_, __) => const SizedBox.shrink(),
         ),
         
@@ -100,7 +101,7 @@ class ReviewSection extends ConsumerWidget {
               },
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const ReviewShimmer(),
           error: (err, _) {
             if (err.toString().contains('requires an index')) {
               return const Center(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../constants/app_colors.dart';
+import 'shimmer_widget.dart';
 
 class CachedImageWidget extends StatelessWidget {
   final String imageUrl;
@@ -63,16 +64,10 @@ class CachedImageWidget extends StatelessWidget {
               (height != null && height!.isFinite
                   ? (height! * MediaQuery.of(context).devicePixelRatio).round()
                   : null),
-          placeholder: (context, url) => Container(
-            width: width,
-            height: height,
-            color: AppColors.shimmerBase,
-            child: const Center(
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: AppColors.primary,
-              ),
-            ),
+          placeholder: (context, url) => ShimmerWidget(
+            width: width ?? double.infinity,
+            height: height ?? double.infinity,
+            borderRadius: borderRadius,
           ),
           errorWidget: (context, url, error) => Container(
             width: width,

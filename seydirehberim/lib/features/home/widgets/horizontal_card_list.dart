@@ -29,10 +29,14 @@ class HorizontalCardList extends ConsumerWidget {
     final dataAsync = ref.watch(provider);
 
     return dataAsync.when(
-      loading: () => ShimmerListWidget(
-        itemHeight: type == CardType.company ? 220 : 300,
-        itemWidth: type == CardType.company ? 250 : 170,
-        borderRadius: type == CardType.company ? 18 : 16,
+      loading: () => SizedBox(
+        height: type == CardType.company ? 220 : 300,
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          itemCount: 3,
+          itemBuilder: (_, __) => const HorizontalCardShimmer(),
+        ),
       ),
       error: (_, __) => const SizedBox(
         height: 100,
@@ -261,43 +265,64 @@ class HorizontalCardList extends ConsumerWidget {
                     ),
                   ),
                 ),
-                // Category Tag
                 if (category.isNotEmpty)
                   Positioned(
                     top: 12,
                     left: 12,
                     child: Container(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
-                        color: AppColors.primary,
+                        gradient: AppColors.primaryGradient,
                         borderRadius: BorderRadius.circular(8),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.2),
+                          width: 0.5,
+                        ),
                       ),
                       child: Text(
-                        category,
+                        category.toUpperCase(),
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.5,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black26,
+                              offset: Offset(0, 1),
+                              blurRadius: 2,
+                            ),
+                          ],
                         ),
                       ),
                     ),
                   ),
-                // "YENİ" Badge (Top Right)
                 if (isNew)
                   Positioned(
                     top: 12,
                     right: 12,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
-                        color: Colors.redAccent,
-                        borderRadius: BorderRadius.circular(6),
+                        gradient: const LinearGradient(
+                          colors: [
+                            Color(0xFFFF5252),
+                            Color(0xFFFF1744),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(8),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withOpacity(0.2),
-                            blurRadius: 4,
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
                           ),
                         ],
                       ),
@@ -305,8 +330,9 @@ class HorizontalCardList extends ConsumerWidget {
                         'YENİ',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.5,
                         ),
                       ),
                     ),

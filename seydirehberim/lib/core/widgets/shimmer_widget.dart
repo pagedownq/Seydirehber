@@ -202,3 +202,348 @@ class ShimmerVerticalListWidget extends StatelessWidget {
     );
   }
 }
+
+class SearchItemShimmer extends StatelessWidget {
+  const SearchItemShimmer({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const ShimmerWidget(
+          width: 50,
+          height: 50,
+          borderRadius: 8,
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const ShimmerWidget(height: 16, width: 150),
+              const SizedBox(height: 6),
+              const ShimmerWidget(height: 12, width: 100),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class ShimmerSearchList extends StatelessWidget {
+  const ShimmerSearchList({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: 6,
+      separatorBuilder: (_, __) => const SizedBox(height: 16),
+      itemBuilder: (_, __) => const SearchItemShimmer(),
+    );
+  }
+}
+
+class CouponCardShimmer extends StatelessWidget {
+  const CouponCardShimmer({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 260,
+      height: 120,
+      margin: const EdgeInsets.only(right: 12),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Row(
+        children: [
+          const ShimmerWidget(
+            width: 80,
+            height: 120,
+            borderRadius: 0,
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  ShimmerWidget(height: 16, width: double.infinity),
+                  SizedBox(height: 8),
+                  ShimmerWidget(height: 12, width: 100),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class HorizontalCardShimmer extends StatelessWidget {
+  const HorizontalCardShimmer({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 160,
+      margin: const EdgeInsets.only(right: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: const [
+          ShimmerWidget(
+            height: 120,
+            width: 160,
+            borderRadius: 16,
+          ),
+          SizedBox(height: 8),
+          ShimmerWidget(height: 14, width: 120),
+          SizedBox(height: 4),
+          ShimmerWidget(height: 10, width: 80),
+        ],
+      ),
+    );
+  }
+}
+
+class BannerShimmer extends StatelessWidget {
+  const BannerShimmer({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: const ShimmerWidget(
+        height: 180,
+        width: double.infinity,
+        borderRadius: 20,
+      ),
+    );
+  }
+}
+
+class DetailShimmer extends StatelessWidget {
+  const DetailShimmer({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      physics: const NeverScrollableScrollPhysics(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Banner Area
+          const ShimmerWidget(
+            width: double.infinity,
+            height: 450,
+            borderRadius: 0,
+          ),
+          const SizedBox(height: 20),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Title
+                const ShimmerWidget(
+                  width: 250,
+                  height: 30,
+                  borderRadius: 15,
+                ),
+                const SizedBox(height: 12),
+                // Category
+                const ShimmerWidget(
+                  width: 100,
+                  height: 20,
+                  borderRadius: 10,
+                ),
+                const SizedBox(height: 32),
+                // Info Cards Grid-like
+                Row(
+                  children: [
+                    Expanded(child: _buildInfoCardShimmer()),
+                    const SizedBox(width: 12),
+                    Expanded(child: _buildInfoCardShimmer()),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(child: _buildInfoCardShimmer()),
+                    const SizedBox(width: 12),
+                    Expanded(child: _buildInfoCardShimmer()),
+                  ],
+                ),
+                const SizedBox(height: 32),
+                // About Title
+                const ShimmerWidget(
+                  width: 140,
+                  height: 24,
+                  borderRadius: 12,
+                ),
+                const SizedBox(height: 16),
+                // About Content
+                for (int i = 0; i < 4; i++) ...[
+                  ShimmerWidget(
+                    width: i == 3 ? 200 : double.infinity,
+                    height: 14,
+                    borderRadius: 7,
+                  ),
+                  const SizedBox(height: 10),
+                ],
+                const SizedBox(height: 32),
+                // Map Area
+                const ShimmerWidget(
+                  width: double.infinity,
+                  height: 200,
+                  borderRadius: 20,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoCardShimmer() {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: const Row(
+        children: [
+          ShimmerWidget(
+            width: 32,
+            height: 32,
+            borderRadius: 10,
+          ),
+          SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ShimmerWidget(
+                width: 60,
+                height: 10,
+                borderRadius: 5,
+              ),
+              SizedBox(height: 4),
+              ShimmerWidget(
+                width: 80,
+                height: 12,
+                borderRadius: 6,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class WebViewShimmer extends StatelessWidget {
+  const WebViewShimmer({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      physics: const NeverScrollableScrollPhysics(),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            const ShimmerWidget(
+              width: double.infinity,
+              height: 300,
+              borderRadius: 20,
+            ),
+            const SizedBox(height: 20),
+            for (int i = 0; i < 6; i++) ...[
+              const ShimmerWidget(
+                width: double.infinity,
+                height: 40,
+                borderRadius: 12,
+              ),
+              const SizedBox(height: 12),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class ReviewShimmer extends StatelessWidget {
+  const ReviewShimmer({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const ShimmerWidget(
+            width: double.infinity,
+            height: 120,
+            borderRadius: 20,
+          ),
+          const SizedBox(height: 24),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: 3,
+            itemBuilder: (context, index) => Padding(
+              padding: const EdgeInsets.only(bottom: 24),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const ShimmerWidget(
+                    width: 44,
+                    height: 44,
+                    borderRadius: 22,
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const ShimmerWidget(
+                          width: 120,
+                          height: 16,
+                          borderRadius: 8,
+                        ),
+                        const SizedBox(height: 8),
+                        const ShimmerWidget(
+                          width: double.infinity,
+                          height: 12,
+                          borderRadius: 6,
+                        ),
+                        const SizedBox(height: 6),
+                        const ShimmerWidget(
+                          width: 180,
+                          height: 12,
+                          borderRadius: 6,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

@@ -7,6 +7,7 @@ import '../../../core/constants/app_text_styles.dart';
 import '../../../core/widgets/cached_image_widget.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/search_history_provider.dart';
+import '../../../core/widgets/shimmer_widget.dart';
 
 final searchQueryProvider = StateProvider<String>((ref) => '');
 
@@ -191,11 +192,11 @@ class _SearchResultsList extends ConsumerWidget {
     final immediateQuery = ref.watch(searchQueryProvider);
 
     return debouncedQueryAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const ShimmerSearchList(),
       error: (err, stack) => Center(child: Text('Arama sırasında hata oluştu: $err')),
       data: (query) {
         if (query.isEmpty && immediateQuery.isNotEmpty) {
-          return const Center(child: CircularProgressIndicator());
+          return const ShimmerSearchList();
         }
         
         if (query.isEmpty) return const SizedBox.shrink();

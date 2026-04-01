@@ -21,10 +21,14 @@ class HorizontalCouponList extends ConsumerWidget {
     final dataAsync = ref.watch(provider);
 
     return dataAsync.when(
-      loading: () => const ShimmerListWidget(
-        itemHeight: 120,
-        itemWidth: 260,
-        borderRadius: 16,
+      loading: () => SizedBox(
+        height: 120,
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          itemCount: 3,
+          itemBuilder: (_, __) => const CouponCardShimmer(),
+        ),
       ),
       error: (error, __) => Container(
         height: 100,

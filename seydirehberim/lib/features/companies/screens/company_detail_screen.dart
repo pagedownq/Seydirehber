@@ -14,6 +14,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:latlong2/latlong.dart';
 import '../../favorites/providers/favorites_provider.dart';
 import '../../../core/widgets/review_section.dart';
+import '../../../core/widgets/shimmer_widget.dart';
 
 class CompanyDetailScreen extends ConsumerStatefulWidget {
   final String companyId;
@@ -58,7 +59,7 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const DetailShimmer();
           }
           if (!snapshot.hasData || !snapshot.data!.exists) {
             return const Scaffold(body: Center(child: Text('Firma bulunamadı')));

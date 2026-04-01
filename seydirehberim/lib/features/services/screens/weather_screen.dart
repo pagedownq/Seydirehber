@@ -4,6 +4,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../../core/widgets/error_view.dart';
+import '../../../core/widgets/shimmer_widget.dart';
 
 class WeatherScreen extends StatefulWidget {
   const WeatherScreen({super.key});
@@ -57,7 +58,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
       body: IndexedStack(
         index: _hasError ? 1 : (_isLoading ? 0 : 2),
         children: [
-          const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+          const WebViewShimmer(),
           ErrorView(
             message: 'Hava durumu bilgilerini görüntülemek için lütfen internet bağlantınızı açın.',
             onRetry: () {

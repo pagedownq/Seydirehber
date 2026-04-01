@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/widgets/error_view.dart';
+import '../../../core/widgets/shimmer_widget.dart';
 
 class PharmacyScreen extends StatefulWidget {
   const PharmacyScreen({super.key});
@@ -76,7 +77,7 @@ class _PharmacyScreenState extends State<PharmacyScreen> {
       body: IndexedStack(
         index: _hasError ? 1 : (_isLoading ? 0 : 2),
         children: [
-          const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+          const WebViewShimmer(),
           ErrorView(
             message: 'Nöbetçi eczaneleri görüntülemek için lütfen internet bağlantınızı açın.',
             onRetry: () {

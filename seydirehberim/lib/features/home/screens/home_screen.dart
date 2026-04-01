@@ -24,29 +24,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: RefreshIndicator(
-        onRefresh: () async {
-          HapticFeedback.mediumImpact();
-          // Parallelly refresh all primary data providers for the home screen
-          await Future.wait([
-            ref.refresh(bannersProvider.future),
-            ref.refresh(latestEventsProvider.future),
-            ref.refresh(latestPlacesProvider.future),
-            ref.refresh(topFiveCompaniesProvider.future),
-            ref.refresh(allCompaniesProvider.future),
-            ref.refresh(alphabeticalCompaniesProvider.future),
-            ref.refresh(latestCompaniesProvider.future),
-            ref.refresh(popularCompaniesProvider.future),
-            ref.refresh(latestCouponsProvider.future),
-          ]);
-        },
-        color: AppColors.primary,
-        backgroundColor: AppColors.white,
-        edgeOffset: 100, // Make indicator appear below the app bar
-        child: CustomScrollView(
-          physics: const AlwaysScrollableScrollPhysics(), // Ensures it always drags even if content is small
-          slivers: [
-            // Basic AppBar
+      body: CustomScrollView(
+        slivers: [
+          // Basic AppBar
             SliverAppBar(
               backgroundColor: AppColors.white,
               surfaceTintColor: Colors.transparent,
@@ -306,9 +286,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
         ],
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildTopActionButton({
     required String title,

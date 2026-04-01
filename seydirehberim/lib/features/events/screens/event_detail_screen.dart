@@ -11,6 +11,7 @@ import '../../../core/widgets/interactive_map_widget.dart';
 import '../../../core/utils/map_helper.dart';
 import '../../home/providers/home_providers.dart';
 import 'package:latlong2/latlong.dart';
+import '../../../core/widgets/shimmer_widget.dart';
 
 class EventDetailScreen extends ConsumerWidget {
   final String eventId;
@@ -28,7 +29,7 @@ class EventDetailScreen extends ConsumerWidget {
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const DetailShimmer();
           }
           if (!snapshot.hasData || !snapshot.data!.exists) {
             return const Center(child: Text('Etkinlik bulunamadı'));

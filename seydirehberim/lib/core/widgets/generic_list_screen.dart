@@ -58,28 +58,8 @@ class GenericListScreen extends ConsumerWidget {
                 'Seydi Rehber - $title listesine göz at!'),
           ),
         ],
-      ),
-      body: dataAsync.when(
-        loading: () => useGrid
-            ? GridView.builder(
-                padding: const EdgeInsets.all(16),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 0.54,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                ),
-                itemCount: 6,
-                itemBuilder: (_, __) => const ListCardShimmer(isGrid: true),
-              )
-            : ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: 5,
-                itemBuilder: (_, __) => const Padding(
-                  padding: const EdgeInsets.only(bottom: 20),
-                  child: ListCardShimmer(),
-                ),
-              ),
+      ),      body: dataAsync.when(
+        loading: () => _buildShimmerLoading(),
         error: (err, __) {
           if (cacheKey != null) {
             final cachedData = LocalCacheService.getList(cacheKey!);
@@ -146,6 +126,27 @@ class GenericListScreen extends ConsumerWidget {
         },
       ),
     );
+  }
+
+  Widget _buildShimmerLoading() {
+    return useGrid
+        ? GridView.builder(
+            padding: const EdgeInsets.all(16),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              mainAxisSpacing: 16,
+              crossAxisSpacing: 16,
+              childAspectRatio: 0.75,
+            ),
+            itemCount: 6,
+            itemBuilder: (_, __) => const ListCardShimmer(isGrid: true),
+          )
+        : ListView.separated(
+            padding: const EdgeInsets.all(16),
+            itemCount: 6,
+            separatorBuilder: (_, __) => const SizedBox(height: 16),
+            itemBuilder: (_, __) => const ListCardShimmer(),
+          );
   }
 
   Widget _buildList(BuildContext context, List<Map<String, dynamic>> items,
@@ -243,36 +244,29 @@ class GenericListScreen extends ConsumerWidget {
                         top: 15,
                         left: 15,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                           decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [
-                                Color(0xFFFF8F00), // Deep Amber
-                                Color(0xFFFF6F00), // Amber Accent
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            borderRadius: BorderRadius.circular(12),
+                            gradient: AppColors.primaryGradient,
+                            borderRadius: BorderRadius.circular(8),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.3),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
+                                color: Colors.black.withOpacity(0.2),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
                               ),
                             ],
                             border: Border.all(
                               color: Colors.white.withOpacity(0.2),
-                              width: 1,
+                              width: 0.5,
                             ),
                           ),
                           child: Text(
                             category.toUpperCase(),
                             style: const TextStyle(
                               color: Colors.white,
-                              fontSize: 11,
+                              fontSize: 9,
                               fontWeight: FontWeight.w900,
-                              letterSpacing: 0.8,
+                              letterSpacing: 0.5,
                               shadows: [
                                 Shadow(
                                   color: Colors.black26,
@@ -421,6 +415,7 @@ class GenericListScreen extends ConsumerWidget {
       },
     );
   }
+
   Widget _buildVerticalCard(
     BuildContext context,
     String id,
@@ -469,14 +464,7 @@ class GenericListScreen extends ConsumerWidget {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                           decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [
-                                Color(0xFFFF8F00), // Deep Amber
-                                Color(0xFFFF6F00), // Amber Accent
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
+                            gradient: AppColors.primaryGradient,
                             borderRadius: BorderRadius.circular(8),
                             boxShadow: [
                               BoxShadow(

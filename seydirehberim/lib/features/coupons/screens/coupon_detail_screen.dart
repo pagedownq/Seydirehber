@@ -7,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
+import '../../../../core/widgets/shimmer_widget.dart';
 
 class CouponDetailScreen extends ConsumerStatefulWidget {
   final String couponId;
@@ -430,10 +431,9 @@ class _CouponDetailScreenState extends ConsumerState<CouponDetailScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isChecking) {
-      return Scaffold(
+      return const Scaffold(
         backgroundColor: AppColors.background,
-        appBar: AppBar(title: const Text('Kupon Detayı')),
-        body: const Center(child: CircularProgressIndicator()),
+        body: DetailShimmer(),
       );
     }
 
@@ -549,7 +549,7 @@ class _CouponDetailScreenState extends ConsumerState<CouponDetailScreen> {
           .snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
+          return const DetailShimmer();
         }
 
         final data = snapshot.data!.data() as Map<String, dynamic>?;

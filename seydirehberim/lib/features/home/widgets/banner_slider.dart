@@ -45,13 +45,7 @@ class _BannerSliderState extends ConsumerState<BannerSlider> {
     final bannersAsync = ref.watch(bannersProvider);
 
     return bannersAsync.when(
-      loading: () => const Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16),
-        child: AspectRatio(
-          aspectRatio: 1200 / 300,
-          child: ShimmerWidget.rectangular(),
-        ),
-      ),
+      loading: () => const BannerShimmer(),
       error: (_, __) => const SizedBox.shrink(),
       data: (banners) {
         if (banners.isEmpty) return const SizedBox.shrink();
