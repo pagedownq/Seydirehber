@@ -665,11 +665,8 @@ const SortableRow = ({ item, collectionId, config, isDraggable, handleOpenModal,
                     try {
                       const reviewPath = `reviews/${item.reviewId}`;
                       await deleteDoc(doc(db, reviewPath));
-                      await updateDoc(doc(db, 'sikayetler', item.id), { 
-                        status: 'reviewed_deleted',
-                        reviewedAt: new Date(),
-                      });
-                      alert('Yorum başarıyla silindi.');
+                      await deleteDoc(doc(db, 'sikayetler', item.id));
+                      alert('Yorum ve şikayet kaydı başarıyla silindi.');
                     } catch (e: any) {
                       console.error(e);
                       alert('Yorum silinirken hata: ' + e.message);

@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../auth/providers/auth_provider.dart';
+import '../../../core/providers/app_info_provider.dart';
+import '../../../core/widgets/empty_state_widget.dart';
 import '../../../core/widgets/cached_image_widget.dart';
-import 'package:go_router/go_router.dart';
 import '../providers/search_history_provider.dart';
 import '../../../core/widgets/shimmer_widget.dart';
 
@@ -125,18 +128,10 @@ class _SearchHistoryList extends ConsumerWidget {
     final history = ref.watch(searchHistoryProvider);
 
     if (history.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.search, size: 64, color: AppColors.textLight.withOpacity(0.2)),
-            const SizedBox(height: 16),
-            const Text(
-              'Aramak istediğiniz kelimeyi girin.',
-              style: TextStyle(color: AppColors.textSecondary),
-            ),
-          ],
-        ),
+      return const EmptyStateWidget(
+        icon: Icons.search_rounded,
+        title: 'Neyi Aramıştın?',
+        subtitle: 'Aramak istediğin kelimeyi yukarıdaki kutuya yazarak Seydişehir\'de keşfe çıkabilirsin.',
       );
     }
 

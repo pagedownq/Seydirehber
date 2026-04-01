@@ -27,4 +27,9 @@ class BlockService {
     await _init();
     return _prefs?.getStringList(_blockKey) ?? [];
   }
+
+  static Future<void> clearBlockedUsers() async {
+    await _init();
+    await _prefs?.remove(_blockKey);
+  }
 }

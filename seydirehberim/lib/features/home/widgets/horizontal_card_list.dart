@@ -220,7 +220,7 @@ class HorizontalCardList extends ConsumerWidget {
                 // Background Image
                 Positioned.fill(
                   child: Hero(
-                    tag: 'company-$id',
+                    tag: '${heroTagPrefix ?? 'company'}-$id',
                     child: CachedImageWidget(
                       imageUrl: imageUrl,
                       fit: BoxFit.cover,

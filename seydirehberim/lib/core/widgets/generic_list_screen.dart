@@ -7,6 +7,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/widgets/cached_image_widget.dart';
 import '../../core/widgets/shimmer_widget.dart';
+import '../../core/widgets/empty_state_widget.dart';
 import '../services/local_cache_service.dart';
 import 'error_view.dart';
 
@@ -91,16 +92,10 @@ class GenericListScreen extends ConsumerWidget {
                 return _buildList(context, manualCache, true);
               }
             }
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.inbox_rounded, size: 80, color: Colors.grey[300]),
-                  const SizedBox(height: 16),
-                  Text('Henüz $title eklenmedi', 
-                    style: TextStyle(color: Colors.grey[600], fontWeight: FontWeight.bold)),
-                ],
-              ),
+            return EmptyStateWidget(
+              icon: Icons.inventory_2_outlined,
+              title: 'Henüz $title Eklenmedi',
+              subtitle: 'Burayı canlandırmak için biraz bekleyin veya aramaya devam edin.',
             );
           }
 

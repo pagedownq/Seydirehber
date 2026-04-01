@@ -7,6 +7,8 @@ import '../widgets/post_review_bottom_sheet.dart';
 import '../constants/app_text_styles.dart';
 import '../../features/auth/providers/auth_provider.dart';
 import 'shimmer_widget.dart';
+import 'empty_state_widget.dart';
+
 
 class ReviewSection extends ConsumerWidget {
   final String targetId;
@@ -75,21 +77,12 @@ class ReviewSection extends ConsumerWidget {
         reviewsAsync.when(
           data: (reviews) {
             if (reviews.isEmpty) {
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 24),
-                  child: Column(
-                    children: [
-                      Icon(Icons.rate_review_outlined, size: 48, color: Colors.grey[300]),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Henüz yorum yapılmamış.\nİlk yorumu siz yapın!',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.grey, fontSize: 13),
-                      ),
-                    ],
-                  ),
-                ),
+              return EmptyStateWidget(
+                icon: Icons.rate_review_outlined,
+                title: 'Henüz Yorum Yapılmamış',
+                subtitle: 'Bu yer hakkında hala kimse bir şey yazmamış. Burayı ilk sen canlandırmak ister misin?',
+                actionLabel: 'İlk Yorumu Sen Yap',
+                onActionPressed: () => _showAddReview(context, ref),
               );
             }
             return ListView.builder(

@@ -9,6 +9,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../../core/providers/app_info_provider.dart';
+import '../../../core/services/block_service.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -112,9 +113,89 @@ class SettingsScreen extends ConsumerWidget {
             subtitle: 'Play Store\'da puanlayın',
             iconColor: AppColors.warning,
             onTap: () async {
-              final review = InAppReview.instance;
-              if (await review.isAvailable()) {
-                review.requestReview();
+              final InAppReview inAppReview = InAppReview.instance;
+              // Uygulama mağazası sayfasını direkt açar
+              await inAppReview.openStoreListing();
+            },
+          ),
+          // Clear Blocked Users
+          _buildSettingsItem(
+            icon: Icons.person_remove_outlined,
+            title: 'Engellenen Kullanıcıları Kaldır',
+            subtitle: 'Tüm engelleri temizle',
+            iconColor: AppColors.error,
+            onTap: () async {
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (ctx) => Dialog(
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: AppColors.error.withOpacity(0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.person_remove_rounded, size: 32, color: AppColors.error),
+                        ),
+                        const SizedBox(height: 24),
+                        Text(
+                          'Engelleri Kaldır',
+                          textAlign: TextAlign.center,
+                          style: AppTextStyles.heading2,
+                        ),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'Tüm engellediğiniz kullanıcıların engelini kaldırmak istediğinize emin misiniz? Bu işlem geri alınamaz.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: AppColors.textSecondary, height: 1.4),
+                        ),
+                        const SizedBox(height: 32),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextButton(
+                                onPressed: () => Navigator.pop(ctx, false),
+                                style: TextButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: 14),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                                child: const Text('Vazgeç', style: TextStyle(fontWeight: FontWeight.w600)),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: () => Navigator.pop(ctx, true),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.error,
+                                  foregroundColor: Colors.white,
+                                  elevation: 0,
+                                  padding: const EdgeInsets.symmetric(vertical: 14),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                                child: const Text('Kaldır', style: TextStyle(fontWeight: FontWeight.bold)),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+
+              if (confirm == true) {
+                await BlockService.clearBlockedUsers();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Tüm kullanıcıların engeli kaldırıldı.')),
+                  );
+                }
               }
             },
           ),

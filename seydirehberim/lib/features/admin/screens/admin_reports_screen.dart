@@ -169,8 +169,8 @@ class AdminReportsScreen extends StatelessWidget {
               try {
                 // Delete review
                 await ReviewService().deleteReview(reviewId);
-                // Update report status
-                await FirebaseFirestore.instance.collection('sikayetler').doc(reportId).update({'status': 'reviewed_deleted'});
+                // Delete report
+                await FirebaseFirestore.instance.collection('sikayetler').doc(reportId).delete();
                 
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -194,10 +194,10 @@ class AdminReportsScreen extends StatelessWidget {
 
   void _dismissReport(BuildContext context, String reportId) async {
     try {
-      await FirebaseFirestore.instance.collection('sikayetler').doc(reportId).update({'status': 'dismissed'});
+      await FirebaseFirestore.instance.collection('sikayetler').doc(reportId).delete();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Şikayet kapatıldı.')),
+          const SnackBar(content: Text('Şikayet kapatıldı ve silindi.')),
         );
       }
     } catch (e) {
