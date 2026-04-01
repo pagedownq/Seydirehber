@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { db } from '../lib/firebase';
 import { collection, query, onSnapshot, where } from 'firebase/firestore';
 import { Users, Activity, Award, Clock, MapPin, Bus, Tag, MessageSquare, ShieldCheck, Image, Store, CheckCircle2 } from 'lucide-react';
@@ -15,7 +15,8 @@ const DashboardOverview = () => {
     banners: 0,
     reviews: 0,
     esnaf_users: 0,
-    coupons: 0
+    coupons: 0,
+    bekleyen_sikayetler: 0
   });
 
   useEffect(() => {
@@ -43,10 +44,16 @@ const DashboardOverview = () => {
       setStats(prev => ({ ...prev, used_coupons: snap.size }));
     });
 
+    const qReports = query(collection(db, 'sikayetler'), where('status', '==', 'pending'));
+    const unsubscribeReports = onSnapshot(qReports, (snap) => {
+      setStats(prev => ({ ...prev, bekleyen_sikayetler: snap.size }));
+    });
+
     return () => {
       unsubscribes.forEach(unsub => unsub());
       unsubscribeSupport();
       unsubscribeUsed();
+      unsubscribeReports();
     };
   }, []);
 
@@ -68,7 +75,8 @@ const DashboardOverview = () => {
         <StatCard icon={Tag} label="Kupon Sayısı" value={stats.coupons} color="#f97316" />
         <StatCard icon={CheckCircle2} label="Kullanılan Kuponlar" value={(stats as any).used_coupons || 0} color="#22c55e" />
         <StatCard icon={MessageSquare} label="Yorumlar" value={stats.reviews} color="#8b5cf6" />
-        <StatCard icon={ShieldCheck} label="Esnaf Hesapları" value={stats.esnaf_users} color="#06b6d4" />
+        <StatCard icon={ShieldCheck} label="Bekleyen Şikayet" value={stats.bekleyen_sikayetler} color="#f43f5e" />
+        <StatCard icon={Users} label="Esnaf Hesapları" value={stats.esnaf_users} color="#06b6d4" />
         <StatCard icon={Image} label="Bannerler" value={stats.banners} color="#db2777" />
       </div>
 

@@ -123,6 +123,13 @@ class AdminScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 12),
           _AdminCard(
+            icon: Icons.report_problem_outlined,
+            title: 'Yorum Şikayetleri',
+            color: const Color(0xFFD32F2F),
+            onTap: () => context.push('/admin/reports'),
+          ),
+          const SizedBox(height: 12),
+          _AdminCard(
             icon: Icons.people,
             title: 'Esnaf Hesapları',
             color: const Color(0xFF7E57C2),

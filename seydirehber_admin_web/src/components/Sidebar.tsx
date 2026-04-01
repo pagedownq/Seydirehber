@@ -18,6 +18,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => {
     { id: 'firmalar', label: 'Firmalar', icon: Building },
     { id: 'yardim_destek', label: 'Yardım ve Destek', icon: MessageSquare },
     { id: 'reviews', label: 'Yorum Yönetimi', icon: LayoutDashboard },
+    { id: 'sikayetler', label: 'Yorum Şikayetleri', icon: ShieldCheck },
     { id: 'esnaf_users', label: 'Esnaf Hesapları', icon: Users },
     { id: 'coupons', label: 'Kupon Yönetimi', icon: Ticket },
     { id: 'admins', label: 'Admin Yönetimi', icon: ShieldCheck },

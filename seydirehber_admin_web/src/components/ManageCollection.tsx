@@ -550,7 +550,7 @@ const SortableRow = ({ item, collectionId, config, isDraggable, handleOpenModal,
         </div>
 
         {/* Specialized Information Display */}
-        {(collectionId === 'yardim_destek' || collectionId === 'reviews' || collectionId === 'coupons') && (
+        {(collectionId === 'yardim_destek' || collectionId === 'reviews' || collectionId === 'coupons' || collectionId === 'sikayetler') && (
           <div style={{ 
             background: 'rgba(15, 23, 42, 0.4)', 
             padding: '1rem', 
@@ -614,15 +614,101 @@ const SortableRow = ({ item, collectionId, config, isDraggable, handleOpenModal,
                 )}
               </>
             )}
+            {collectionId === 'sikayetler' && (
+              <>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginBottom: '0.5rem', fontSize: '0.85rem' }}>
+                  {item.userName && (
+                    <span style={{ color: 'var(--text-muted)' }}>
+                      <strong style={{ color: 'var(--text)' }}>Şikayet Edilen:</strong> {item.userName}
+                    </span>
+                  )}
+                  {item.status && (
+                    <span style={{ 
+                      color: item.status === 'dismissed' ? '#22c55e' : (item.status === 'reviewed_deleted' ? '#ef4444' : '#f59e0b'),
+                      background: 'rgba(0,0,0,0.2)',
+                      padding: '2px 8px',
+                      borderRadius: '4px',
+                      fontSize: '0.75rem',
+                      fontWeight: 'bold'
+                    }}>
+                      {item.status.toUpperCase()}
+                    </span>
+                  )}
+                  {item.timestamp?.toDate && (
+                    <span style={{ color: 'var(--text-muted)' }}>
+                      <strong style={{ color: 'var(--text)' }}>Tarih:</strong> {format(item.timestamp.toDate(), 'dd.MM.yyyy HH:mm')}
+                    </span>
+                  )}
+                </div>
+                <div style={{ fontSize: '0.9rem', color: 'var(--text)', lineHeight: '1.5' }}>
+                  <strong style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '4px' }}>Yorum İçeriği:</strong>
+                  "{item.content}"
+                </div>
+              </>
+            )}
           </div>
         )}
 
-        {!(collectionId === 'yardim_destek' || collectionId === 'reviews' || collectionId === 'coupons') && (
+        {!(collectionId === 'yardim_destek' || collectionId === 'reviews' || collectionId === 'coupons' || collectionId === 'sikayetler') && (
           <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
             {(item.hakkinda || item.konum || '')?.substring(0, 100)}...
           </div>
         )}
       </td>
+        {collectionId === 'sikayetler' && (
+          <td style={{ padding: '1rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', minWidth: '100px' }}>
+              {item.status === 'pending' ? (
+                <button
+                  onClick={async () => {
+                    if (!window.confirm('Bu yorumu sistemden kalıcı olarak silmek istiyor musunuz?')) return;
+                    try {
+                      const reviewPath = `reviews/${item.reviewId}`;
+                      await deleteDoc(doc(db, reviewPath));
+                      await updateDoc(doc(db, 'sikayetler', item.id), { 
+                        status: 'reviewed_deleted',
+                        reviewedAt: new Date(),
+                      });
+                      alert('Yorum başarıyla silindi.');
+                    } catch (e: any) {
+                      console.error(e);
+                      alert('Yorum silinirken hata: ' + e.message);
+                    }
+                  }}
+                  style={{
+                    padding: '0.4rem 0.8rem',
+                    background: '#ef4444',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    fontSize: '0.7rem',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  YORUMU SİL
+                </button>
+              ) : (
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textAlign: 'center' }}>
+                  İŞLEM YAPILDI
+                </span>
+              )}
+              <button
+                onClick={() => handleDelete(item.id)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#ef4444',
+                  cursor: 'pointer',
+                  fontSize: '0.65rem',
+                  marginTop: '4px'
+                }}
+              >
+                Raporu Sil
+              </button>
+            </div>
+          </td>
+        )}
         {collectionId === 'yardim_destek' && (
           <td style={{ padding: '1rem' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', minWidth: '100px' }}>
@@ -652,16 +738,18 @@ const SortableRow = ({ item, collectionId, config, isDraggable, handleOpenModal,
             </div>
           </td>
         )}
-      <td style={{ padding: '1rem' }}>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button className="btn btn-outline" style={{ padding: '0.5rem', borderRadius: '50%', width: '36px', height: '36px', justifyContent: 'center' }} onClick={() => handleOpenModal(item)}>
-            <Edit size={16} />
-          </button>
-          <button className="btn btn-danger" style={{ padding: '0.5rem', borderRadius: '50%', width: '36px', height: '36px', justifyContent: 'center' }} onClick={() => handleDelete(item.id, item.image_url)}>
-            <Trash2 size={16} />
-          </button>
-        </div>
-      </td>
+        {!(collectionId === 'yardim_destek' || collectionId === 'sikayetler') && (
+          <td style={{ padding: '1rem' }}>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button className="btn btn-outline" style={{ padding: '0.5rem', borderRadius: '50%', width: '36px', height: '36px', justifyContent: 'center' }} onClick={() => handleOpenModal(item)}>
+                <Edit size={16} />
+              </button>
+              <button className="btn btn-danger" style={{ padding: '0.5rem', borderRadius: '50%', width: '36px', height: '36px', justifyContent: 'center' }} onClick={() => handleDelete(item.id, item.image_url)}>
+                <Trash2 size={16} />
+              </button>
+            </div>
+          </td>
+        )}
     </tr>
   );
 };

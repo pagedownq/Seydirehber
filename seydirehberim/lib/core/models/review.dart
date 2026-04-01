@@ -10,6 +10,8 @@ class Review {
   final double rating;
   final String comment;
   final DateTime createdAt;
+  final bool isEdited;
+  final DateTime? updatedAt;
 
   Review({
     required this.id,
@@ -21,6 +23,8 @@ class Review {
     required this.rating,
     required this.comment,
     required this.createdAt,
+    this.isEdited = false,
+    this.updatedAt,
   });
 
   factory Review.fromFirestore(DocumentSnapshot doc) {
@@ -35,6 +39,8 @@ class Review {
       rating: (data['rating'] as num?)?.toDouble() ?? 0.0,
       comment: data['comment'] ?? '',
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      isEdited: data['isEdited'] ?? false,
+      updatedAt: (data['updatedAt'] as Timestamp?)?.toDate(),
     );
   }
 
@@ -48,6 +54,8 @@ class Review {
       'rating': rating,
       'comment': comment,
       'createdAt': FieldValue.serverTimestamp(),
+      'isEdited': isEdited,
+      'updatedAt': updatedAt != null ? Timestamp.fromDate(updatedAt!) : null,
     };
   }
 }

@@ -4,14 +4,38 @@ import '../../core/constants/app_colors.dart';
 import '../../core/models/review.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/review_service.dart';
+import '../services/block_service.dart';
+import 'post_review_bottom_sheet.dart';
 
-class ReviewCard extends StatelessWidget {
+class ReviewCard extends StatefulWidget {
   final Review review;
 
   const ReviewCard({super.key, required this.review});
 
   @override
+  State<ReviewCard> createState() => _ReviewCardState();
+}
+
+class _ReviewCardState extends State<ReviewCard> {
+  bool _isHidden = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkIfBlocked();
+  }
+
+  Future<void> _checkIfBlocked() async {
+    final blocked = await BlockService.isUserBlocked(widget.review.userId);
+    if (blocked && mounted) {
+      setState(() => _isHidden = true);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_isHidden) return const SizedBox.shrink();
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
       padding: const EdgeInsets.all(20),
@@ -47,10 +71,10 @@ class ReviewCard extends StatelessWidget {
                 child: CircleAvatar(
                   radius: 20,
                   backgroundColor: AppColors.primarySurface,
-                  backgroundImage: review.userImageUrl != null 
-                      ? NetworkImage(review.userImageUrl!) 
+                  backgroundImage: widget.review.userImageUrl != null 
+                      ? NetworkImage(widget.review.userImageUrl!) 
                       : null,
-                  child: review.userImageUrl == null 
+                  child: widget.review.userImageUrl == null 
                       ? const Icon(Icons.person, color: AppColors.primary, size: 20) 
                       : null,
                 ),
@@ -61,7 +85,7 @@ class ReviewCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      review.userName,
+                      widget.review.userName,
                       style: const TextStyle(
                         fontWeight: FontWeight.w800,
                         fontSize: 15,
@@ -71,7 +95,7 @@ class ReviewCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      DateFormat('dd MMMM yyyy', 'tr_TR').format(review.createdAt),
+                      DateFormat('dd MMMM yyyy', 'tr_TR').format(widget.review.createdAt),
                       style: const TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w500,
@@ -81,36 +105,105 @@ class ReviewCard extends StatelessWidget {
                   ],
                 ),
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
+              Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  _buildStars(review.rating, size: 14),
-                  if (FirebaseAuth.instance.currentUser?.uid == review.userId)
-                    GestureDetector(
-                      onTap: () => _showDeleteDialog(context),
-                      child: Container(
-                        margin: const EdgeInsets.only(top: 8),
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: Colors.red.withOpacity(0.05),
-                          shape: BoxShape.circle,
+                  _buildStars(widget.review.rating, size: 14),
+                  PopupMenuButton<String>(
+                    elevation: 10,
+                    icon: const Icon(Icons.more_vert, color: Color(0xFF64748B), size: 20),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    onSelected: (value) {
+                      if (value == 'edit') _showEditSheet(context);
+                      if (value == 'delete') _showDeleteDialog(context);
+                      if (value == 'report') _showReportDialog(context);
+                      if (value == 'block') {
+                        setState(() => _isHidden = true);
+                        BlockService.blockUser(widget.review.userId);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Kullanıcı engellendi ve içerikleri gizlendi.'),
+                            backgroundColor: Colors.blueGrey,
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      if (FirebaseAuth.instance.currentUser?.uid == widget.review.userId) ...[
+                        const PopupMenuItem(
+                          value: 'edit',
+                          child: Row(
+                            children: [
+                              Icon(Icons.edit_outlined, color: AppColors.primary, size: 18),
+                              SizedBox(width: 8),
+                              Text('Yorumu Düzenle'),
+                            ],
+                          ),
                         ),
-                        child: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: 16),
-                      ),
-                    ),
+                        const PopupMenuItem(
+                          value: 'delete',
+                          child: Row(
+                            children: [
+                              Icon(Icons.delete_outline, color: Colors.redAccent, size: 18),
+                              SizedBox(width: 8),
+                              Text('Yorumu Sil'),
+                            ],
+                          ),
+                        ),
+                      ],
+                      if (FirebaseAuth.instance.currentUser?.uid != widget.review.userId) ...[
+                        const PopupMenuItem(
+                          value: 'report',
+                          child: Row(
+                            children: [
+                              Icon(Icons.flag_outlined, color: Colors.orange, size: 18),
+                              SizedBox(width: 8),
+                              Text('Rapor Et'),
+                            ],
+                          ),
+                        ),
+                        const PopupMenuItem(
+                          value: 'block',
+                          child: Row(
+                            children: [
+                              Icon(Icons.block, color: Colors.blueGrey, size: 18),
+                              SizedBox(width: 8),
+                              Text('Kullanıcıyı Engelle'),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ],
               ),
             ],
           ),
-          if (review.comment.trim().isNotEmpty) ...[
+          if (widget.review.comment.trim().isNotEmpty) ...[
             const SizedBox(height: 16),
-            Text(
-              review.comment,
-              style: const TextStyle(
-                fontSize: 14,
-                color: Color(0xFF334155),
-                height: 1.6,
-                fontWeight: FontWeight.w400,
+            Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                    text: widget.review.comment,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Color(0xFF334155),
+                      height: 1.6,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                  if (widget.review.isEdited)
+                    TextSpan(
+                      text: ' (düzenlendi)',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[500],
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                ],
               ),
             ),
           ],
@@ -186,7 +279,7 @@ class ReviewCard extends StatelessWidget {
                   child: ElevatedButton(
                     onPressed: () async {
                       Navigator.pop(context);
-                      await ReviewService().deleteReview(review.id);
+                      await ReviewService().deleteReview(widget.review.id);
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red,
@@ -196,6 +289,113 @@ class ReviewCard extends StatelessWidget {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     ),
                     child: const Text('Evet, Sil', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showEditSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => PostReviewBottomSheet(
+        targetId: widget.review.targetId,
+        targetType: widget.review.targetType,
+        existingReview: widget.review,
+      ),
+    );
+  }
+
+  void _showReportDialog(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(32),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(32),
+            topRight: Radius.circular(32),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                color: Colors.orange.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.report_problem_rounded, color: Colors.orange, size: 30),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Yorumu Raporla',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Color(0xFF1E293B)),
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              'Bu yorumun topluluk kurallarımızı ihlal ettiğini veya uygunsuz olduğunu mu düşünüyorsunuz? Ekibimiz inceleyecektir.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Color(0xFF64748B), fontSize: 14, height: 1.5),
+            ),
+            const SizedBox(height: 32),
+            Row(
+              children: [
+                Expanded(
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Vazgeç', style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.bold)),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      try {
+                        await ReviewService().reportReview(widget.review);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Bildiriminiz alındı, teşekkür ederiz.'),
+                              backgroundColor: Colors.orange,
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(e == 'ALREADY_REPORTED' 
+                                ? 'Bu yorumu zaten raporladınız.' 
+                                : 'Hata oluştu, tekrar deneyin.'),
+                              backgroundColor: e == 'ALREADY_REPORTED' ? Colors.blueGrey : Colors.red,
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        }
+                      } finally {
+                        if (context.mounted) Navigator.pop(context);
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    ),
+                    child: const Text('Raporla', style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 ),
               ],

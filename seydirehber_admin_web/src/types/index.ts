@@ -159,5 +159,17 @@ export const COLLECTIONS: Record<string, { title: string; bucket: string | null;
       { key: 'ad_soyad', label: 'Ad Soyad', required: true },
       { key: 'isActive', label: 'Aktif Mi?', isBoolean: true },
     ]
+  },
+  sikayetler: {
+    title: 'Yorum Şikayetleri',
+    bucket: null,
+    fields: [
+      { key: 'userName', label: 'Şikayet Edilen Kullanıcı' },
+      { key: 'content', label: 'Yorum İçeriği', multiline: true },
+      { key: 'targetType', label: 'Hedef Türü' },
+      { key: 'targetId', label: 'Hedef ID' },
+      { key: 'status', label: 'Durum (pending/dismissed/reviewed_deleted)' },
+      { key: 'timestamp', label: 'Tarih', isDate: true },
+    ]
   }
 };

@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/review.dart';
+import '../utils/profanity_filter.dart';
 
 final reviewServiceProvider = Provider((ref) => ReviewService());
 
@@ -50,9 +51,10 @@ class ReviewService {
     final user = _auth.currentUser;
     if (user == null) throw Exception('Yorum yapmak için giriş yapmalısınız.');
 
-    // Secondary check to prevent double reviews
-    final hasReviewed = await hasUserReviewed(targetId);
-    if (hasReviewed) throw Exception('Bu yer için zaten yorum yaptınız.');
+    // Kötü kelime kontrolü
+    if (ProfanityFilter.hasProfanity(comment)) {
+      throw 'PROFANITY_DETECTED';
+    }
 
     final review = Review(
       id: '',
@@ -87,11 +89,62 @@ class ReviewService {
     return snapshot.docs.isNotEmpty;
   }
 
+  Future<void> updateReview({
+    required String reviewId,
+    required double rating,
+    required String comment,
+  }) async {
+    final user = _auth.currentUser;
+    if (user == null) throw Exception('Yorum düzenlemek için giriş yapmalısınız.');
+
+    // Kötü kelime kontrolü
+    if (ProfanityFilter.hasProfanity(comment)) {
+      throw 'PROFANITY_DETECTED';
+    }
+
+    await _firestore.collection('reviews').doc(reviewId).update({
+      'rating': rating,
+      'comment': comment,
+      'isEdited': true,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
   Future<void> deleteReview(String reviewId) async {
     final user = _auth.currentUser;
     if (user == null) throw Exception('Yorum silmek için giriş yapmalısınız.');
     
     // Safety check: Firestore rules will also handle this
     await _firestore.collection('reviews').doc(reviewId).delete();
+  }
+
+  Future<void> reportReview(Review review) async {
+    final user = _auth.currentUser;
+    final reporterId = user?.uid ?? 'guest';
+
+    // Misafir değilse mükerrer kontrolü yap
+    if (reporterId != 'guest') {
+      final existing = await _firestore
+          .collection('sikayetler')
+          .where('reviewId', isEqualTo: review.id)
+          .where('reporterId', isEqualTo: reporterId)
+          .limit(1)
+          .get();
+
+      if (existing.docs.isNotEmpty) {
+        throw 'ALREADY_REPORTED';
+      }
+    }
+
+    await _firestore.collection('sikayetler').add({
+      'reviewId': review.id,
+      'reporterId': reporterId,
+      'targetId': review.targetId,
+      'targetType': review.targetType,
+      'content': review.comment,
+      'userName': review.userName,
+      'timestamp': FieldValue.serverTimestamp(),
+      'status': 'pending',
+    });
   }
 }

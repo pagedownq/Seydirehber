@@ -224,7 +224,7 @@ class _SupportScreenState extends ConsumerState<SupportScreen> {
                 ),
                 validator: (value) => value == null || value.length < 5 ? 'Lütfen en az 5 karakterlik bir mesaj yazın' : null,
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
 
               // Submit Button
               SizedBox(
