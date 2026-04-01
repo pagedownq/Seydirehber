@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../core/constants/app_colors.dart';
@@ -8,6 +9,16 @@ import 'package:go_router/go_router.dart';
 import '../providers/search_history_provider.dart';
 
 final searchQueryProvider = StateProvider<String>((ref) => '');
+
+final debouncedSearchQueryProvider = StreamProvider.autoDispose<String>((ref) async* {
+  final query = ref.watch(searchQueryProvider);
+  if (query.isEmpty) {
+    yield '';
+  } else {
+    await Future.delayed(const Duration(milliseconds: 500));
+    yield query;
+  }
+});
 
 class SearchScreen extends ConsumerStatefulWidget {
   final String? initialQuery;
@@ -74,6 +85,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             IconButton(
               icon: const Icon(Icons.clear, color: AppColors.textLight, size: 20),
               onPressed: () {
+                HapticFeedback.selectionClick();
                 _searchController.clear();
                 ref.read(searchQueryProvider.notifier).state = '';
               },
@@ -93,11 +105,12 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       body: query.isEmpty
           ? _SearchHistoryList(
               onHistoryTap: (term) {
+                HapticFeedback.selectionClick();
                 _searchController.text = term;
                 ref.read(searchQueryProvider.notifier).state = term;
               },
             )
-          : _SearchResultsList(query: query),
+          : const _SearchResultsList(),
     );
   }
 }
@@ -170,78 +183,88 @@ class _SearchHistoryList extends ConsumerWidget {
 }
 
 class _SearchResultsList extends ConsumerWidget {
-  final String query;
-  const _SearchResultsList({required this.query});
+  const _SearchResultsList();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // We combine three streams to search across collections
-    // For simplicity, we search for names starting with the query (case sensitive in Firestore unless normalized)
-    // Note: Proper full-text search usually needs a separate service, but this is a starting point.
-    
-    final normalizedQuery = query.toLowerCase();
-    
-    // Static services/buttons that can be searched
-    final services = [
-      {'title': 'Hava Durumu', 'route': '/weather', 'icon': Icons.cloud_outlined},
-      {'title': 'Nöbetçi Eczane', 'route': '/pharmacy', 'icon': Icons.local_pharmacy_outlined},
-      {'title': 'Noterler', 'route': '/noterler', 'icon': Icons.gavel_rounded},
-      {'title': 'Halk Pazarları', 'route': '/pazarlar', 'icon': Icons.storefront_rounded},
-      {'title': 'Otobüs Saatleri', 'route': '/otobus', 'icon': Icons.directions_bus_rounded},
-      {'title': 'Haberler', 'route': '/news', 'icon': Icons.newspaper_rounded},
-    ];
+    final debouncedQueryAsync = ref.watch(debouncedSearchQueryProvider);
+    final immediateQuery = ref.watch(searchQueryProvider);
 
-    final filteredServices = services.where((s) => 
-      (s['title'] as String).toLowerCase().contains(normalizedQuery)
-    ).toList();
+    return debouncedQueryAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (err, stack) => Center(child: Text('Arama sırasında hata oluştu: $err')),
+      data: (query) {
+        if (query.isEmpty && immediateQuery.isNotEmpty) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        
+        if (query.isEmpty) return const SizedBox.shrink();
 
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        if (filteredServices.isNotEmpty) ...[
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Text('Uygulama Özellikleri', style: AppTextStyles.heading3),
-          ),
-          ...filteredServices.map((s) => ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: Container(
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(
-                color: AppColors.primarySurface,
-                borderRadius: BorderRadius.circular(8),
+        final normalizedQuery = query.toLowerCase();
+        
+        // Static services/buttons that can be searched
+        final services = [
+          {'title': 'Hava Durumu', 'route': '/weather', 'icon': Icons.cloud_outlined},
+          {'title': 'Nöbetçi Eczane', 'route': '/pharmacy', 'icon': Icons.local_pharmacy_outlined},
+          {'title': 'Noterler', 'route': '/noterler', 'icon': Icons.gavel_rounded},
+          {'title': 'Halk Pazarları', 'route': '/pazarlar', 'icon': Icons.storefront_rounded},
+          {'title': 'Otobüs Saatleri', 'route': '/otobus', 'icon': Icons.directions_bus_rounded},
+          {'title': 'Haberler', 'route': '/news', 'icon': Icons.newspaper_rounded},
+        ];
+
+        final filteredServices = services.where((s) => 
+          (s['title'] as String).toLowerCase().contains(normalizedQuery)
+        ).toList();
+
+        return ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            if (filteredServices.isNotEmpty) ...[
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Text('Uygulama Özellikleri', style: AppTextStyles.heading3),
               ),
-              child: Icon(s['icon'] as IconData, color: AppColors.primary),
+              ...filteredServices.map((s) => ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: AppColors.primarySurface,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(s['icon'] as IconData, color: AppColors.primary),
+                ),
+                title: Text(s['title'] as String),
+                subtitle: const Text('Uygulama içi kısayol'),
+                onTap: () {
+                  ref.read(searchHistoryProvider.notifier).addSearchTerm(normalizedQuery);
+                  context.push(s['route'] as String);
+                },
+              )),
+              const Divider(),
+            ],
+            _SearchCollectionSection(
+              title: 'Etkinlikler',
+              collection: 'etkinlikler',
+              query: normalizedQuery,
+              routePrefix: '/events',
             ),
-            title: Text(s['title'] as String),
-            subtitle: const Text('Uygulama içi kısayol'),
-            onTap: () {
-              ref.read(searchHistoryProvider.notifier).addSearchTerm(normalizedQuery);
-              context.push(s['route'] as String);
-            },
-          )),
-          const Divider(),
-        ],
-        _SearchCollectionSection(
-          title: 'Etkinlikler',
-          collection: 'etkinlikler',
-          query: normalizedQuery,
-          routePrefix: '/events',
-        ),
-        _SearchCollectionSection(
-          title: 'Gezilecek Yerler',
-          collection: 'yerler',
-          query: normalizedQuery,
-          routePrefix: '/places',
-        ),
-        _SearchCollectionSection(
-          title: 'Firmalar',
-          collection: 'firmalar',
-          query: normalizedQuery,
-          routePrefix: '/companies',
-        ),
-      ],
+            _SearchCollectionSection(
+              title: 'Gezilecek Yerler',
+              collection: 'yerler',
+              query: normalizedQuery,
+              routePrefix: '/places',
+            ),
+            _SearchCollectionSection(
+              title: 'Firmalar',
+              collection: 'firmalar',
+              query: normalizedQuery,
+              routePrefix: '/companies',
+            ),
+          ],
+        );
+      },
     );
   }
 }

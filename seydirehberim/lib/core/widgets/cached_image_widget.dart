@@ -56,10 +56,12 @@ class CachedImageWidget extends StatelessWidget {
           height: height,
           fit: fit,
           memCacheWidth: memCacheWidth ??
-              (width != null && width!.isFinite ? (width! * 2).toInt() : null),
+              (width != null && width!.isFinite
+                  ? (width! * MediaQuery.of(context).devicePixelRatio).round()
+                  : null),
           memCacheHeight: memCacheHeight ??
               (height != null && height!.isFinite
-                  ? (height! * 2).toInt()
+                  ? (height! * MediaQuery.of(context).devicePixelRatio).round()
                   : null),
           placeholder: (context, url) => Container(
             width: width,

@@ -137,10 +137,13 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
                       background: Stack(
                         fit: StackFit.expand,
                         children: [
-                          CachedImageWidget(
-                            imageUrl: imageUrl,
-                            fit: BoxFit.cover,
-                            isCompany: true,
+                          Hero(
+                            tag: 'company-${widget.companyId}',
+                            child: CachedImageWidget(
+                              imageUrl: imageUrl,
+                              fit: BoxFit.cover,
+                              isCompany: true,
+                            ),
                           ),
                           // Dark overlay for readability
                           DecoratedBox(

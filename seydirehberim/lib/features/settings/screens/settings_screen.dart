@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:in_app_review/in_app_review.dart';
@@ -210,6 +211,7 @@ class SettingsScreen extends ConsumerWidget {
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () async {
+                    HapticFeedback.selectionClick();
                     final confirmed = await showDialog<bool>(
                       context: context,
                       builder: (ctx) => AlertDialog(
@@ -232,7 +234,7 @@ class SettingsScreen extends ConsumerWidget {
                     }
                   },
                   icon: const Icon(Icons.logout, size: 18),
-                  label: const Text('Çıkış Yap'),
+                  label: const Text('Çıkış Yap', maxLines: 1, overflow: TextOverflow.ellipsis),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.error,
                     side: const BorderSide(color: AppColors.error),
@@ -243,6 +245,7 @@ class SettingsScreen extends ConsumerWidget {
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () async {
+                    HapticFeedback.selectionClick();
                     final confirmed = await showDialog<bool>(
                       context: context,
                       builder: (ctx) => AlertDialog(
@@ -267,7 +270,7 @@ class SettingsScreen extends ConsumerWidget {
                     }
                   },
                   icon: const Icon(Icons.delete_outline, size: 18),
-                  label: const Text('Hesabı Sil'),
+                  label: const Text('Hesabı Sil', maxLines: 1, overflow: TextOverflow.ellipsis),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.textLight,
                     side: const BorderSide(color: AppColors.border),
@@ -314,6 +317,7 @@ class SettingsScreen extends ConsumerWidget {
             width: double.infinity,
             child: ElevatedButton.icon(
               onPressed: () async {
+                HapticFeedback.selectionClick();
                 await ref.read(authNotifierProvider.notifier).signInWithGoogle();
               },
               icon: const Icon(Icons.login, size: 18),
@@ -336,7 +340,10 @@ class SettingsScreen extends ConsumerWidget {
       color: AppColors.white,
       borderRadius: BorderRadius.circular(14),
       child: ListTile(
-        onTap: onTap,
+        onTap: () {
+          HapticFeedback.selectionClick();
+          onTap();
+        },
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(

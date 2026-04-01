@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../core/constants/app_colors.dart';
@@ -113,7 +114,10 @@ class HorizontalCouponList extends ConsumerWidget {
 
     return RepaintBoundary(
       child: GestureDetector(
-        onTap: () => onTap(id, data),
+        onTap: () {
+          HapticFeedback.lightImpact();
+          onTap(id, data);
+        },
         child: Container(
           width: 260,
           decoration: BoxDecoration(

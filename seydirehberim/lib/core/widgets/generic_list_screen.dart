@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
@@ -64,7 +65,7 @@ class GenericListScreen extends ConsumerWidget {
                 padding: const EdgeInsets.all(16),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
-                  childAspectRatio: 0.58,
+                  childAspectRatio: 0.54,
                   crossAxisSpacing: 16,
                   mainAxisSpacing: 16,
                 ),
@@ -154,7 +155,7 @@ class GenericListScreen extends ConsumerWidget {
         padding: const EdgeInsets.fromLTRB(16, 20, 16, 40),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          childAspectRatio: 0.58,
+          childAspectRatio: 0.54,
           crossAxisSpacing: 16,
           mainAxisSpacing: 24,
         ),
@@ -195,7 +196,10 @@ class GenericListScreen extends ConsumerWidget {
         return Padding(
           padding: const EdgeInsets.only(bottom: 20),
           child: GestureDetector(
-            onTap: () => context.push('/$routePrefix/$id'),
+            onTap: () {
+              HapticFeedback.selectionClick();
+              context.push('/$routePrefix/$id');
+            },
             child: Container(
               height: 220,
               decoration: BoxDecoration(
@@ -428,7 +432,10 @@ class GenericListScreen extends ConsumerWidget {
     bool isNew,
   ) {
     return GestureDetector(
-      onTap: () => context.push('/$routePrefix/$id'),
+      onTap: () {
+        HapticFeedback.selectionClick();
+        context.push('/$routePrefix/$id');
+      },
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

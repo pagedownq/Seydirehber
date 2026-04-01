@@ -72,9 +72,12 @@ class PlaceDetailScreen extends ConsumerWidget {
                       background: Stack(
                         fit: StackFit.expand,
                         children: [
-                          CachedImageWidget(
-                            imageUrl: imageUrl,
-                            fit: BoxFit.cover,
+                          Hero(
+                            tag: 'place-$placeId',
+                            child: CachedImageWidget(
+                              imageUrl: imageUrl,
+                              fit: BoxFit.cover,
+                            ),
                           ),
                           // Dark overlay for readability
                           DecoratedBox(

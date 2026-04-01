@@ -73,9 +73,12 @@ class EventDetailScreen extends ConsumerWidget {
                       background: Stack(
                         fit: StackFit.expand,
                         children: [
-                          CachedImageWidget(
-                            imageUrl: imageUrl,
-                            fit: BoxFit.cover,
+                          Hero(
+                            tag: 'event-$eventId',
+                            child: CachedImageWidget(
+                              imageUrl: imageUrl,
+                              fit: BoxFit.cover,
+                            ),
                           ),
                           DecoratedBox(
                             decoration: BoxDecoration(

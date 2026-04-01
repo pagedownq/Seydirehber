@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../core/constants/app_colors.dart';
@@ -18,7 +19,10 @@ class HorizontalCardList extends ConsumerWidget {
     required this.provider,
     required this.type,
     required this.onTap,
+    this.heroTagPrefix,
   });
+
+  final String? heroTagPrefix;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -110,19 +114,24 @@ class HorizontalCardList extends ConsumerWidget {
 
     return RepaintBoundary(
       child: GestureDetector(
-        onTap: () => onTap(id),
+        onTap: () {
+          HapticFeedback.selectionClick();
+          onTap(id);
+        },
         child: SizedBox(
           width: cardWidth,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Image with rounded corners
-              CachedImageWidget(
-                imageUrl: imageUrl,
-                height: imageHeight,
-                width: cardWidth,
-                fit: BoxFit.cover,
-                borderRadius: 16,
+              Hero(
+                tag: '${heroTagPrefix ?? type.name}-$id',
+                child: CachedImageWidget(
+                  imageUrl: imageUrl,
+                  height: imageHeight,
+                  width: cardWidth,
+                  fit: BoxFit.cover,
+                  borderRadius: 16,
+                ),
               ),
 
               const SizedBox(height: 8),
@@ -183,7 +192,10 @@ class HorizontalCardList extends ConsumerWidget {
 
     return RepaintBoundary(
       child: GestureDetector(
-        onTap: () => onTap(id),
+        onTap: () {
+          HapticFeedback.selectionClick();
+          onTap(id);
+        },
         child: Container(
           width: 250,
           margin: const EdgeInsets.only(bottom: 2),
@@ -203,11 +215,14 @@ class HorizontalCardList extends ConsumerWidget {
               children: [
                 // Background Image
                 Positioned.fill(
-                  child: CachedImageWidget(
-                    imageUrl: imageUrl,
-                    fit: BoxFit.cover,
-                    memCacheWidth: 500,
-                    isCompany: true,
+                  child: Hero(
+                    tag: 'company-$id',
+                    child: CachedImageWidget(
+                      imageUrl: imageUrl,
+                      fit: BoxFit.cover,
+                      memCacheWidth: 500,
+                      isCompany: true,
+                    ),
                   ),
                 ),
                 // Dark overlay for overall contrast
@@ -385,9 +400,13 @@ class HorizontalCardList extends ConsumerWidget {
       children: [
         const Icon(Icons.calendar_today, size: 12, color: AppColors.primary),
         const SizedBox(width: 4),
-        Text(
-          dateStr,
-          style: AppTextStyles.caption.copyWith(color: AppColors.primary),
+        Expanded(
+          child: Text(
+            dateStr,
+            style: AppTextStyles.caption.copyWith(color: AppColors.primary),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
       ],
     );

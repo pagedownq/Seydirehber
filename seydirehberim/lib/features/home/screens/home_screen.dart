@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
@@ -25,6 +26,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       backgroundColor: AppColors.background,
       body: RefreshIndicator(
         onRefresh: () async {
+          HapticFeedback.mediumImpact();
           // Parallelly refresh all primary data providers for the home screen
           await Future.wait([
             ref.refresh(bannersProvider.future),
@@ -101,7 +103,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
               child: GestureDetector(
-                onTap: () => context.push('/search'),
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  context.push('/search');
+                },
                 child: Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -156,6 +161,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 HorizontalCardList(
                   provider: latestEventsProvider,
                   type: CardType.event,
+                  heroTagPrefix: 'latest-events',
                   onTap: (id) => context.push('/events/$id'),
                 ),
               ],
@@ -219,6 +225,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 HorizontalCardList(
                   provider: latestPlacesProvider,
                   type: CardType.place,
+                  heroTagPrefix: 'latest-places',
                   onTap: (id) => context.push('/places/$id'),
                 ),
               ],
@@ -242,6 +249,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 HorizontalCardList(
                   provider: topFiveCompaniesProvider,
                   type: CardType.company,
+                  heroTagPrefix: 'top-companies',
                   onTap: (id) => context.push('/companies/$id'),
                 ),
               ],
@@ -265,6 +273,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 HorizontalCardList(
                   provider: latestCompaniesProvider,
                   type: CardType.company,
+                  heroTagPrefix: 'latest-companies',
                   onTap: (id) => context.push('/companies/$id'),
                 ),
               ],
@@ -288,6 +297,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 HorizontalCardList(
                   provider: popularCompaniesProvider,
                   type: CardType.company,
+                  heroTagPrefix: 'popular-companies',
                   onTap: (id) => context.push('/companies/$id'),
                 ),
                 const SizedBox(height: 32),
@@ -308,7 +318,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     bool isBlack = false,
   }) {
     return InkWell(
-      onTap: onTap,
+      onTap: () {
+        HapticFeedback.lightImpact();
+        onTap();
+      },
       borderRadius: BorderRadius.circular(20),
       child: Container(
         height: 100,
@@ -408,6 +421,7 @@ class _HomeSearchFieldState extends State<_HomeSearchField> {
       textInputAction: TextInputAction.search,
       onSubmitted: (value) {
         if (value.trim().isNotEmpty) {
+          HapticFeedback.lightImpact();
           context.push('/search?q=${Uri.encodeComponent(value.trim())}');
         }
       },

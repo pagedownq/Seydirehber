@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_text_styles.dart';
 
@@ -26,7 +27,10 @@ class SeeAllButton extends StatelessWidget {
           ),
         ),
         TextButton(
-          onPressed: onTap,
+          onPressed: () {
+            HapticFeedback.selectionClick();
+            onTap();
+          },
           style: TextButton.styleFrom(
             foregroundColor: AppColors.primary,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
