@@ -123,7 +123,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           color: AppColors.textLight, size: 20),
                       const SizedBox(width: 8),
                       Text(
-                        'Etkinlik, firma veya yer ara...',
+                        'Etkinlik, firma, yer veya kategori ara...',
                         style: AppTextStyles.bodySmall
                             .copyWith(color: AppColors.textLight),
                       ),
@@ -412,7 +412,7 @@ class _HomeSearchFieldState extends State<_HomeSearchField> {
         }
       },
       decoration: InputDecoration(
-        hintText: 'Etkinlik, firma veya yer ara...',
+        hintText: 'Etkinlik, firma, yer veya kategori ara...',
         hintStyle: AppTextStyles.bodySmall,
         prefixIcon: const Icon(Icons.search, color: AppColors.textLight),
         suffixIcon: _showClear

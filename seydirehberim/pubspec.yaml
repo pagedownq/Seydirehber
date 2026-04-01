@@ -1,7 +1,7 @@
 name: seydirehberim
 description: "Seydi Rehber - Seydişehir Rehber Uygulaması"
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.0.0+2
 
 environment:
   sdk: ^3.10.8
@@ -52,6 +52,8 @@ dependencies:
   intl: ^0.20.2
   package_info_plus: any
   in_app_update: ^4.2.5
+  animations: ^2.1.2
+  like_button: ^2.1.0
 
 dev_dependencies:
   flutter_test:

@@ -58,7 +58,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           autofocus: true,
           style: AppTextStyles.bodyMedium,
           decoration: const InputDecoration(
-            hintText: 'Ara...',
+            hintText: 'Firma, yer veya kategori ara...',
             border: InputBorder.none,
           ),
           onChanged: (value) =>
@@ -269,7 +269,8 @@ class _SearchCollectionSection extends ConsumerWidget {
         final docs = snapshot.data!.docs.where((doc) {
           final data = doc.data() as Map<String, dynamic>;
           final name = (data['ad'] ?? data['name'] ?? '').toString().toLowerCase();
-          return name.contains(query);
+          final category = (data['kategori'] ?? '').toString().toLowerCase();
+          return name.contains(query) || category.contains(query);
         }).toList();
 
         if (docs.isEmpty) return const SizedBox.shrink();
@@ -285,6 +286,7 @@ class _SearchCollectionSection extends ConsumerWidget {
               final data = doc.data() as Map<String, dynamic>;
               final name = data['ad'] ?? data['name'] ?? '';
               final imageUrl = data['image_url'] ?? data['gorsel'] ?? '';
+              final category = data['kategori'] as String? ?? '';
               
               final rawAdres = data['adres'] as String? ?? '';
               final rawKonum = data['konum'] as String? ?? '';
@@ -304,7 +306,22 @@ class _SearchCollectionSection extends ConsumerWidget {
                   ),
                 ),
                 title: Text(name),
-                subtitle: address.isNotEmpty ? Text(address, maxLines: 1, overflow: TextOverflow.ellipsis) : null,
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (category.isNotEmpty) 
+                      Text(
+                        category, 
+                        style: TextStyle(
+                          color: AppColors.primary, 
+                          fontSize: 12, 
+                          fontWeight: FontWeight.w600
+                        )
+                      ),
+                    if (address.isNotEmpty) 
+                      Text(address, maxLines: 1, overflow: TextOverflow.ellipsis),
+                  ],
+                ),
                 onTap: () {
                   ref.read(searchHistoryProvider.notifier).addSearchTerm(query);
                   context.push('$routePrefix/${doc.id}');
