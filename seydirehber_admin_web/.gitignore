@@ -22,3 +22,14 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Security / Environment - HASSASET! TEKRAR EKLENDI
+.env
+.env.*
+! .env.example
+*.json
+! package.json
+! package-lock.json
+! tsconfig*.json
+! firebase.json
+! firestore.indexes.json

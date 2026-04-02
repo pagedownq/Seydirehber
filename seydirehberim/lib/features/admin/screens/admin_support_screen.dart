@@ -6,6 +6,7 @@ import '../../../core/constants/app_text_styles.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AdminSupportScreen extends StatefulWidget {
   const AdminSupportScreen({super.key});
@@ -15,18 +16,18 @@ class AdminSupportScreen extends StatefulWidget {
 }
 
 class _AdminSupportScreenState extends State<AdminSupportScreen> {
-  // Service Account JSON for FCM
-  final Map<String, dynamic> _serviceAccount = {
+  // Service Account JSON - Loaded from .env for security
+  Map<String, dynamic> get _serviceAccount => {
     "type": "service_account",
-    "project_id": "seydirehber1",
-    "private_key_id": "07e4f1a26e1f495331a8defe20f0902522646795",
-    "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDGKjw0dZlwIubk\nUsNgLWIuVkOGAM+FrkOwSDEGJkqtfA23yGXc5Jt+Z6ErrLo3RdOLr9csvdE0awbX\nII1qg5r+yS6g3UKozkHkMji34rm1bzjR656u6b3Le9IqZ1lJlvN0EgW6tFI3b8YW\nou3UkhY3BvIW3BMCzw2srEeyBtDM3XXuzlIXGM7sfgpwQuwJ1bFGb5n7yqbeXIlt\nGLUzIIlJu2HHwRbe9cA6Z+pDoMp7K4BPqhYjVG53DEyEVbghy11M0OnBibmSDpaJ\nauZD4FNhj190S4f2/E0+dBTexuvDNOEozNIpAsfCXrQsfx1ySGaCFfGW5ZwqgNWQ\ntKLwCr25AgMBAAECggEAWUf4Hg6J1frzmhUrz25DGOtmur4swWb1OjwcUk/4P1dv\n+siAFFivMfFQrRPCRlrgZ8QOpyrSUdKSn2QcMswejgJoTrPBb7qV91ElOrwcvYDh\n0bpdoSLQjxg3ZUFw+fXXtAjWqfrKPA3Q6qv3iVlURvCLK/91VUOiPpTULIJjmpi0\nVuzdArOGJ+TtSAsw5WErwMeRtnYGksae8kmZi2BfhSBwHdRcGD/6+RLZ2rKKZju2\n4lTr9wRWaWQxn9XZKFJizTcLJG8mNTgo58mViOH3A6dfUtLv2p+2Yce5wg0v1QRf\nHv5uFdM8G/pfck7u40RlNmQ9IElGUZtTcDNyvm69PQKBgQD8uR+0y2uZuU1V+srD\nmhAVsl1ELiEVFB9U67USMwKqOpJ1CyeIwoVKLqQL1VSRn/E6rT25v0FBJQs9/7qG\nPvjG4/6M38jU6cy7KujVFYSJM5DtXCWxDyqGvVUY+Znp7B6Xdv/1hZN8TD4X1Gxr\nVoZQUmlR4HypcBmo9Xk2Vme8IwKBgQDIvAOHfofFmH+0aDeruND7Tf0tEAii1kV6\njSiLEkW+5dJPHP01iGOi3pq9JohQMHqjJiYUPUzG6YrXOGR+5oLmdGOOhbW861e/\nZm2hCfLiHvTtGl+uF0HGWkuzBonfdjTUyOAFnpOmFmFLTKJLtrBr8X9jSVrWNqOT\n9Q38LUh+cwKBgA8lqVjUuGZGTPRSS8TdfwlN33kuqpzwz8/vMLMei5JYYF7ThFMW\nFZcUpJBxANiZlYPGzmRLqkWVSs80fKF/NLn3AFLBNvBL8xFkyP+8gm0WwiD33Op3\n1jytLGSK0UbL+Clr4Ht+vhA9IZucB8OHNBWsWtOleNNO/Lq7u8Ad/amxAoGBAKI7\nAYcyBbz2gM9nIwcP+SYBY8pVmQUxszlWeBvdiqy7xPrXbPUk45Gv4tNYHvbgF11f\n6YqV+EUSXnmOQ/ojhkuGaSe4fKbQdTxlJdju13NUnZI6rHVgqnIKa/+mGyuUtyH5\nrsQb4yxqDfvzVX9niLHUnaW6lUVnJ1DezoyudFZtAoGANhfTDAa1WAbPo485NlZ9\nJcOZPME6MbSa0mL915CWJBiPxUlOtOeHK1BOy5rSfiJyNlW6u9+K6+qFut/+Kaf+\nuQhJBMlrQi4Xm2tCLHGE7SUbVwPijnrptQo8yLR34WnBcEmlSaAhULH3rKGLdVVO\neL1KMmQ4hTLu8dg0SWYKPvo=\n-----END PRIVATE KEY-----\n",
-    "client_email": "firebase-adminsdk-fbsvc@seydirehber1.iam.gserviceaccount.com",
-    "client_id": "114421894276322709926",
+    "project_id": dotenv.env['FIREBASE_PROJECT_ID'],
+    "private_key_id": dotenv.env['FIREBASE_PRIVATE_KEY_ID'],
+    "private_key": (dotenv.env['FIREBASE_PRIVATE_KEY'] ?? "").replaceAll("\\n", "\n"),
+    "client_email": dotenv.env['FIREBASE_CLIENT_EMAIL'],
+    "client_id": dotenv.env['FIREBASE_CLIENT_ID'],
     "auth_uri": "https://accounts.google.com/o/oauth2/auth",
     "token_uri": "https://oauth2.googleapis.com/token",
     "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40seydirehber1.iam.gserviceaccount.com",
+    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/${dotenv.env['FIREBASE_CLIENT_EMAIL']?.replaceAll("@", "%40")}",
     "universe_domain": "googleapis.com"
   };
 
