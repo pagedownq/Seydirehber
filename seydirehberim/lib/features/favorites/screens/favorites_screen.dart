@@ -6,6 +6,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/widgets/cached_image_widget.dart';
 import '../providers/favorites_provider.dart';
+import '../../../core/widgets/favorite_button.dart';
 
 class FavoritesScreen extends ConsumerWidget {
   const FavoritesScreen({super.key});
@@ -124,18 +125,16 @@ class _FavoriteItemCard extends StatelessWidget {
                       ),
                     ),
                   // Favorite Icon (always on here)
-                  Positioned(
-                    top: 12,
-                    right: 12,
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.black26,
-                        shape: BoxShape.circle,
+                    Positioned(
+                      top: 4,
+                      right: 4,
+                      child: FavoriteButton(
+                        id: item.id,
+                        type: item.type,
+                        size: 20,
+                        showBackground: true,
                       ),
-                      child: const Icon(Icons.favorite, color: Colors.red, size: 20),
                     ),
-                  ),
                   // Bottom Content
                   Positioned(
                     bottom: 0,

@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_text_styles.dart';
 import '../../../core/widgets/cached_image_widget.dart';
 import '../../../core/widgets/interactive_map_widget.dart';
+import '../../../core/widgets/favorite_button.dart';
 import '../../../core/utils/map_helper.dart';
-import '../../favorites/providers/favorites_provider.dart';
 import 'package:latlong2/latlong.dart';
 import '../../../core/widgets/review_section.dart';
 import '../../../core/widgets/shimmer_widget.dart';
@@ -30,247 +31,187 @@ class PlaceDetailScreen extends ConsumerWidget {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const DetailShimmer();
           }
-          if (!snapshot.hasData || !snapshot.data!.exists) {
-            return const Center(child: Text('Yer bulunamadı'));
+
+          if (snapshot.hasError || !snapshot.hasData || !snapshot.data!.exists) {
+            return const Center(child: Text('Bir hata oluştu veya veri bulunamadı.'));
           }
 
           final data = snapshot.data!.data() as Map<String, dynamic>;
-          final name = data['ad'] as String? ?? '';
+          final name = data['ad'] as String? ?? data['name'] as String? ?? '';
           final imageUrl = data['image_url'] as String? ?? data['gorsel'] as String? ?? '';
-          final hakkinda = data['hakkinda'] as String? ?? '';
-          final tarihce = data['tarihce'] as String?;
-          final konum = data['konum'] as String?;
-          final adres = data['adres'] as String? ?? data['konum'] as String? ?? '';
-          final category = data['kategori'] as String? ?? '';
+          final description = data['aciklama'] as String? ?? data['description'] as String? ?? '';
+          final konum = data['konum'] as String? ?? data['location'] as String? ?? '';
 
-          return Stack(
-            children: [
-              CustomScrollView(
-                physics: const ClampingScrollPhysics(),
-                slivers: [
-                  // App Bar with Image
-                  SliverAppBar(
-                    expandedHeight: 450,
-                    pinned: true,
-                    elevation: 0,
-                    backgroundColor: Colors.white,
-                    scrolledUnderElevation: 0,
-                    shadowColor: Colors.transparent,
-                    surfaceTintColor: Colors.transparent,
-                    foregroundColor: AppColors.primaryDark,
-                    leading: Container(
-                      margin: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.3),
-                        shape: BoxShape.circle,
+          return CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              SliverAppBar(
+                expandedHeight: 350,
+                pinned: true,
+                backgroundColor: AppColors.primary,
+                leading: Container(
+                  margin: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.3),
+                    shape: BoxShape.circle,
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.arrow_back, color: Colors.white),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ),
+                flexibleSpace: FlexibleSpaceBar(
+                  background: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Hero(
+                        tag: 'place-$placeId',
+                        child: CachedImageWidget(
+                          imageUrl: imageUrl,
+                          fit: BoxFit.cover,
+                        ),
                       ),
-                      child: IconButton(
-                        icon: const Icon(Icons.arrow_back, size: 20, color: Colors.white),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                    ),
-                    flexibleSpace: FlexibleSpaceBar(
-                      background: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          Hero(
-                            tag: 'place-$placeId',
-                            child: CachedImageWidget(
-                              imageUrl: imageUrl,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                          // Dark overlay for readability
-                          DecoratedBox(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  Colors.black.withOpacity(0.4),
-                                  Colors.transparent,
-                                  Colors.black.withOpacity(0.2),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    actions: [
                       Container(
-                        margin: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.3),
-                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.black.withOpacity(0.4),
+                              Colors.transparent,
+                              Colors.black.withOpacity(0.4),
+                            ],
+                          ),
                         ),
-                        child: IconButton(
-                          icon: const Icon(Icons.share_outlined, size: 20),
-                          onPressed: () {
-                            Share.share('$name yerini Seydi Rehber\'de keşfet!');
-                          },
-                        ),
-                      ),
-                      Consumer(
-                        builder: (context, ref, child) {
-                          final favorites = ref.watch(favoritesProvider);
-                          final isFav = favorites.any((e) => e.id == placeId && e.type == 'place');
-                          return Container(
-                            margin: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.3),
-                              shape: BoxShape.circle,
-                            ),
-                            child: IconButton(
-                              icon: Icon(
-                                isFav ? Icons.favorite : Icons.favorite_border,
-                                color: isFav ? Colors.red : Colors.white,
-                                size: 20,
-                              ),
-                              onPressed: () {
-                                ref.read(favoritesProvider.notifier)
-                                    .toggleFavorite(placeId, 'place');
-                              },
-                            ),
-                          );
-                        },
                       ),
                     ],
-                    bottom: PreferredSize(
-                      preferredSize: const Size.fromHeight(20),
-                      child: Container(
-                        height: 20,
-                        width: double.infinity,
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.vertical(top: Radius.circular(38)),
+                  ),
+                ),
+                actions: [
+                  Container(
+                    margin: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.3),
+                      shape: BoxShape.circle,
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.share_outlined, color: Colors.white, size: 20),
+                      onPressed: () {
+                        Share.share('$name yerini Seydi Rehber\'de keşfet!');
+                      },
+                    ),
+                  ),
+                  FavoriteButton(id: placeId, type: 'place'),
+                ],
+                bottom: PreferredSize(
+                  preferredSize: const Size.fromHeight(20),
+                  child: Container(
+                    height: 20,
+                    width: double.infinity,
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(38)),
+                    ),
+                  ),
+                ),
+              ),
+
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 25),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        name,
+                        style: const TextStyle(
+                          fontSize: 26,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF1E293B),
+                          letterSpacing: -0.5,
                         ),
                       ),
-                    ),
-                  ),
-
-                  // Content Card
-                  SliverToBoxAdapter(
-                    child: Container(
-                      color: Colors.white,
-                      padding: const EdgeInsets.fromLTRB(25, 0, 25, 120),
-                      child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Header Row: Title + Category
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                if (category.isNotEmpty) ...[
-                                  Text(
-                                    category.toUpperCase(),
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: AppColors.primaryDark,
-                                      fontWeight: FontWeight.bold,
-                                      letterSpacing: 1.2,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                ],
-                                Text(
-                                  name,
-                                  style: const TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.w900,
-                                    color: Colors.black,
-                                    height: 1.1,
-                                  ),
-                                ),
-                              ],
-                            ),
-
-                            const SizedBox(height: 16),
-
-                            // Description
-                            if (hakkinda.isNotEmpty) ...[
-                              const SectionTitle(title: 'Hakkında'),
-                              const SizedBox(height: 12),
-                              Text(
-                                hakkinda,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey[800],
-                                  height: 1.5,
-                                ),
-                              ),
-                              const SizedBox(height: 32),
-                            ],
-
-                            // History Section
-                            if (tarihce != null && tarihce.isNotEmpty) ...[
-                              const SectionTitle(title: 'Tarihçe'),
-                              const SizedBox(height: 12),
-                              Text(
-                                tarihce,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey[800],
-                                  height: 1.5,
-                                ),
-                              ),
-                              const SizedBox(height: 32),
-                            ],
-
-                            const SectionTitle(title: 'Konum'),
-                            const SizedBox(height: 16),
-                            if (adres.isNotEmpty) ...[
-                              _buildModernInfoRow(Icons.location_on_outlined, 'ADRES', adres),
-                            ],
-                            if (konum != null && konum.isNotEmpty) ...[
-                              FutureBuilder<LatLng?>(
-                                future: MapHelper.getCoordinates(konum),
-                                builder: (context, snapshot) {
-                                  if (snapshot.hasData && snapshot.data != null) {
-                                    return Padding(
-                                      padding: const EdgeInsets.only(bottom: 20),
-                                      child: InteractiveMapWidget(
-                                        position: snapshot.data!,
-                                        title: name,
-                                      ),
-                                    );
-                                  }
-                                  return const SizedBox.shrink();
-                                },
-                              ),
-                              SizedBox(
-                                width: double.infinity,
-                                child: ElevatedButton.icon(
-                                  onPressed: () => _launchMap(konum!),
-                                  icon: const Icon(Icons.near_me_rounded),
-                                  label: const Text('HARİTA ÜZERİNDEN BAK', 
-                                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 0.5)),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.primarySurface,
-                                    foregroundColor: AppColors.primaryDark,
-                                    padding: const EdgeInsets.symmetric(vertical: 18),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(15),
-                                    ),
-                                    elevation: 0,
-                                  ),
-                                ),
-                              ),
-                            ],
-                            const SizedBox(height: 48),
-
-                            // YORUMLAR VE PUANLAMA
-                            ReviewSection(
-                              targetId: placeId,
-                              targetType: 'place',
-                            ),
-                            
-                            const SizedBox(height: 40),
-                          ],
+                      const SizedBox(height: 20),
+                      Text(
+                        description,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey[700],
+                          height: 1.6,
                         ),
-                    ),
+                      ),
+                      const SizedBox(height: 32),
+                      
+                      const Text(
+                        'Konum',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF1E293B),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      if (konum.isNotEmpty) ...[
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(24),
+                          child: Container(
+                            height: 200,
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[100],
+                              border: Border.all(color: Colors.grey[200]!),
+                            ),
+                            child: FutureBuilder<LatLng?>(
+                              future: MapHelper.getCoordinates(konum),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                  return const Center(child: CircularProgressIndicator());
+                                }
+                                
+                                final coords = snapshot.data;
+                                if (coords != null) {
+                                  return InteractiveMapWidget(
+                                    position: coords,
+                                    title: name,
+                                  );
+                                }
+                                
+                                return Center(
+                                  child: Text(
+                                    'Harita görüntülenemiyor',
+                                    style: TextStyle(color: Colors.grey[500]),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: () => _launchURL(konum, context),
+                            icon: const Icon(Icons.directions_rounded),
+                            label: const Text('Yol Tarifi Al'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              elevation: 0,
+                            ),
+                          ),
+                        ),
+                      ],
+                      
+                      const SizedBox(height: 40),
+                      ReviewSection(targetId: placeId, targetType: 'place'),
+                      const SizedBox(height: 100),
+                    ],
                   ),
-                ],
+                ),
               ),
             ],
           );
@@ -279,85 +220,18 @@ class PlaceDetailScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _launchURL(String url) async {
-    String link = url;
-    if (!link.startsWith('http')) link = 'https://$link';
-    final uri = Uri.parse(link);
+  Future<void> _launchURL(String url, BuildContext context) async {
+    final uri = Uri.parse(url);
+    if (!url.startsWith('http')) {
+      final googleMapsUri = Uri.parse('https://www.google.com/maps/search/?api=1&query=$url');
+      if (await canLaunchUrl(googleMapsUri)) {
+        await launchUrl(googleMapsUri, mode: LaunchMode.externalApplication);
+      }
+      return;
+    }
+    
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
-  }
-
-  Future<void> _launchMap(String query) async {
-    String mapUrl = '';
-    if (query.startsWith('http')) {
-      mapUrl = query;
-    } else {
-      mapUrl = 'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(query)}';
-    }
-    final uri = Uri.parse(mapUrl);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
-  }
-
-  Widget _buildModernInfoRow(IconData icon, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: AppColors.primarySurface,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, size: 20, color: AppColors.primaryDark),
-          ),
-          const SizedBox(width: 15),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    color: Colors.grey[500],
-                    fontSize: 10,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 1.2,
-                  ),
-                ),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    color: Colors.black87,
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class SectionTitle extends StatelessWidget {
-  final String title;
-  const SectionTitle({super.key, required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.bold,
-        color: Colors.black87,
-      ),
-    );
   }
 }

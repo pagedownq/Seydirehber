@@ -7,6 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../core/utils/app_notification.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../../core/providers/app_info_provider.dart';
 import '../../../core/services/block_service.dart';
@@ -192,9 +193,7 @@ class SettingsScreen extends ConsumerWidget {
               if (confirm == true) {
                 await BlockService.clearBlockedUsers();
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Tüm kullanıcıların engeli kaldırıldı.')),
-                  );
+                  AppNotification.success(context, 'Tüm kullanıcıların engeli kaldırıldı.');
                 }
               }
             },

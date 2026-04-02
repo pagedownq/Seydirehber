@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../constants/app_colors.dart';
 import '../models/review.dart';
 import '../services/review_service.dart';
+import '../utils/app_notification.dart';
 
 class PostReviewBottomSheet extends ConsumerStatefulWidget {
   final String targetId;
@@ -279,8 +280,9 @@ class _PostReviewBottomSheetState extends ConsumerState<PostReviewBottomSheet> {
       
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(widget.existingReview != null ? 'Yorumunuz güncellendi.' : 'Yorumunuz başarıyla eklendi.')),
+        AppNotification.success(
+          context, 
+          widget.existingReview != null ? 'Yorumunuz güncellendi.' : 'Yorumunuz başarıyla eklendi.'
         );
       }
     } catch (e) {
@@ -292,14 +294,7 @@ class _PostReviewBottomSheetState extends ConsumerState<PostReviewBottomSheet> {
           if (e is Exception) {
             errorMessage = e.toString().replaceAll('Exception: ', '');
           }
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(errorMessage),
-              backgroundColor: Colors.black87,
-              duration: const Duration(seconds: 4),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
+          AppNotification.error(context, errorMessage);
         }
       }
     } finally {

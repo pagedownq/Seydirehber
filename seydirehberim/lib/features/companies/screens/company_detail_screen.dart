@@ -3,18 +3,17 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/widgets/cached_image_widget.dart';
-import '../../../core/widgets/map_button.dart';
-import '../../../core/widgets/interactive_map_widget.dart';
-import '../../../core/utils/map_helper.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:latlong2/latlong.dart';
-import '../../favorites/providers/favorites_provider.dart';
-import '../../../core/widgets/review_section.dart';
+import '../../../core/widgets/favorite_button.dart';
 import '../../../core/widgets/shimmer_widget.dart';
+import '../../../core/utils/map_helper.dart';
+import '../../../core/widgets/interactive_map_widget.dart';
+import '../../../core/widgets/review_section.dart';
+import 'package:latlong2/latlong.dart';
 
 class CompanyDetailScreen extends ConsumerStatefulWidget {
   final String companyId;
@@ -177,31 +176,7 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
                           },
                         ),
                       ),
-                      Consumer(
-                        builder: (context, ref, child) {
-                          final favorites = ref.watch(favoritesProvider);
-                          final isFav = favorites.any((e) => 
-                            e.id == widget.companyId && e.type == 'company');
-                          return Container(
-                            margin: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.3),
-                              shape: BoxShape.circle,
-                            ),
-                            child: IconButton(
-                              icon: Icon(
-                                isFav ? Icons.favorite : Icons.favorite_border,
-                                color: isFav ? Colors.red : Colors.white,
-                                size: 20,
-                              ),
-                              onPressed: () {
-                                ref.read(favoritesProvider.notifier)
-                                    .toggleFavorite(widget.companyId, 'company');
-                              },
-                            ),
-                          );
-                        },
-                      ),
+                          FavoriteButton(id: widget.companyId, type: 'company'),
                     ],
                     bottom: PreferredSize(
                       preferredSize: const Size.fromHeight(20),
