@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../../core/services/notification_service.dart';
 
 class SupportScreen extends ConsumerStatefulWidget {
   const SupportScreen({super.key});
@@ -78,6 +80,14 @@ class _SupportScreenState extends ConsumerState<SupportScreen> {
 
     try {
       final user = ref.read(authStateProvider).value;
+      // Get FCM token for targeted notifications
+      String? fcmToken;
+      try {
+        fcmToken = await FirebaseMessaging.instance.getToken();
+        debugPrint('Support FCM Token: $fcmToken');
+      } catch (e) {
+        debugPrint('FCM Token get error: $e');
+      }
       
       await FirebaseFirestore.instance.collection('yardim_destek').add({
         'ad_soyad': _nameController.text.trim(),
@@ -89,23 +99,18 @@ class _SupportScreenState extends ConsumerState<SupportScreen> {
         'is_guest': user == null || ref.read(isGuestProvider),
         'tarih': FieldValue.serverTimestamp(),
         'durum': 'Bekliyor', // Default status for new messages
+        'fcm_token': fcmToken ?? '',
       });
 
       if (mounted) {
-        final hasPhone = _phoneController.text.trim().isNotEmpty;
-        final successMsg = hasPhone 
-            ? 'Mesajınız başarıyla gönderilmiştir! En kısa sürede e-posta veya telefon üzerinden size dönüş yapacağız.'
-            : 'Mesajınız başarıyla gönderilmiştir! En kısa sürede e-posta üzerinden size dönüş yapacağız.';
-
-        // Go to home and show success message
-        context.go('/');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(successMsg),
-            backgroundColor: AppColors.success,
-            duration: const Duration(seconds: 4),
-          ),
+        // Show success notification to the user
+        NotificationService().showTestNotification(
+          title: 'Destek Talebi Alındı 📩',
+          body: 'Yardım & Destek talebiniz gönderilmiştir. En kısa zamanda dönüş yapılacaktır. Teşekkürler!',
         );
+
+        // Go to home
+        context.go('/');
       }
     } catch (e) {
       if (mounted) {

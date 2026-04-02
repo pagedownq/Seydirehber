@@ -1,0 +1,13 @@
+# Firebase Admin SDK Service Account Key
+seydirehber1-firebase-adminsdk-fbsvc-07e4f1a26e.json
+*-firebase-adminsdk-*.json
+firebase-adminsdk.json
+
+# Other sensitive files
+.env
+.env.*
+sha_keyleri.txt
+android/key.properties
+android/local.properties
+ios/Runner/GoogleService-Info.plist
+android/app/google-services.json

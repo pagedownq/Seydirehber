@@ -21,12 +21,14 @@ import '../../features/admin/screens/admin_manage_screen.dart';
 import '../../features/admin/screens/admin_support_screen.dart';
 import '../../features/admin/screens/admin_reviews_screen.dart';
 import '../../features/admin/screens/admin_reports_screen.dart';
+import '../../features/admin/screens/admin_notifications_screen.dart';
 import '../../features/favorites/screens/favorites_screen.dart';
 import '../widgets/generic_list_screen.dart';
 import '../../features/home/providers/home_providers.dart';
 import '../../features/coupons/screens/coupons_screen.dart';
 import '../../features/coupons/screens/coupon_detail_screen.dart';
 import '../../features/map/screens/seydi_map_screen.dart';
+import '../../features/notifications/screens/user_notifications_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -42,6 +44,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
+      // Notifications
+      GoRoute(
+        path: '/notifications',
+        builder: (context, state) => const UserNotificationsScreen(),
+      ),
       // Onboarding
       GoRoute(
         path: '/onboarding',
@@ -226,6 +233,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/admin/reports',
         builder: (context, state) => const AdminReportsScreen(),
+      ),
+      GoRoute(
+        path: '/admin/notifications',
+        builder: (context, state) => const AdminNotificationsScreen(),
       ),
 
       // Seydi Map

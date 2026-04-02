@@ -130,6 +130,13 @@ class AdminScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 12),
           _AdminCard(
+            icon: Icons.notifications_active,
+            title: 'Bildirim Yönetimi',
+            color: const Color(0xFF0288D1),
+            onTap: () => context.push('/admin/notifications'),
+          ),
+          const SizedBox(height: 12),
+          _AdminCard(
             icon: Icons.people,
             title: 'Esnaf Hesapları',
             color: const Color(0xFF7E57C2),

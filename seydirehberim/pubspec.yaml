@@ -54,6 +54,10 @@ dependencies:
   in_app_update: ^4.2.5
   animations: ^2.1.2
   like_button: ^2.1.0
+  firebase_messaging: ^15.2.10
+  flutter_local_notifications: ^21.0.0
+  permission_handler: ^12.0.1
+  googleapis_auth: ^2.0.0
 
 dev_dependencies:
   flutter_test:

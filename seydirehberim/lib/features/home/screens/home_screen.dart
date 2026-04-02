@@ -44,6 +44,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ),
                 ],
               ),
+              actions: [
+                IconButton(
+                  onPressed: () => context.push('/notifications'),
+                  icon: const Icon(Icons.notifications_outlined,
+                      color: AppColors.textPrimary),
+                ),
+                const SizedBox(width: 8),
+              ],
             ),
 
           // Action Buttons

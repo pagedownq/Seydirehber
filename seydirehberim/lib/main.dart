@@ -7,6 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'core/services/local_cache_service.dart';
 import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
+import 'core/services/notification_service.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -27,6 +28,9 @@ void main() async {
 
   // Local Cache initialization
   await LocalCacheService.init();
+
+  // Notification Service initialization
+  await NotificationService().initialize();
 
   // Firestore offline persistence (ADIM 10.2)
   FirebaseFirestore.instance.settings = const Settings(

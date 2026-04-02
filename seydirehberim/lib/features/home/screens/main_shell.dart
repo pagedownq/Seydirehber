@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../home/screens/home_screen.dart';
 import '../../news/screens/news_screen.dart';
 import '../../settings/screens/settings_screen.dart';
 import '../../../core/services/update_service.dart';
+import '../../../core/services/notification_service.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -25,7 +27,25 @@ class _MainShellState extends State<MainShell> {
   @override
   void initState() {
     super.initState();
-    // Uygulama açılışında güncelleme kontrolü
+    
+    // Bind notification navigation
+    NotificationService().navigateTo = (route) {
+      if (!mounted) return;
+      
+      // Handle tab switches
+      if (route == '/') {
+        setState(() => _currentIndex = 0);
+      } else if (route == '/news') {
+        setState(() => _currentIndex = 1);
+      } else if (route == '/settings') {
+        setState(() => _currentIndex = 2);
+      } else {
+        // Handle deep links to other screens
+        context.push(route);
+      }
+    };
+
+    // Check for updates
     WidgetsBinding.instance.addPostFrameCallback((_) {
       UpdateService.checkForUpdate();
     });

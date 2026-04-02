@@ -3,6 +3,7 @@ import './App.css';
 import Sidebar from './components/Sidebar';
 import DashboardOverview from './components/DashboardOverview';
 import ManageCollection from './components/ManageCollection';
+import NotificationManagement from './components/NotificationManagement';
 import { auth } from './lib/firebase';
 import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
 import { getDoc, doc } from 'firebase/firestore';
@@ -136,6 +137,8 @@ function App() {
 
         {activeTab === 'dashboard' ? (
           <DashboardOverview />
+        ) : activeTab === 'notifications' ? (
+          <NotificationManagement />
         ) : (
           <ManageCollection key={activeTab} collectionId={activeTab} />
         )}
