@@ -66,14 +66,17 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new,
               color: AppColors.textPrimary, size: 20),
-          onPressed: () => context.pop(),
+          onPressed: () {
+            HapticFeedback.lightImpact();
+            context.pop();
+          },
         ),
         title: TextField(
           controller: _searchController,
           autofocus: true,
           style: AppTextStyles.bodyMedium,
           decoration: const InputDecoration(
-            hintText: 'Firma, yer veya kategori ara...',
+            hintText: 'Firma, yer, kupon veya kategori ara...',
             border: InputBorder.none,
           ),
           onChanged: (value) =>
@@ -89,13 +92,16 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             IconButton(
               icon: const Icon(Icons.clear, color: AppColors.textLight, size: 20),
               onPressed: () {
-                HapticFeedback.selectionClick();
+                HapticFeedback.lightImpact();
                 _searchController.clear();
                 ref.read(searchQueryProvider.notifier).state = '';
               },
             ),
           TextButton(
-            onPressed: () => context.pop(),
+            onPressed: () {
+              HapticFeedback.lightImpact();
+              context.pop();
+            },
             child: const Text(
               'Vazgeç',
               style: TextStyle(
@@ -109,7 +115,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       body: query.isEmpty
           ? _SearchHistoryList(
               onHistoryTap: (term) {
-                HapticFeedback.selectionClick();
+                HapticFeedback.lightImpact();
                 _searchController.text = term;
                 ref.read(searchQueryProvider.notifier).state = term;
               },
@@ -148,7 +154,10 @@ class _SearchHistoryList extends ConsumerWidget {
                 style: AppTextStyles.heading3,
               ),
               TextButton(
-                onPressed: () => ref.read(searchHistoryProvider.notifier).clearHistory(),
+                onPressed: () {
+                  HapticFeedback.lightImpact();
+                  ref.read(searchHistoryProvider.notifier).clearHistory();
+                },
                 child: const Text('Temizle', style: TextStyle(color: AppColors.error)),
               ),
             ],
@@ -166,7 +175,10 @@ class _SearchHistoryList extends ConsumerWidget {
                 title: Text(term, style: AppTextStyles.bodyMedium),
                 trailing: IconButton(
                   icon: const Icon(Icons.close, size: 18, color: AppColors.textLight),
-                  onPressed: () => ref.read(searchHistoryProvider.notifier).removeSearchTerm(term),
+                  onPressed: () {
+                    HapticFeedback.lightImpact();
+                    ref.read(searchHistoryProvider.notifier).removeSearchTerm(term);
+                  },
                 ),
                 onTap: () => onHistoryTap(term),
               );
@@ -206,6 +218,7 @@ class _SearchResultsList extends ConsumerWidget {
           {'title': 'Halk Pazarları', 'route': '/pazarlar', 'icon': Icons.storefront_rounded},
           {'title': 'Otobüs Saatleri', 'route': '/otobus', 'icon': Icons.directions_bus_rounded},
           {'title': 'Haberler', 'route': '/news', 'icon': Icons.newspaper_rounded},
+          {'title': 'Fırsat Kuponları', 'route': '/coupons', 'icon': Icons.confirmation_number_outlined},
         ];
 
         final filteredServices = services.where((s) => 
@@ -234,12 +247,19 @@ class _SearchResultsList extends ConsumerWidget {
                 title: Text(s['title'] as String),
                 subtitle: const Text('Uygulama içi kısayol'),
                 onTap: () {
+                  HapticFeedback.lightImpact();
                   ref.read(searchHistoryProvider.notifier).addSearchTerm(normalizedQuery);
                   context.push(s['route'] as String);
                 },
               )),
               const Divider(),
             ],
+            _SearchCollectionSection(
+              title: 'Fırsat Kuponları',
+              collection: 'coupons',
+              query: normalizedQuery,
+              routePrefix: '/coupons',
+            ),
             _SearchCollectionSection(
               title: 'Etkinlikler',
               collection: 'etkinlikler',
@@ -287,9 +307,27 @@ class _SearchCollectionSection extends ConsumerWidget {
         
         final docs = snapshot.data!.docs.where((doc) {
           final data = doc.data() as Map<String, dynamic>;
-          final name = (data['ad'] ?? data['name'] ?? '').toString().toLowerCase();
+          
+          // Basic filters
+          if (data.containsKey('isActive') && data['isActive'] == false) return false;
+          
+          // Expiry check for coupons/events
+          if (data.containsKey('expiry_date') && data['expiry_date'] != null) {
+            try {
+              final expiry = (data['expiry_date'] as Timestamp).toDate();
+              if (expiry.isBefore(DateTime.now())) return false;
+            } catch (_) {}
+          }
+
+          final name = (data['ad'] ?? data['name'] ?? data['title'] ?? '').toString().toLowerCase();
           final category = (data['kategori'] ?? '').toString().toLowerCase();
-          return name.contains(query) || category.contains(query);
+          final companyName = (data['companyName'] ?? '').toString().toLowerCase();
+          final description = (data['description'] ?? data['aciklama'] ?? '').toString().toLowerCase();
+          
+          return name.contains(query) || 
+                 category.contains(query) || 
+                 companyName.contains(query) ||
+                 description.contains(query);
         }).toList();
 
         if (docs.isEmpty) return const SizedBox.shrink();
@@ -303,9 +341,9 @@ class _SearchCollectionSection extends ConsumerWidget {
             ),
             ...docs.map((doc) {
               final data = doc.data() as Map<String, dynamic>;
-              final name = data['ad'] ?? data['name'] ?? '';
+              final name = data['ad'] ?? data['name'] ?? data['title'] ?? '';
               final imageUrl = data['image_url'] ?? data['gorsel'] ?? '';
-              final category = data['kategori'] as String? ?? '';
+              final category = data['kategori'] ?? data['companyName'] ?? '';
               
               final rawAdres = data['adres'] as String? ?? '';
               final rawKonum = data['konum'] as String? ?? '';
@@ -313,24 +351,34 @@ class _SearchCollectionSection extends ConsumerWidget {
               
               return ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: CachedImageWidget(
-                    imageUrl: imageUrl.toString(),
-                    width: 50,
-                    height: 50,
-                    memCacheWidth: 100,
-                    memCacheHeight: 100,
-                    isCompany: routePrefix == '/companies',
-                  ),
-                ),
-                title: Text(name),
+                leading: routePrefix == '/coupons'
+                    ? Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: AppColors.primarySurface,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(Icons.confirmation_number_outlined, color: AppColors.primary),
+                      )
+                    : ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: CachedImageWidget(
+                          imageUrl: imageUrl.toString(),
+                          width: 50,
+                          height: 50,
+                          memCacheWidth: 100,
+                          memCacheHeight: 100,
+                          isCompany: routePrefix == '/companies',
+                        ),
+                      ),
+                title: Text(name.toString()),
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (category.isNotEmpty) 
+                    if (category.toString().isNotEmpty) 
                       Text(
-                        category, 
+                        category.toString(), 
                         style: TextStyle(
                           color: AppColors.primary, 
                           fontSize: 12, 
@@ -342,8 +390,9 @@ class _SearchCollectionSection extends ConsumerWidget {
                   ],
                 ),
                 onTap: () {
+                  HapticFeedback.lightImpact();
                   ref.read(searchHistoryProvider.notifier).addSearchTerm(query);
-                  context.push('$routePrefix/${doc.id}');
+                  context.push('$routePrefix/${doc.id}', extra: data);
                 },
               );
             }),

@@ -727,7 +727,24 @@ const SortableRow = ({ item, collectionId, config, isDraggable, handleOpenModal,
                   checked={item.durum === 'Çözüldü'} 
                   onChange={async (e) => {
                     const newStatus = e.target.checked ? 'Çözüldü' : 'Bekliyor';
-                    await updateDoc(doc(db, collectionId, item.id), { durum: newStatus });
+                    try {
+                      await updateDoc(doc(db, collectionId, item.id), { durum: newStatus });
+                      
+                      // Bildirim gönderme (Eğer durum 'Çözüldü' ise ve token varsa)
+                      if (e.target.checked && item.fcm_token) {
+                        const { sendFCMNotification } = await import('../lib/fcm');
+                        await sendFCMNotification(
+                          'Destek Talebiniz Çözüldü ✅',
+                          `${item.kategori || 'Destek'} konulu talebiniz başarıyla çözülmüştür.`,
+                          '/', // Ana sayfaya yönlendir
+                          item.fcm_token
+                        );
+                        console.log('Kullanıcıya özel bildirim gönderildi.');
+                      }
+                    } catch (err) {
+                      console.error('Destek güncelleme hatası:', err);
+                      alert('Durum güncellenemedi.');
+                    }
                   }}
                 />
                 <span className="slider"></span>

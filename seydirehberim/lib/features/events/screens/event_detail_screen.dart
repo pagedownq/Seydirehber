@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:share_plus/share_plus.dart';
@@ -67,7 +68,10 @@ class EventDetailScreen extends ConsumerWidget {
                       ),
                       child: IconButton(
                         icon: const Icon(Icons.arrow_back, size: 20, color: Colors.white),
-                        onPressed: () => Navigator.pop(context),
+                        onPressed: () {
+                          HapticFeedback.lightImpact();
+                          Navigator.pop(context);
+                        },
                       ),
                     ),
                     flexibleSpace: FlexibleSpaceBar(
@@ -107,6 +111,7 @@ class EventDetailScreen extends ConsumerWidget {
                         child: IconButton(
                           icon: const Icon(Icons.share_outlined, size: 20),
                           onPressed: () {
+                            HapticFeedback.lightImpact();
                             Share.share('$name etkinliğini Seydi Rehber\'de keşfet!');
                           },
                         ),
@@ -209,7 +214,10 @@ class EventDetailScreen extends ConsumerWidget {
                               SizedBox(
                                 width: double.infinity,
                                 child: ElevatedButton.icon(
-                                  onPressed: () => _launchMap(konum!),
+                                  onPressed: () {
+                                    HapticFeedback.lightImpact();
+                                    _launchMap(konum!);
+                                  },
                                   icon: const Icon(Icons.near_me_rounded),
                                   label: const Text('HARİTA ÜZERİNDEN BAK', 
                                     style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 0.5)),

@@ -57,23 +57,29 @@ async function getAccessToken() {
   }
 }
 
-export async function sendFCMNotification(title: string, body: string, targetRoute: string = '/') {
+export async function sendFCMNotification(
+  title: string, 
+  body: string, 
+  targetRoute: string = '/', 
+  targetToken?: string // Belirli bir cihaza göndermek için eklendi
+) {
   try {
     const accessToken = await getAccessToken();
     const url = `https://fcm.googleapis.com/v1/projects/${import.meta.env.VITE_FIREBASE_PROJECT_ID}/messages:send`;
     
     const message = {
       message: {
-        topic: 'all', // Uygulama 'all' konusunu dinliyor
+        // Eğer token varsa token'a, yoksa 'all' konusuna gönder
+        ...(targetToken ? { token: targetToken } : { topic: 'all' }),
         notification: { title, body },
         data: { 
-          screen: targetRoute, // Uygulama 'screen' anahtarını bekliyor
+          screen: targetRoute,
           click_action: 'FLUTTER_NOTIFICATION_CLICK'
         },
         android: {
           priority: 'high',
           notification: { 
-            channel_id: 'seydirehberim_notifications', // Uygulama bu kanalı tanıyor
+            channel_id: 'seydirehberim_notifications',
             sound: 'default'
           },
         },

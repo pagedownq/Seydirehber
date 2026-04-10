@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -243,7 +244,10 @@ class _CouponDetailScreenState extends ConsumerState<CouponDetailScreen> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: () => Navigator.pop(context, true),
+                            onPressed: () {
+                              HapticFeedback.lightImpact();
+                              Navigator.pop(context, true);
+                            },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.primary,
                               foregroundColor: Colors.white,
@@ -505,7 +509,12 @@ class _CouponDetailScreenState extends ConsumerState<CouponDetailScreen> {
                     width: double.infinity,
                     height: 56,
                     child: ElevatedButton(
-                      onPressed: isButtonDisabled ? null : _generateCode,
+                      onPressed: isButtonDisabled
+                          ? null
+                          : () {
+                              HapticFeedback.lightImpact();
+                              _generateCode();
+                            },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: (isButtonDisabled && !_isGenerating) ? Colors.grey : AppColors.primary,
                         foregroundColor: Colors.white,
@@ -597,6 +606,7 @@ class _CouponDetailScreenState extends ConsumerState<CouponDetailScreen> {
                 const SizedBox(height: 32),
                 ElevatedButton(
                   onPressed: () {
+                    HapticFeedback.lightImpact();
                     Navigator.of(context).pop();
                   },
                   child: const Text('Geri Dön'),

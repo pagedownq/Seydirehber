@@ -44,13 +44,27 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
             .collection(widget.collection)
             .orderBy('created_at', descending: true)
             .snapshots()
-            .handleError((_) {
-              // If index or field missing, fall back to unordered
-              return FirebaseFirestore.instance
-                  .collection(widget.collection)
-                  .snapshots();
+            .handleError((error) {
+              debugPrint('Ordered query failed for ${widget.collection}: $error');
             }),
         builder: (context, snapshot) {
+          // If the ordered query errors out (missing index), try unordered
+          if (snapshot.hasError) {
+            return StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection(widget.collection)
+                  .snapshots(),
+              builder: (context, fallbackSnapshot) {
+                if (fallbackSnapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (!fallbackSnapshot.hasData || fallbackSnapshot.data!.docs.isEmpty) {
+                  return const Center(child: Text('Henüz veri yok'));
+                }
+                return _buildDocList(List<DocumentSnapshot>.from(fallbackSnapshot.data!.docs));
+              },
+            );
+          }
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
@@ -59,7 +73,13 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
           }
 
           final docs = List<DocumentSnapshot>.from(snapshot.data!.docs);
-          
+          return _buildDocList(docs);
+        },
+      ),
+    );
+  }
+
+  Widget _buildDocList(List<DocumentSnapshot> docs) {
           // Apply local sorting matching web admin logic
           if (widget.collection == 'firmalar' || widget.collection == 'gezilecek_yerler') {
             docs.sort((a, b) {
@@ -138,9 +158,6 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
               return _buildListItem(docs[index], index);
             },
           );
-        },
-      ),
-    );
   }
 
   Widget _buildListItem(DocumentSnapshot doc, int index, {Key? key}) {

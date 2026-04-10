@@ -37,7 +37,9 @@ class AdminReviewsScreen extends StatelessWidget {
             itemBuilder: (context, index) {
               final doc = reviews[index];
               final data = doc.data() as Map<String, dynamic>;
-              final createdAt = (data['createdAt'] as Timestamp).toDate();
+              final createdAt = data['createdAt'] != null
+                ? (data['createdAt'] as Timestamp).toDate()
+                : DateTime.now();
               
               return Container(
                 padding: const EdgeInsets.all(16),

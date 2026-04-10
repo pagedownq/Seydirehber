@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
@@ -37,10 +38,21 @@ class PlaceDetailScreen extends ConsumerWidget {
           }
 
           final data = snapshot.data!.data() as Map<String, dynamic>;
-          final name = data['ad'] as String? ?? data['name'] as String? ?? '';
-          final imageUrl = data['image_url'] as String? ?? data['gorsel'] as String? ?? '';
-          final description = data['aciklama'] as String? ?? data['description'] as String? ?? '';
-          final konum = data['konum'] as String? ?? data['location'] as String? ?? '';
+          final name = data['ad']?.toString() ?? data['name']?.toString() ?? '';
+          final imageUrl = data['image_url']?.toString() ?? data['gorsel']?.toString() ?? '';
+          
+          // Robust field extraction with prioritized fallbacks
+          String getField(List<String> keys) {
+            for (var key in keys) {
+              final val = data[key]?.toString().trim();
+              if (val != null && val.isNotEmpty) return val;
+            }
+            return '';
+          }
+
+          final hakkinda = getField(['hakkinda', 'aciklama', 'description', 'info']);
+          final tarihce = getField(['tarihce', 'history']);
+          final konum = getField(['konum', 'location', 'address']);
 
           return CustomScrollView(
             physics: const BouncingScrollPhysics(),
@@ -57,7 +69,10 @@ class PlaceDetailScreen extends ConsumerWidget {
                   ),
                   child: IconButton(
                     icon: const Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () {
+                      HapticFeedback.lightImpact();
+                      Navigator.pop(context);
+                    },
                   ),
                 ),
                 flexibleSpace: FlexibleSpaceBar(
@@ -97,6 +112,7 @@ class PlaceDetailScreen extends ConsumerWidget {
                     child: IconButton(
                       icon: const Icon(Icons.share_outlined, color: Colors.white, size: 20),
                       onPressed: () {
+                        HapticFeedback.lightImpact();
                         Share.share('$name yerini Seydi Rehber\'de keşfet!');
                       },
                     ),
@@ -131,16 +147,36 @@ class PlaceDetailScreen extends ConsumerWidget {
                           letterSpacing: -0.5,
                         ),
                       ),
-                      const SizedBox(height: 20),
-                      Text(
-                        description,
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey[700],
-                          height: 1.6,
+                      if (hakkinda.isNotEmpty) ...[
+                        Text(
+                          'Hakkında',
+                          style: AppTextStyles.heading3,
                         ),
-                      ),
-                      const SizedBox(height: 32),
+                        const SizedBox(height: 8),
+                        Text(
+                          hakkinda,
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            color: Colors.grey[800],
+                            height: 1.5,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                      ],
+                      if (tarihce.isNotEmpty) ...[
+                        Text(
+                          'Tarihçe',
+                          style: AppTextStyles.heading3,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          tarihce,
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            color: Colors.grey[800],
+                            height: 1.5,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                      ],
                       
                       const Text(
                         'Konum',
@@ -190,7 +226,10 @@ class PlaceDetailScreen extends ConsumerWidget {
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton.icon(
-                            onPressed: () => _launchURL(konum, context),
+                            onPressed: () {
+                              HapticFeedback.lightImpact();
+                              _launchURL(konum, context);
+                            },
                             icon: const Icon(Icons.directions_rounded),
                             label: const Text('Yol Tarifi Al'),
                             style: ElevatedButton.styleFrom(

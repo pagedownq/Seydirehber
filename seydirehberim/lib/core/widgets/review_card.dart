@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/models/review.dart';
@@ -114,6 +115,7 @@ class _ReviewCardState extends State<ReviewCard> {
                     icon: const Icon(Icons.more_vert, color: Color(0xFF64748B), size: 20),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     onSelected: (value) {
+                      HapticFeedback.lightImpact();
                       if (value == 'edit') _showEditSheet(context);
                       if (value == 'delete') _showDeleteDialog(context);
                       if (value == 'report') _showReportDialog(context);
@@ -266,7 +268,10 @@ class _ReviewCardState extends State<ReviewCard> {
               children: [
                 Expanded(
                   child: TextButton(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () {
+                      HapticFeedback.lightImpact();
+                      Navigator.pop(context);
+                    },
                     style: TextButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -278,6 +283,7 @@ class _ReviewCardState extends State<ReviewCard> {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () async {
+                      HapticFeedback.lightImpact();
                       Navigator.pop(context);
                       await ReviewService().deleteReview(widget.review.id);
                     },
@@ -353,7 +359,10 @@ class _ReviewCardState extends State<ReviewCard> {
               children: [
                 Expanded(
                   child: TextButton(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () {
+                      HapticFeedback.lightImpact();
+                      Navigator.pop(context);
+                    },
                     child: const Text('Vazgeç', style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.bold)),
                   ),
                 ),
@@ -361,6 +370,7 @@ class _ReviewCardState extends State<ReviewCard> {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () async {
+                      HapticFeedback.lightImpact();
                       try {
                         await ReviewService().reportReview(widget.review);
                         if (context.mounted) {

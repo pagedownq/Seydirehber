@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:go_router/go_router.dart';
@@ -53,6 +54,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   void _nextPage() {
+    HapticFeedback.lightImpact();
     if (_currentPage == 1 && !_privacyAccepted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -370,6 +372,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             onPressed: authState.isLoading
                 ? null
                 : () async {
+                    HapticFeedback.lightImpact();
                     await authNotifier.signInWithGoogle();
                     final prefs = await SharedPreferences.getInstance();
                     await prefs.setBool('onboarding_completed', true);
@@ -403,6 +406,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             onPressed: authState.isLoading
                 ? null
                 : () async {
+                    HapticFeedback.lightImpact();
                     await authNotifier.continueAsGuest();
                     final prefs = await SharedPreferences.getInstance();
                     await prefs.setBool('onboarding_completed', true);

@@ -1,7 +1,7 @@
 name: seydirehberim
 description: "Seydi Rehber - Seydişehir Rehber Uygulaması"
 publish_to: 'none'
-version: 1.0.0+5
+version: 1.0.0+8
 
 environment:
   sdk: ^3.10.8
@@ -59,12 +59,16 @@ dependencies:
   permission_handler: ^12.0.1
   googleapis_auth: ^2.0.0
   flutter_dotenv: ^6.0.0
+  geolocator: ^13.0.0
+
+  
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
   flutter_launcher_icons: any
+  
 
 flutter_launcher_icons:
   android: true

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../constants/app_colors.dart';
 
 class ErrorView extends StatelessWidget {
@@ -57,7 +58,10 @@ class ErrorView extends StatelessWidget {
             ),
             const SizedBox(height: 32),
             ElevatedButton.icon(
-              onPressed: onRetry,
+              onPressed: () {
+                HapticFeedback.lightImpact();
+                onRetry();
+              },
               icon: const Icon(Icons.refresh_rounded),
               label: const Text('Tekrar Dene'),
               style: ElevatedButton.styleFrom(

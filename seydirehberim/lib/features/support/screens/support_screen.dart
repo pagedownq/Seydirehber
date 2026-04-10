@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -236,7 +237,10 @@ class _SupportScreenState extends ConsumerState<SupportScreen> {
                 width: double.infinity,
                 height: 54,
                 child: ElevatedButton(
-                  onPressed: _isSending ? null : _submitForm,
+                  onPressed: _isSending ? null : () {
+                    HapticFeedback.lightImpact();
+                    _submitForm();
+                  },
                   child: _isSending 
                     ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                     : const Text('Gönder'),

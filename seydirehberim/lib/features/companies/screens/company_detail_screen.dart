@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -130,7 +131,10 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
                       ),
                       child: IconButton(
                         icon: const Icon(Icons.arrow_back, size: 20, color: Colors.white),
-                        onPressed: () => Navigator.pop(context),
+                        onPressed: () {
+                      HapticFeedback.lightImpact();
+                      Navigator.pop(context);
+                    },
                       ),
                     ),
                     flexibleSpace: FlexibleSpaceBar(
@@ -172,8 +176,9 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
                         child: IconButton(
                           icon: const Icon(Icons.share_outlined, size: 20),
                           onPressed: () {
-                            Share.share('$name firmasını Seydi Rehber\'de keşfet!');
-                          },
+                        HapticFeedback.lightImpact();
+                        Share.share('$name firmasını Seydi Rehber\'de keşfet!');
+                      },
                         ),
                       ),
                           FavoriteButton(id: widget.companyId, type: 'company'),
@@ -298,7 +303,10 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
                               SizedBox(
                                 width: double.infinity,
                                 child: ElevatedButton.icon(
-                                  onPressed: () => _launchMap(konum),
+                                  onPressed: () {
+                              HapticFeedback.lightImpact();
+                              _launchMap(konum);
+                            },
                                   icon: const Icon(Icons.near_me_rounded),
                                   label: const Text('HARİTA ÜZERİNDEN BAK', 
                                     style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 0.5)),
@@ -340,7 +348,12 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: InkWell(
-        onTap: onTap,
+        onTap: () {
+          if (onTap != null) {
+            HapticFeedback.lightImpact();
+            onTap();
+          }
+        },
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -385,7 +398,12 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 25),
       child: InkWell(
-        onTap: onTap,
+        onTap: () {
+          if (onTap != null) {
+            HapticFeedback.lightImpact();
+            onTap!();
+          }
+        },
         borderRadius: BorderRadius.circular(15),
         child: Row(
           children: [
@@ -431,7 +449,10 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
 
   Widget _buildSocialIcon(dynamic icon, VoidCallback onTap) {
     return InkWell(
-      onTap: onTap,
+      onTap: () {
+        HapticFeedback.lightImpact();
+        onTap();
+      },
       borderRadius: BorderRadius.circular(20),
       child: Container(
         padding: const EdgeInsets.all(12),

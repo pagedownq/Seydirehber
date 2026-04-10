@@ -11,36 +11,74 @@ import 'core/services/notification_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'firebase_options.dart';
 
-void main() async {
+void main() {
+  // 1. Flutter'ı anında başlat
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: ".env");
+  
+  // 2. Uygulamayı saniyesinde ayağa kaldır (Beyaz ekran böylece anında kaybolur)
+  runApp(const ProviderScope(child: StartupWrapper()));
+}
 
-  // Firebase initialization
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+class StartupWrapper extends StatefulWidget {
+  const StartupWrapper({super.key});
 
+  @override
+  State<StartupWrapper> createState() => _StartupWrapperState();
+}
 
-  // Supabase initialization
-  await Supabase.initialize(
-    url: 'https://ycqrgraqmafdtvaxwuml.supabase.co',
-    anonKey:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljcXJncmFxbWFmZHR2YXh3dW1sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MTI2MTgsImV4cCI6MjA4OTQ4ODYxOH0.riAGavZ3RZgUHwlxiQDp8PFmVju9qIUamOJBWS8kVWc',
-  );
+class _StartupWrapperState extends State<StartupWrapper> {
+  bool _initialized = false;
 
-  // Local Cache initialization
-  await LocalCacheService.init();
+  @override
+  void initState() {
+    super.initState();
+    _initApp();
+  }
 
-  // Notification Service initialization
-  await NotificationService().initialize();
+  Future<void> _initApp() async {
+    try {
+      await dotenv.load(fileName: ".env");
+      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+      
+      FirebaseFirestore.instance.settings = const Settings(
+        persistenceEnabled: true,
+        cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+      );
+      
+      await Future.wait([
+        Supabase.initialize(
+          url: 'https://ycqrgraqmafdtvaxwuml.supabase.co',
+          anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljcXJncmFxbWFmZHR2YXh3dW1sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MTI2MTgsImV4cCI6MjA4OTQ4ODYxOH0.riAGavZ3RZgUHwlxiQDp8PFmVju9qIUamOJBWS8kVWc',
+        ),
+        LocalCacheService.init(),
+      ]);
 
-  // Firestore offline persistence (ADIM 10.2)
-  FirebaseFirestore.instance.settings = const Settings(
-    persistenceEnabled: true,
-    cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
-  );
+      // Hazır olduğunda bildirimi arkadan başlat
+      NotificationService().initialize().catchError((e) => debugPrint(e.toString()));
 
-  runApp(const ProviderScope(child: SeydiRehberApp()));
+      if (mounted) {
+        setState(() => _initialized = true);
+      }
+    } catch (e) {
+      debugPrint("Kritik Hata: $e");
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Servisler yüklenene kadar sistemin açılış rengi (beyaz) ile devam et
+    // Böylece kullanıcı takılma veya logo atlaması görmez, "tek seferde" açılıyor gibi hisseder.
+    if (!_initialized) {
+      return const MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: Scaffold(
+          backgroundColor: Colors.white,
+          body: SizedBox.expand(),
+        ),
+      );
+    }
+    return const SeydiRehberApp();
+  }
 }
 
 class SeydiRehberApp extends ConsumerWidget {

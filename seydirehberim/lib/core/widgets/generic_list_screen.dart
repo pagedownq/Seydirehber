@@ -50,13 +50,18 @@ class GenericListScreen extends ConsumerWidget {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded,
               color: Colors.white, size: 22),
-          onPressed: () => context.pop(),
+          onPressed: () {
+            HapticFeedback.lightImpact();
+            context.pop();
+          },
         ),
         actions: [
           IconButton(
             icon: const Icon(Icons.share_rounded, color: Colors.white, size: 22),
-            onPressed: () => Share.share(
-                'Seydi Rehber - $title listesine göz at!'),
+            onPressed: () {
+              HapticFeedback.lightImpact();
+              Share.share('Seydi Rehber - $title listesine göz at!');
+            },
           ),
         ],
       ),      body: dataAsync.when(
@@ -193,7 +198,7 @@ class GenericListScreen extends ConsumerWidget {
           padding: const EdgeInsets.only(bottom: 20),
           child: GestureDetector(
             onTap: () {
-              HapticFeedback.selectionClick();
+              HapticFeedback.lightImpact();
               context.push('/$routePrefix/$id');
             },
             child: Container(
@@ -423,7 +428,7 @@ class GenericListScreen extends ConsumerWidget {
   ) {
     return GestureDetector(
       onTap: () {
-        HapticFeedback.selectionClick();
+        HapticFeedback.lightImpact();
         context.push('/$routePrefix/$id');
       },
       child: Column(

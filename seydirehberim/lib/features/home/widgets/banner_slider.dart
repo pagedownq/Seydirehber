@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -72,6 +73,7 @@ class _BannerSliderState extends ConsumerState<BannerSlider> {
 
                       return GestureDetector(
                         onTap: () {
+                          HapticFeedback.lightImpact();
                           if (companyId.isNotEmpty) {
                             context.push('/companies/$companyId');
                           } else if (targetUrl.isNotEmpty) {

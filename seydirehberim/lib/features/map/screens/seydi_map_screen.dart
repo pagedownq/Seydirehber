@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_cancellable_tile_provider/flutter_map_cancellable_tile_provider.dart';
@@ -9,6 +10,8 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/utils/map_helper.dart';
 import '../../home/providers/home_providers.dart';
+import 'package:geolocator/geolocator.dart';
+import 'dart:async';
 
 class SeydiMapScreen extends ConsumerStatefulWidget {
   const SeydiMapScreen({super.key});
@@ -31,8 +34,64 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
   // Track previous filter to detect changes
   String _lastFilterUsed = '';
 
+  // User Location
+  LatLng? _userLocation;
+  StreamSubscription<Position>? _locationSubscription;
+
   // Seydişehir Center
   final LatLng _seydisehirCenter = const LatLng(37.418, 31.846);
+
+  @override
+  void initState() {
+    super.initState();
+    _checkPermissionAndGetLocation();
+  }
+
+  @override
+  void dispose() {
+    _locationSubscription?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _checkPermissionAndGetLocation() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) return;
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) return;
+    }
+
+    if (permission == LocationPermission.deniedForever) return;
+
+    // Get initial position
+    try {
+      Position position = await Geolocator.getCurrentPosition();
+      if (mounted) {
+        setState(() {
+          _userLocation = LatLng(position.latitude, position.longitude);
+        });
+      }
+    } catch (_) {}
+
+    // Listen for updates
+    _locationSubscription = Geolocator.getPositionStream(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 10,
+      ),
+    ).listen((Position position) {
+      if (mounted) {
+        setState(() {
+          _userLocation = LatLng(position.latitude, position.longitude);
+        });
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,7 +125,11 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
               child: const Icon(Icons.my_location, color: AppColors.primary, size: 20),
             ),
             onPressed: () {
-              _mapController.move(_seydisehirCenter, 14.5);
+              if (_userLocation != null) {
+                _mapController.move(_userLocation!, 15.0);
+              } else {
+                _mapController.move(_seydisehirCenter, 14.5);
+              }
             },
           ),
           const SizedBox(width: 8),
@@ -108,7 +171,10 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
           return Padding(
             padding: const EdgeInsets.only(right: 12),
             child: InkWell(
-              onTap: () => setState(() => _selectedFilter = filter),
+              onTap: () {
+                HapticFeedback.lightImpact();
+                setState(() => _selectedFilter = filter);
+              },
               borderRadius: BorderRadius.circular(25),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
@@ -187,7 +253,44 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
           tileDisplay: const TileDisplay.fadeIn(duration: Duration(milliseconds: 300)),
         ),
         MarkerLayer(
-          markers: markers,
+          markers: [
+            ...markers,
+            if (_userLocation != null)
+              Marker(
+                point: _userLocation!,
+                width: 60,
+                height: 60,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Container(
+                      width: 20,
+                      height: 20,
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withOpacity(0.2),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    Container(
+                      width: 12,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        color: Colors.blue,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.blue.withOpacity(0.3),
+                            blurRadius: 4,
+                            spreadRadius: 2,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
           alignment: Alignment.topCenter,
         ),
       ],
@@ -312,6 +415,7 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () {
+          HapticFeedback.lightImpact();
           if (type == 'noter' || type == 'pazar') {
              context.push(routePrefix);
           } else {

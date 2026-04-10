@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 
@@ -103,7 +104,10 @@ Son Güncelleme: 1 Nisan 2026
       color: AppColors.white,
       borderRadius: BorderRadius.circular(16),
       child: ListTile(
-        onTap: () => _showPolicyDetail(context, title, content),
+        onTap: () {
+          HapticFeedback.lightImpact();
+          _showPolicyDetail(context, title, content);
+        },
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
@@ -139,7 +143,10 @@ Son Güncelleme: 1 Nisan 2026
               children: [
                 Expanded(child: Text(title, style: AppTextStyles.heading2)),
                 IconButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () {
+                    HapticFeedback.lightImpact();
+                    Navigator.pop(context);
+                  },
                   icon: const Icon(Icons.close),
                 ),
               ],

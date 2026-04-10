@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../constants/app_colors.dart';
 import '../models/review.dart';
@@ -86,7 +87,10 @@ class _PostReviewBottomSheetState extends ConsumerState<PostReviewBottomSheet> {
                   ),
                 ),
                 IconButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () {
+                    HapticFeedback.lightImpact();
+                    Navigator.pop(context);
+                  },
                   icon: Container(
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
@@ -113,11 +117,12 @@ class _PostReviewBottomSheetState extends ConsumerState<PostReviewBottomSheet> {
                 children: List.generate(5, (index) {
                   final isSelected = index < _rating;
                   return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _rating = index + 1.0;
-                      });
-                    },
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        setState(() {
+                          _rating = index + 1.0;
+                        });
+                      },
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -180,7 +185,10 @@ class _PostReviewBottomSheetState extends ConsumerState<PostReviewBottomSheet> {
               width: double.infinity,
               height: 56,
               child: ElevatedButton(
-                onPressed: _isSubmitting || _rating == 0 || !_isOver18 ? null : _submitReview,
+                onPressed: _isSubmitting || _rating == 0 || !_isOver18 ? null : () {
+                  HapticFeedback.lightImpact();
+                  _submitReview();
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,

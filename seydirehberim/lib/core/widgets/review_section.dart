@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../constants/app_colors.dart';
 import '../services/review_service.dart';
@@ -43,7 +44,10 @@ class ReviewSection extends ConsumerWidget {
               ),
             ),
             ElevatedButton.icon(
-              onPressed: () => _showAddReview(context, ref),
+              onPressed: () {
+                HapticFeedback.lightImpact();
+                _showAddReview(context, ref);
+              },
               icon: const Icon(Icons.edit_note_rounded, size: 20),
               label: const Text('Yorum Yap'),
               style: ElevatedButton.styleFrom(
@@ -82,7 +86,10 @@ class ReviewSection extends ConsumerWidget {
                 title: 'Henüz Yorum Yapılmamış',
                 subtitle: 'Bu yer hakkında hala kimse bir şey yazmamış. Burayı ilk sen canlandırmak ister misin?',
                 actionLabel: 'İlk Yorumu Sen Yap',
-                onActionPressed: () => _showAddReview(context, ref),
+                onActionPressed: () {
+                  HapticFeedback.lightImpact();
+                  _showAddReview(context, ref);
+                },
               );
             }
             return ListView.builder(
@@ -116,6 +123,7 @@ class ReviewSection extends ConsumerWidget {
           Center(
             child: TextButton(
               onPressed: () {
+                HapticFeedback.lightImpact();
                 // Show all reviews screen
               },
               child: const Text('Tüm Yorumları Gör'),
@@ -268,7 +276,10 @@ class ReviewSection extends ConsumerWidget {
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () {
+                    HapticFeedback.lightImpact();
+                    Navigator.pop(context);
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
