@@ -105,7 +105,6 @@ Son Güncelleme: 1 Nisan 2026
       borderRadius: BorderRadius.circular(16),
       child: ListTile(
         onTap: () {
-          HapticFeedback.lightImpact();
           _showPolicyDetail(context, title, content);
         },
         leading: Container(
@@ -144,7 +143,6 @@ Son Güncelleme: 1 Nisan 2026
                 Expanded(child: Text(title, style: AppTextStyles.heading2)),
                 IconButton(
                   onPressed: () {
-                    HapticFeedback.lightImpact();
                     Navigator.pop(context);
                   },
                   icon: const Icon(Icons.close),

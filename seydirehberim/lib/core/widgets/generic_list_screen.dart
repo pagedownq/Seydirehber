@@ -51,7 +51,6 @@ class GenericListScreen extends ConsumerWidget {
           icon: const Icon(Icons.arrow_back_rounded,
               color: Colors.white, size: 22),
           onPressed: () {
-            HapticFeedback.lightImpact();
             context.pop();
           },
         ),
@@ -59,12 +58,12 @@ class GenericListScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.share_rounded, color: Colors.white, size: 22),
             onPressed: () {
-              HapticFeedback.lightImpact();
               Share.share('Seydi Rehber - $title listesine göz at!');
             },
           ),
         ],
-      ),      body: dataAsync.when(
+      ),
+      body: dataAsync.when(
         loading: () => _buildShimmerLoading(),
         error: (err, __) {
           if (cacheKey != null) {
@@ -198,7 +197,6 @@ class GenericListScreen extends ConsumerWidget {
           padding: const EdgeInsets.only(bottom: 20),
           child: GestureDetector(
             onTap: () {
-              HapticFeedback.lightImpact();
               context.push('/$routePrefix/$id');
             },
             child: Container(
@@ -428,7 +426,6 @@ class GenericListScreen extends ConsumerWidget {
   ) {
     return GestureDetector(
       onTap: () {
-        HapticFeedback.lightImpact();
         context.push('/$routePrefix/$id');
       },
       child: Column(

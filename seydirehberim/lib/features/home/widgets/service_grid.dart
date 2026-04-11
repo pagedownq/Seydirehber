@@ -116,7 +116,6 @@ class _ServiceCard extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: () {
-          HapticFeedback.lightImpact();
           onTap();
         },
         borderRadius: BorderRadius.circular(16),

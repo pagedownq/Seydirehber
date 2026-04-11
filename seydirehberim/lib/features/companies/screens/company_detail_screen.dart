@@ -132,7 +132,6 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
                       child: IconButton(
                         icon: const Icon(Icons.arrow_back, size: 20, color: Colors.white),
                         onPressed: () {
-                      HapticFeedback.lightImpact();
                       Navigator.pop(context);
                     },
                       ),
@@ -176,7 +175,6 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
                         child: IconButton(
                           icon: const Icon(Icons.share_outlined, size: 20),
                           onPressed: () {
-                        HapticFeedback.lightImpact();
                         Share.share('$name firmasını Seydi Rehber\'de keşfet!');
                       },
                         ),
@@ -304,7 +302,6 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
                                 width: double.infinity,
                                 child: ElevatedButton.icon(
                                   onPressed: () {
-                              HapticFeedback.lightImpact();
                               _launchMap(konum);
                             },
                                   icon: const Icon(Icons.near_me_rounded),
@@ -350,7 +347,6 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
       child: InkWell(
         onTap: () {
           if (onTap != null) {
-            HapticFeedback.lightImpact();
             onTap();
           }
         },
@@ -400,7 +396,6 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
       child: InkWell(
         onTap: () {
           if (onTap != null) {
-            HapticFeedback.lightImpact();
             onTap!();
           }
         },
@@ -450,7 +445,6 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
   Widget _buildSocialIcon(dynamic icon, VoidCallback onTap) {
     return InkWell(
       onTap: () {
-        HapticFeedback.lightImpact();
         onTap();
       },
       borderRadius: BorderRadius.circular(20),

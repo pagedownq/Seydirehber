@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'daily_notification_service.dart';
 
 typedef NavigateToCallback = void Function(String route);
 
@@ -173,9 +174,17 @@ class NotificationService {
     if (enabled) {
       await _firebaseMessaging.subscribeToTopic('all');
       debugPrint('Subscribed to "all" topic');
+      // Ana bildirimler açıldığında günlük bildirimleri de yeniden planla
+      DailyNotificationService()
+          .scheduleDailyNotifications()
+          .catchError((e) => debugPrint('DailyNotif reschedule error: $e'));
     } else {
       await _firebaseMessaging.unsubscribeFromTopic('all');
       debugPrint('Unsubscribed from "all" topic');
+      // Ana bildirimler kapatıldığında günlük bildirimleri de iptal et
+      DailyNotificationService()
+          .setDailyNotificationsEnabled(false)
+          .catchError((e) => debugPrint('DailyNotif cancel error: $e'));
     }
   }
 
@@ -216,7 +225,7 @@ class NotificationService {
       importance: Importance.max,
       priority: Priority.high,
       showWhen: true,
-      icon: '@mipmap/ic_launcher',
+      icon: 'ic_stat_s',
     );
     const notificationDetails = NotificationDetails(
       android: androidDetails,

@@ -28,7 +28,6 @@ class SeeAllButton extends StatelessWidget {
         ),
         TextButton(
           onPressed: () {
-            HapticFeedback.lightImpact();
             onTap();
           },
           style: TextButton.styleFrom(

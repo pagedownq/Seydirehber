@@ -45,7 +45,6 @@ class ReviewSection extends ConsumerWidget {
             ),
             ElevatedButton.icon(
               onPressed: () {
-                HapticFeedback.lightImpact();
                 _showAddReview(context, ref);
               },
               icon: const Icon(Icons.edit_note_rounded, size: 20),
@@ -87,7 +86,6 @@ class ReviewSection extends ConsumerWidget {
                 subtitle: 'Bu yer hakkında hala kimse bir şey yazmamış. Burayı ilk sen canlandırmak ister misin?',
                 actionLabel: 'İlk Yorumu Sen Yap',
                 onActionPressed: () {
-                  HapticFeedback.lightImpact();
                   _showAddReview(context, ref);
                 },
               );
@@ -123,7 +121,6 @@ class ReviewSection extends ConsumerWidget {
           Center(
             child: TextButton(
               onPressed: () {
-                HapticFeedback.lightImpact();
                 // Show all reviews screen
               },
               child: const Text('Tüm Yorumları Gör'),
@@ -277,7 +274,6 @@ class ReviewSection extends ConsumerWidget {
                 height: 56,
                 child: ElevatedButton(
                   onPressed: () {
-                    HapticFeedback.lightImpact();
                     Navigator.pop(context);
                   },
                   style: ElevatedButton.styleFrom(

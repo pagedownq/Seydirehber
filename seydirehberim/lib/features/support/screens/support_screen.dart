@@ -238,7 +238,6 @@ class _SupportScreenState extends ConsumerState<SupportScreen> {
                 height: 54,
                 child: ElevatedButton(
                   onPressed: _isSending ? null : () {
-                    HapticFeedback.lightImpact();
                     _submitForm();
                   },
                   child: _isSending 

@@ -47,7 +47,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               actions: [
                 IconButton(
                   onPressed: () {
-                    HapticFeedback.lightImpact();
+
                     context.push('/notifications');
                   },
                   icon: const Icon(Icons.notifications_outlined,
@@ -78,7 +78,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       icon: Icons.share_outlined,
                       isBlack: true,
                       onTap: () {
-                        HapticFeedback.lightImpact();
+
                         Share.share(
                           'Seydi Rehber uygulamasını indir ve Seydişehir hakkında her şeyi öğren! 📱',
                         );
@@ -96,7 +96,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
               child: GestureDetector(
                 onTap: () {
-                  HapticFeedback.lightImpact();
+
                   context.push('/search');
                 },
                 child: Container(
@@ -155,7 +155,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   type: CardType.event,
                   heroTagPrefix: 'latest-events',
                   onTap: (id) {
-                    HapticFeedback.lightImpact();
+
                     context.push('/events/$id');
                   },
                 ),
@@ -180,7 +180,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 HorizontalCouponList(
                   provider: latestCouponsProvider,
                   onTap: (id, data) {
-                    HapticFeedback.lightImpact();
+
                     context.push('/coupons/$id', extra: data);
                   },
                 ),
@@ -223,7 +223,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   type: CardType.place,
                   heroTagPrefix: 'latest-places',
                   onTap: (id) {
-                    HapticFeedback.lightImpact();
+
                     context.push('/places/$id');
                   },
                 ),
@@ -250,7 +250,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   type: CardType.company,
                   heroTagPrefix: 'top-companies',
                   onTap: (id) {
-                    HapticFeedback.lightImpact();
+
                     context.push('/companies/$id');
                   },
                 ),
@@ -277,7 +277,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   type: CardType.company,
                   heroTagPrefix: 'latest-companies',
                   onTap: (id) {
-                    HapticFeedback.lightImpact();
+
                     context.push('/companies/$id');
                   },
                 ),
@@ -304,7 +304,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   type: CardType.company,
                   heroTagPrefix: 'popular-companies',
                   onTap: (id) {
-                    HapticFeedback.lightImpact();
+
                     context.push('/companies/$id');
                   },
                 ),
@@ -326,7 +326,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }) {
     return InkWell(
       onTap: () {
-        HapticFeedback.lightImpact();
+
         onTap();
       },
       borderRadius: BorderRadius.circular(20),
@@ -428,7 +428,7 @@ class _HomeSearchFieldState extends State<_HomeSearchField> {
       textInputAction: TextInputAction.search,
       onSubmitted: (value) {
         if (value.trim().isNotEmpty) {
-          HapticFeedback.lightImpact();
+
           context.push('/search?q=${Uri.encodeComponent(value.trim())}');
         }
       },
@@ -440,7 +440,7 @@ class _HomeSearchFieldState extends State<_HomeSearchField> {
             ? IconButton(
                 icon: const Icon(Icons.clear, size: 18),
                 onPressed: () {
-                  HapticFeedback.lightImpact();
+        
                   _controller.clear();
                 },
               )

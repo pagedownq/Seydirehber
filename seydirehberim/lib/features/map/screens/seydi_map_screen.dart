@@ -172,7 +172,6 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
             padding: const EdgeInsets.only(right: 12),
             child: InkWell(
               onTap: () {
-                HapticFeedback.lightImpact();
                 setState(() => _selectedFilter = filter);
               },
               borderRadius: BorderRadius.circular(25),
@@ -415,7 +414,6 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () {
-          HapticFeedback.lightImpact();
           if (type == 'noter' || type == 'pazar') {
              context.push(routePrefix);
           } else {

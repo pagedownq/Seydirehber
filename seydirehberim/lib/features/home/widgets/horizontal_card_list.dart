@@ -119,7 +119,6 @@ class HorizontalCardList extends ConsumerWidget {
     return RepaintBoundary(
       child: GestureDetector(
         onTap: () {
-          HapticFeedback.lightImpact();
           onTap(id);
         },
         child: SizedBox(
@@ -197,7 +196,6 @@ class HorizontalCardList extends ConsumerWidget {
     return RepaintBoundary(
       child: GestureDetector(
         onTap: () {
-          HapticFeedback.lightImpact();
           onTap(id);
         },
         child: Container(

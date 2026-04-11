@@ -67,7 +67,6 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           icon: const Icon(Icons.arrow_back_ios_new,
               color: AppColors.textPrimary, size: 20),
           onPressed: () {
-            HapticFeedback.lightImpact();
             context.pop();
           },
         ),
@@ -92,14 +91,12 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             IconButton(
               icon: const Icon(Icons.clear, color: AppColors.textLight, size: 20),
               onPressed: () {
-                HapticFeedback.lightImpact();
                 _searchController.clear();
                 ref.read(searchQueryProvider.notifier).state = '';
               },
             ),
           TextButton(
             onPressed: () {
-              HapticFeedback.lightImpact();
               context.pop();
             },
             child: const Text(
@@ -115,7 +112,6 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       body: query.isEmpty
           ? _SearchHistoryList(
               onHistoryTap: (term) {
-                HapticFeedback.lightImpact();
                 _searchController.text = term;
                 ref.read(searchQueryProvider.notifier).state = term;
               },
@@ -155,7 +151,6 @@ class _SearchHistoryList extends ConsumerWidget {
               ),
               TextButton(
                 onPressed: () {
-                  HapticFeedback.lightImpact();
                   ref.read(searchHistoryProvider.notifier).clearHistory();
                 },
                 child: const Text('Temizle', style: TextStyle(color: AppColors.error)),
@@ -176,7 +171,6 @@ class _SearchHistoryList extends ConsumerWidget {
                 trailing: IconButton(
                   icon: const Icon(Icons.close, size: 18, color: AppColors.textLight),
                   onPressed: () {
-                    HapticFeedback.lightImpact();
                     ref.read(searchHistoryProvider.notifier).removeSearchTerm(term);
                   },
                 ),
@@ -247,7 +241,6 @@ class _SearchResultsList extends ConsumerWidget {
                 title: Text(s['title'] as String),
                 subtitle: const Text('Uygulama içi kısayol'),
                 onTap: () {
-                  HapticFeedback.lightImpact();
                   ref.read(searchHistoryProvider.notifier).addSearchTerm(normalizedQuery);
                   context.push(s['route'] as String);
                 },
@@ -390,7 +383,6 @@ class _SearchCollectionSection extends ConsumerWidget {
                   ],
                 ),
                 onTap: () {
-                  HapticFeedback.lightImpact();
                   ref.read(searchHistoryProvider.notifier).addSearchTerm(query);
                   context.push('$routePrefix/${doc.id}', extra: data);
                 },

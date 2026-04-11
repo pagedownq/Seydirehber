@@ -69,7 +69,6 @@ class EventDetailScreen extends ConsumerWidget {
                       child: IconButton(
                         icon: const Icon(Icons.arrow_back, size: 20, color: Colors.white),
                         onPressed: () {
-                          HapticFeedback.lightImpact();
                           Navigator.pop(context);
                         },
                       ),
@@ -111,7 +110,6 @@ class EventDetailScreen extends ConsumerWidget {
                         child: IconButton(
                           icon: const Icon(Icons.share_outlined, size: 20),
                           onPressed: () {
-                            HapticFeedback.lightImpact();
                             Share.share('$name etkinliğini Seydi Rehber\'de keşfet!');
                           },
                         ),
@@ -215,7 +213,6 @@ class EventDetailScreen extends ConsumerWidget {
                                 width: double.infinity,
                                 child: ElevatedButton.icon(
                                   onPressed: () {
-                                    HapticFeedback.lightImpact();
                                     _launchMap(konum!);
                                   },
                                   icon: const Icon(Icons.near_me_rounded),

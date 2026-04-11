@@ -245,7 +245,6 @@ class _CouponDetailScreenState extends ConsumerState<CouponDetailScreen> {
                         Expanded(
                           child: ElevatedButton(
                             onPressed: () {
-                              HapticFeedback.lightImpact();
                               Navigator.pop(context, true);
                             },
                             style: ElevatedButton.styleFrom(
@@ -512,7 +511,6 @@ class _CouponDetailScreenState extends ConsumerState<CouponDetailScreen> {
                       onPressed: isButtonDisabled
                           ? null
                           : () {
-                              HapticFeedback.lightImpact();
                               _generateCode();
                             },
                       style: ElevatedButton.styleFrom(
@@ -606,7 +604,6 @@ class _CouponDetailScreenState extends ConsumerState<CouponDetailScreen> {
                 const SizedBox(height: 32),
                 ElevatedButton(
                   onPressed: () {
-                    HapticFeedback.lightImpact();
                     Navigator.of(context).pop();
                   },
                   child: const Text('Geri Dön'),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../home/screens/home_screen.dart';
@@ -7,6 +7,7 @@ import '../../news/screens/news_screen.dart';
 import '../../settings/screens/settings_screen.dart';
 import '../../../core/services/update_service.dart';
 import '../../../core/services/notification_service.dart';
+import '../../../core/services/daily_notification_service.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -15,7 +16,7 @@ class MainShell extends StatefulWidget {
   State<MainShell> createState() => _MainShellState();
 }
 
-class _MainShellState extends State<MainShell> {
+class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
   int _currentIndex = 0;
 
   final List<Widget> _screens = const [
@@ -27,6 +28,7 @@ class _MainShellState extends State<MainShell> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     
     // Bind notification navigation
     NotificationService().navigateTo = (route) {
@@ -52,6 +54,22 @@ class _MainShellState extends State<MainShell> {
   }
 
   @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Uygulama ön plana geldiğinde bildirim planını güncelle (yeni gün için)
+      DailyNotificationService()
+          .scheduleDailyNotifications()
+          .catchError((e) => debugPrint('DailyNotif reschedule error: $e'));
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: IndexedStack(
@@ -72,7 +90,6 @@ class _MainShellState extends State<MainShell> {
         child: NavigationBar(
           selectedIndex: _currentIndex,
           onDestinationSelected: (i) {
-            HapticFeedback.lightImpact();
             setState(() => _currentIndex = i);
           },
           backgroundColor: AppColors.white,

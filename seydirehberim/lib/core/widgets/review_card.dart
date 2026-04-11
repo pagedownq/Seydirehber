@@ -115,7 +115,6 @@ class _ReviewCardState extends State<ReviewCard> {
                     icon: const Icon(Icons.more_vert, color: Color(0xFF64748B), size: 20),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     onSelected: (value) {
-                      HapticFeedback.lightImpact();
                       if (value == 'edit') _showEditSheet(context);
                       if (value == 'delete') _showDeleteDialog(context);
                       if (value == 'report') _showReportDialog(context);
@@ -269,7 +268,6 @@ class _ReviewCardState extends State<ReviewCard> {
                 Expanded(
                   child: TextButton(
                     onPressed: () {
-                      HapticFeedback.lightImpact();
                       Navigator.pop(context);
                     },
                     style: TextButton.styleFrom(
@@ -283,7 +281,6 @@ class _ReviewCardState extends State<ReviewCard> {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () async {
-                      HapticFeedback.lightImpact();
                       Navigator.pop(context);
                       await ReviewService().deleteReview(widget.review.id);
                     },
@@ -360,7 +357,6 @@ class _ReviewCardState extends State<ReviewCard> {
                 Expanded(
                   child: TextButton(
                     onPressed: () {
-                      HapticFeedback.lightImpact();
                       Navigator.pop(context);
                     },
                     child: const Text('Vazgeç', style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.bold)),
@@ -370,7 +366,6 @@ class _ReviewCardState extends State<ReviewCard> {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () async {
-                      HapticFeedback.lightImpact();
                       try {
                         await ReviewService().reportReview(widget.review);
                         if (context.mounted) {

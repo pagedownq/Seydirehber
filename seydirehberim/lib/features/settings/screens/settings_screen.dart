@@ -12,6 +12,7 @@ import '../../auth/providers/auth_provider.dart';
 import '../../../core/providers/app_info_provider.dart';
 import '../../../core/services/block_service.dart';
 import '../../../core/services/notification_service.dart';
+import '../../../core/services/daily_notification_service.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -80,6 +81,10 @@ class SettingsScreen extends ConsumerWidget {
 
           // Notification Toggle
           const _NotificationToggleItem(),
+          const SizedBox(height: 8),
+
+          // Daily Notification Toggle
+          const _DailyNotificationToggleItem(),
           const SizedBox(height: 8),
 
           // Favorites
@@ -205,6 +210,7 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
 
+
           // Policies
           _buildSettingsItem(
             icon: Icons.privacy_tip_outlined,
@@ -296,7 +302,7 @@ class SettingsScreen extends ConsumerWidget {
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () async {
-                    HapticFeedback.selectionClick();
+
                     final confirmed = await showDialog<bool>(
                       context: context,
                       builder: (ctx) => AlertDialog(
@@ -330,7 +336,7 @@ class SettingsScreen extends ConsumerWidget {
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () async {
-                    HapticFeedback.selectionClick();
+
                     final confirmed = await showDialog<bool>(
                       context: context,
                       builder: (ctx) => AlertDialog(
@@ -402,7 +408,7 @@ class SettingsScreen extends ConsumerWidget {
             width: double.infinity,
             child: ElevatedButton.icon(
               onPressed: () async {
-                HapticFeedback.selectionClick();
+
                 await ref.read(authNotifierProvider.notifier).signInWithGoogle();
               },
               icon: const Icon(Icons.login, size: 18),
@@ -426,7 +432,7 @@ class SettingsScreen extends ConsumerWidget {
       borderRadius: BorderRadius.circular(14),
       child: ListTile(
         onTap: () {
-          HapticFeedback.selectionClick();
+
           onTap();
         },
         leading: Container(
@@ -498,11 +504,78 @@ class _NotificationToggleItemState extends State<_NotificationToggleItem> {
         ),
         value: _notificationsEnabled!,
         onChanged: (value) async {
-          HapticFeedback.selectionClick();
+
           setState(() {
             _notificationsEnabled = value;
           });
           await NotificationService().setNotificationsEnabled(value);
+        },
+      ),
+    );
+  }
+}
+
+class _DailyNotificationToggleItem extends StatefulWidget {
+  const _DailyNotificationToggleItem();
+
+  @override
+  State<_DailyNotificationToggleItem> createState() => _DailyNotificationToggleItemState();
+}
+
+class _DailyNotificationToggleItemState extends State<_DailyNotificationToggleItem> {
+  bool? _dailyEnabled;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadState();
+  }
+
+  Future<void> _loadState() async {
+    final enabled = await DailyNotificationService().isDailyNotificationsEnabled();
+    if (mounted) {
+      setState(() {
+        _dailyEnabled = enabled;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_dailyEnabled == null) {
+      return const SizedBox(height: 60, child: Center(child: CircularProgressIndicator()));
+    }
+
+    return Material(
+      color: AppColors.white,
+      borderRadius: BorderRadius.circular(14),
+      child: SwitchListTile(
+        activeColor: AppColors.primary,
+        title: Text(
+          'Günlük Hatırlatmalar',
+          style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600),
+        ),
+        subtitle: Text(
+          _dailyEnabled!
+              ? 'Gün içinde öneriler alıyorsunuz'
+              : 'Günlük öneriler kapatıldı',
+          style: AppTextStyles.caption,
+        ),
+        secondary: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AppColors.info.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: const Icon(Icons.tips_and_updates_outlined, color: AppColors.info, size: 22),
+        ),
+        value: _dailyEnabled!,
+        onChanged: (value) async {
+
+          setState(() {
+            _dailyEnabled = value;
+          });
+          await DailyNotificationService().setDailyNotificationsEnabled(value);
         },
       ),
     );

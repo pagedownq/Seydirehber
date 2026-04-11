@@ -59,7 +59,6 @@ class ErrorView extends StatelessWidget {
             const SizedBox(height: 32),
             ElevatedButton.icon(
               onPressed: () {
-                HapticFeedback.lightImpact();
                 onRetry();
               },
               icon: const Icon(Icons.refresh_rounded),

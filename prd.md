@@ -2,7 +2,7 @@
 
 ## Vizyon ve Hedef
 Seydi Rehber, Seydişehir (Konya) ve çevresindeki yerel dinamikleri (nöbetçi eczaneler, pazarlar, otobüs saatleri, etkinlikler ve firmalar) tek bir çatı altında toplayan, Android platformuna özel, modern ve yüksek performanslı bir rehber uygulamasıdır.
-
+ 
 ---
 uygulama teması genellikle açık yeşil ve beyaz olcak 
 ## ADIM 1: Proje Başlangıcı ve Temel Kurulum

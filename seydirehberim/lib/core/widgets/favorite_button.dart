@@ -66,7 +66,6 @@ class _FavoriteButtonState extends ConsumerState<FavoriteButton> with SingleTick
 
   void _onTap() async {
     // Haptic feedback
-    await HapticFeedback.mediumImpact();
     
     final isNowFavorited = !ref.read(favoritesProvider).any((e) => e.id == widget.id && e.type == widget.type);
     

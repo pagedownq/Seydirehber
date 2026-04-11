@@ -123,7 +123,6 @@ class _BusScheduleItemState extends State<_BusScheduleItem> {
         children: [
           InkWell(
             onTap: () {
-              HapticFeedback.lightImpact();
               setState(() => _isExpanded = !_isExpanded);
             },
             borderRadius: BorderRadius.circular(16),

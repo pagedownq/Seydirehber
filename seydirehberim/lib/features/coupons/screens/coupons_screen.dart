@@ -72,7 +72,6 @@ class CouponsScreen extends ConsumerWidget {
                 color: Colors.transparent,
                 child: InkWell(
                   onTap: () {
-                    HapticFeedback.lightImpact();
                     context.push('/coupons/$id', extra: data);
                   },
                   borderRadius: BorderRadius.circular(16),

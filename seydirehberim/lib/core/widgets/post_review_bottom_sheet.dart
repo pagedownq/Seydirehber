@@ -88,7 +88,6 @@ class _PostReviewBottomSheetState extends ConsumerState<PostReviewBottomSheet> {
                 ),
                 IconButton(
                   onPressed: () {
-                    HapticFeedback.lightImpact();
                     Navigator.pop(context);
                   },
                   icon: Container(
@@ -118,7 +117,6 @@ class _PostReviewBottomSheetState extends ConsumerState<PostReviewBottomSheet> {
                   final isSelected = index < _rating;
                   return GestureDetector(
                       onTap: () {
-                        HapticFeedback.lightImpact();
                         setState(() {
                           _rating = index + 1.0;
                         });
@@ -186,7 +184,6 @@ class _PostReviewBottomSheetState extends ConsumerState<PostReviewBottomSheet> {
               height: 56,
               child: ElevatedButton(
                 onPressed: _isSubmitting || _rating == 0 || !_isOver18 ? null : () {
-                  HapticFeedback.lightImpact();
                   _submitReview();
                 },
                 style: ElevatedButton.styleFrom(

@@ -8,6 +8,7 @@ import 'core/services/local_cache_service.dart';
 import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
 import 'core/services/notification_service.dart';
+import 'core/services/daily_notification_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'firebase_options.dart';
 
@@ -55,6 +56,9 @@ class _StartupWrapperState extends State<StartupWrapper> {
 
       // Hazır olduğunda bildirimi arkadan başlat
       NotificationService().initialize().catchError((e) => debugPrint(e.toString()));
+
+      // Günlük etkileşim bildirimlerini planla
+      DailyNotificationService().initialize().catchError((e) => debugPrint('DailyNotif init error: $e'));
 
       if (mounted) {
         setState(() => _initialized = true);

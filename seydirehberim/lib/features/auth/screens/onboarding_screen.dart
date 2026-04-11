@@ -24,24 +24,40 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final List<_OnboardingPageData> _pages = [
     _OnboardingPageData(
       icon: Icons.location_city_rounded,
-      title: 'Seydi Rehber',
+      title: 'Seydi Rehber\'e Hoş Geldin',
       description:
-          'Şehrindeki etkinlikler, firmalar, gezilecek yerler ve daha fazlasını tek bir uygulamada keşfet!',
+          'Şehrindeki her şeyi keşfetmek için en doğru yerdesin. Modern ve hızlı rehberinle tanış!',
       color: AppColors.primary,
     ),
     _OnboardingPageData(
-      icon: Icons.security_rounded,
-      title: 'Gizliliğin Bizim İçin Önemli',
+      icon: Icons.grid_view_rounded,
+      title: 'Hızlı Hizmetler',
       description:
-          'Verileriniz güvende. Devam etmek için gizlilik politikamızı onaylamanız gerekmektedir.',
+          'Nöbetçi eczaneler, otobüs saatleri ve pazar yerleri gibi ihtiyacın olan her şey elinin altında.',
+      color: const Color(0xFF00897B),
+      mockupType: _MockupType.services,
+    ),
+    _OnboardingPageData(
+      icon: Icons.explore_rounded,
+      title: 'Şehri Keşfet',
+      description:
+          'Hava durumunu takip et, en güncel haberleri oku ve sana özel fırsat kuponlarını kaçırma!',
+      color: const Color(0xFFFF8F00),
+      mockupType: _MockupType.daily,
+    ),
+    _OnboardingPageData(
+      icon: Icons.security_rounded,
+      title: 'Gizlilik ve Güvenlik',
+      description:
+          'Verileriniz bizimle güvende. Devam etmeden önce lütfen kullanım koşullarımızı onaylayın.',
       color: AppColors.primaryDark,
       hasPrivacyCheckbox: true,
     ),
     _OnboardingPageData(
       icon: Icons.rocket_launch_rounded,
-      title: 'Hazırsın!',
+      title: 'Keşfetmeye Hazırsın!',
       description:
-          'Google hesabınla giriş yap veya misafir olarak devam et.',
+          'Google hesabınla giriş yaparak profilini oluşturabilir veya misafir olarak devam edebilirsin.',
       color: AppColors.accent,
       hasAuthButtons: true,
     ),
@@ -54,8 +70,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   void _nextPage() {
-    HapticFeedback.lightImpact();
-    if (_currentPage == 1 && !_privacyAccepted) {
+    if (_currentPage == 3 && !_privacyAccepted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Devam etmek için gizlilik politikasını onaylayın'),
@@ -100,7 +115,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       onPageChanged: (index) {
                         setState(() => _currentPage = index);
                       },
-                      physics: _currentPage == 1 && !_privacyAccepted
+                      physics: _currentPage == 3 && !_privacyAccepted
                           ? const NeverScrollableScrollPhysics()
                           : null,
                       itemBuilder: (context, index) {
@@ -174,43 +189,59 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Spacer(flex: 2),
-          // Icon container with premium styling
-          Container(
-            width: 160,
-            height: 160,
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              borderRadius: BorderRadius.circular(40),
-              boxShadow: [
-                BoxShadow(
-                  color: page.color.withOpacity(0.15),
-                  blurRadius: 30,
-                  offset: const Offset(0, 10),
-                ),
-              ],
-            ),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        page.color.withOpacity(0.2),
-                        page.color.withOpacity(0.05),
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(32),
+          // Icon container or Mockup with premium styling
+          if (page.mockupType != null)
+            TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0.0, end: 1.0),
+              duration: const Duration(milliseconds: 800),
+              builder: (context, value, child) {
+                return Transform.translate(
+                  offset: Offset(0, 10 * (1 - value)),
+                  child: Opacity(
+                    opacity: value,
+                    child: child,
                   ),
-                ),
-                Icon(page.icon, size: 70, color: page.color),
-              ],
+                );
+              },
+              child: _buildMockup(page.mockupType!),
+            )
+          else
+            Container(
+              width: 160,
+              height: 160,
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                borderRadius: BorderRadius.circular(40),
+                boxShadow: [
+                  BoxShadow(
+                    color: page.color.withOpacity(0.15),
+                    blurRadius: 30,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          page.color.withOpacity(0.2),
+                          page.color.withOpacity(0.05),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(32),
+                    ),
+                  ),
+                  Icon(page.icon, size: 70, color: page.color),
+                ],
+              ),
             ),
-          ),
           const SizedBox(height: 48),
           Text(
             page.title,
@@ -372,7 +403,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             onPressed: authState.isLoading
                 ? null
                 : () async {
-                    HapticFeedback.lightImpact();
                     await authNotifier.signInWithGoogle();
                     final prefs = await SharedPreferences.getInstance();
                     await prefs.setBool('onboarding_completed', true);
@@ -406,7 +436,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             onPressed: authState.isLoading
                 ? null
                 : () async {
-                    HapticFeedback.lightImpact();
                     await authNotifier.continueAsGuest();
                     final prefs = await SharedPreferences.getInstance();
                     await prefs.setBool('onboarding_completed', true);
@@ -427,6 +456,120 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         ),
       ],
     );
+  }
+
+  Widget _buildMockup(_MockupType type) {
+    if (type == _MockupType.services) {
+      return Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _MockupServiceCard(
+                title: 'Nöbetçi Eczane',
+                icon: Icons.local_pharmacy_rounded,
+                color: const Color(0xFFEF5350),
+              ),
+              const SizedBox(width: 12),
+              _MockupServiceCard(
+                title: 'Otobüs Saatleri',
+                icon: Icons.directions_bus_rounded,
+                color: const Color(0xFF26A69A),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _MockupServiceCard(
+                title: 'Noterler',
+                icon: Icons.gavel_rounded,
+                color: const Color(0xFF455A64),
+              ),
+              const SizedBox(width: 12),
+              _MockupServiceCard(
+                title: 'Halk Pazarları',
+                icon: Icons.storefront_rounded,
+                color: const Color(0xFFFFB300),
+              ),
+            ],
+          ),
+        ],
+      );
+    } else {
+      return Column(
+        children: [
+          // Weather Mockup
+          Container(
+            width: 200,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              gradient: AppColors.weatherGradient,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withOpacity(0.2),
+                  blurRadius: 15,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.cloud_outlined, color: Colors.white, size: 28),
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Hava Durumu', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                    Text('Seydişehir 18°C', style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 11)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          // News/Coupon combo
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.newspaper_rounded, color: Color(0xFF2E7D32), size: 18),
+                    SizedBox(width: 8),
+                    Text('Güncel Haberler', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.local_offer_rounded, color: Color(0xFFE53935), size: 18),
+                    SizedBox(width: 8),
+                    Text('Kuponlar', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      );
+    }
   }
 
   void _showPolicyDetail(BuildContext context, String title, String content) {
@@ -470,6 +613,55 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 }
 
+class _MockupServiceCard extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final Color color;
+
+  const _MockupServiceCard({
+    required this.title,
+    required this.icon,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 120,
+      height: 70,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Icon(icon, color: Colors.white, size: 20),
+          Text(
+            title,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+enum _MockupType { services, daily }
+
 class _OnboardingPageData {
   final IconData icon;
   final String title;
@@ -477,6 +669,7 @@ class _OnboardingPageData {
   final Color color;
   final bool hasPrivacyCheckbox;
   final bool hasAuthButtons;
+  final _MockupType? mockupType;
 
   _OnboardingPageData({
     required this.icon,
@@ -485,5 +678,6 @@ class _OnboardingPageData {
     required this.color,
     this.hasPrivacyCheckbox = false,
     this.hasAuthButtons = false,
+    this.mockupType,
   });
 }
