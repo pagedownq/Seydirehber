@@ -88,6 +88,7 @@ class _PostReviewBottomSheetState extends ConsumerState<PostReviewBottomSheet> {
                 ),
                 IconButton(
                   onPressed: () {
+                    HapticFeedback.selectionClick();
                     Navigator.pop(context);
                   },
                   icon: Container(
@@ -117,6 +118,7 @@ class _PostReviewBottomSheetState extends ConsumerState<PostReviewBottomSheet> {
                   final isSelected = index < _rating;
                   return GestureDetector(
                       onTap: () {
+                        HapticFeedback.selectionClick();
                         setState(() {
                           _rating = index + 1.0;
                         });
@@ -159,7 +161,10 @@ class _PostReviewBottomSheetState extends ConsumerState<PostReviewBottomSheet> {
             const SizedBox(height: 16),
             CheckboxListTile(
               value: _isOver18,
-              onChanged: (value) => setState(() => _isOver18 = value ?? false),
+              onChanged: (value) {
+                HapticFeedback.selectionClick();
+                setState(() => _isOver18 = value ?? false);
+              },
               title: const Text(
                 '18 yaşından büyüğüm ve topluluk kurallarını kabul ediyorum',
                 style: TextStyle(
@@ -184,6 +189,7 @@ class _PostReviewBottomSheetState extends ConsumerState<PostReviewBottomSheet> {
               height: 56,
               child: ElevatedButton(
                 onPressed: _isSubmitting || _rating == 0 || !_isOver18 ? null : () {
+                  HapticFeedback.vibrate();
                   _submitReview();
                 },
                 style: ElevatedButton.styleFrom(
@@ -248,7 +254,10 @@ class _PostReviewBottomSheetState extends ConsumerState<PostReviewBottomSheet> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () {
+                    HapticFeedback.selectionClick();
+                    Navigator.pop(context);
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF1E293B),
                     foregroundColor: Colors.white,

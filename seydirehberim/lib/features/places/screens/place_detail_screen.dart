@@ -70,6 +70,7 @@ class PlaceDetailScreen extends ConsumerWidget {
                   child: IconButton(
                     icon: const Icon(Icons.arrow_back, color: Colors.white),
                     onPressed: () {
+                      HapticFeedback.selectionClick();
                       Navigator.pop(context);
                     },
                   ),
@@ -111,6 +112,7 @@ class PlaceDetailScreen extends ConsumerWidget {
                     child: IconButton(
                       icon: const Icon(Icons.share_outlined, color: Colors.white, size: 20),
                       onPressed: () {
+                        HapticFeedback.selectionClick();
                         Share.share('$name yerini Seydi Rehber\'de keşfet!');
                       },
                     ),
@@ -225,6 +227,7 @@ class PlaceDetailScreen extends ConsumerWidget {
                           width: double.infinity,
                           child: ElevatedButton.icon(
                             onPressed: () {
+                              HapticFeedback.selectionClick();
                               _launchURL(konum, context);
                             },
                             icon: const Icon(Icons.directions_rounded),

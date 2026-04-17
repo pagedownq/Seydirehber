@@ -122,6 +122,7 @@ class HorizontalCouponList extends ConsumerWidget {
           color: Colors.transparent,
           child: InkWell(
             onTap: () {
+              HapticFeedback.selectionClick();
               onTap(id, data);
             },
             borderRadius: BorderRadius.circular(16),

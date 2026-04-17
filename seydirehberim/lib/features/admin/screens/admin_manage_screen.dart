@@ -859,7 +859,61 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
         }
       }
 
-      // Delete document from Firestore
+      // 1. Delete associated data (Cascading Delete)
+      final batch = FirebaseFirestore.instance.batch();
+      bool hasBatchWork = false;
+
+      if (widget.collection == 'firmalar') {
+        // Delete coupons of this company
+        final coupons = await FirebaseFirestore.instance
+            .collection('coupons')
+            .where('companyId', isEqualTo: docId)
+            .get();
+        for (var doc in coupons.docs) {
+          batch.delete(doc.reference);
+          hasBatchWork = true;
+        }
+
+        // Delete esnaf users of this company
+        final esnafUsers = await FirebaseFirestore.instance
+            .collection('esnaf_users')
+            .where('companyId', isEqualTo: docId)
+            .get();
+        for (var doc in esnafUsers.docs) {
+          batch.delete(doc.reference);
+          hasBatchWork = true;
+        }
+
+        // Delete reviews of this company
+        final reviews = await FirebaseFirestore.instance
+            .collection('reviews')
+            .where('targetId', isEqualTo: docId)
+            .where('targetType', isEqualTo: 'company')
+            .get();
+        for (var doc in reviews.docs) {
+          batch.delete(doc.reference);
+          hasBatchWork = true;
+        }
+      } else if (widget.collection == 'gezilecek_yerler') {
+        // Delete reviews of this place
+        final reviews = await FirebaseFirestore.instance
+            .collection('reviews')
+            .where('targetId', isEqualTo: docId)
+            .where('targetType', isEqualTo: 'place')
+            .get();
+        for (var doc in reviews.docs) {
+          batch.delete(doc.reference);
+          hasBatchWork = true;
+        }
+      }
+
+      // Commit batch if there are related items to delete
+      if (hasBatchWork) {
+        await batch.commit();
+        debugPrint('Cascading deletes completed for $docId');
+      }
+
+      // 2. Delete the document itself from Firestore
       await FirebaseFirestore.instance
           .collection(widget.collection)
           .doc(docId)

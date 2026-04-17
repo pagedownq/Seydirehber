@@ -15,6 +15,7 @@ class MapButton extends StatelessWidget {
   });
 
   Future<void> _openMap() async {
+    HapticFeedback.vibrate();
     String url = locationUrl;
     // If it's a plain address, create a Google Maps search URL
     if (!url.startsWith('http') && !url.startsWith('geo:')) {

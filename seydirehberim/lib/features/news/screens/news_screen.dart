@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -30,7 +31,10 @@ class NewsScreen extends ConsumerWidget {
             return ErrorView(
               title: 'Haber Bulunamadı',
               message: 'Şu an görüntülenecek bir haber bulunamadı veya internet bağlantınızda bir sorun var.',
-              onRetry: () => ref.refresh(newsProvider),
+              onRetry: () {
+                HapticFeedback.selectionClick();
+                ref.refresh(newsProvider);
+              },
             );
           }
           return RefreshIndicator(
@@ -54,7 +58,10 @@ class NewsScreen extends ConsumerWidget {
         ),
         error: (e, stack) => ErrorView(
           message: 'Haberler yüklenirken bir hata oluştu. Lütfen internet bağlantınızı kontrol edip tekrar deneyin.',
-          onRetry: () => ref.refresh(newsProvider),
+          onRetry: () {
+            HapticFeedback.selectionClick();
+            ref.refresh(newsProvider);
+          },
         ),
       ),
     );
@@ -82,6 +89,7 @@ class _NewsCard extends StatelessWidget {
       ),
       child: InkWell(
         onTap: () async {
+          HapticFeedback.selectionClick();
           if (news.link.isEmpty) return;
           final url = Uri.parse(news.link);
           try {

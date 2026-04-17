@@ -67,6 +67,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           icon: const Icon(Icons.arrow_back_ios_new,
               color: AppColors.textPrimary, size: 20),
           onPressed: () {
+            HapticFeedback.selectionClick();
             context.pop();
           },
         ),
@@ -90,13 +91,15 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           if (query.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.clear, color: AppColors.textLight, size: 20),
-              onPressed: () {
-                _searchController.clear();
-                ref.read(searchQueryProvider.notifier).state = '';
-              },
+               onPressed: () {
+                 HapticFeedback.selectionClick();
+                 _searchController.clear();
+                 ref.read(searchQueryProvider.notifier).state = '';
+               },
             ),
           TextButton(
             onPressed: () {
+              HapticFeedback.selectionClick();
               context.pop();
             },
             child: const Text(
@@ -150,9 +153,10 @@ class _SearchHistoryList extends ConsumerWidget {
                 style: AppTextStyles.heading3,
               ),
               TextButton(
-                onPressed: () {
-                  ref.read(searchHistoryProvider.notifier).clearHistory();
-                },
+                 onPressed: () {
+                   HapticFeedback.selectionClick();
+                   ref.read(searchHistoryProvider.notifier).clearHistory();
+                 },
                 child: const Text('Temizle', style: TextStyle(color: AppColors.error)),
               ),
             ],
@@ -170,11 +174,15 @@ class _SearchHistoryList extends ConsumerWidget {
                 title: Text(term, style: AppTextStyles.bodyMedium),
                 trailing: IconButton(
                   icon: const Icon(Icons.close, size: 18, color: AppColors.textLight),
-                  onPressed: () {
-                    ref.read(searchHistoryProvider.notifier).removeSearchTerm(term);
-                  },
+                   onPressed: () {
+                     HapticFeedback.selectionClick();
+                     ref.read(searchHistoryProvider.notifier).removeSearchTerm(term);
+                   },
                 ),
-                onTap: () => onHistoryTap(term),
+                 onTap: () {
+                   HapticFeedback.selectionClick();
+                   onHistoryTap(term);
+                 },
               );
             },
           ),
@@ -240,10 +248,11 @@ class _SearchResultsList extends ConsumerWidget {
                 ),
                 title: Text(s['title'] as String),
                 subtitle: const Text('Uygulama içi kısayol'),
-                onTap: () {
-                  ref.read(searchHistoryProvider.notifier).addSearchTerm(normalizedQuery);
-                  context.push(s['route'] as String);
-                },
+                 onTap: () {
+                   HapticFeedback.selectionClick();
+                   ref.read(searchHistoryProvider.notifier).addSearchTerm(normalizedQuery);
+                   context.push(s['route'] as String);
+                 },
               )),
               const Divider(),
             ],
@@ -382,10 +391,11 @@ class _SearchCollectionSection extends ConsumerWidget {
                       Text(address, maxLines: 1, overflow: TextOverflow.ellipsis),
                   ],
                 ),
-                onTap: () {
-                  ref.read(searchHistoryProvider.notifier).addSearchTerm(query);
-                  context.push('$routePrefix/${doc.id}', extra: data);
-                },
+                 onTap: () {
+                   HapticFeedback.selectionClick();
+                   ref.read(searchHistoryProvider.notifier).addSearchTerm(query);
+                   context.push('$routePrefix/${doc.id}', extra: data);
+                 },
               );
             }),
             const Divider(),

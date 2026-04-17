@@ -47,7 +47,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               actions: [
                 IconButton(
                   onPressed: () {
-
+                    HapticFeedback.selectionClick();
                     context.push('/notifications');
                   },
                   icon: const Icon(Icons.notifications_outlined,
@@ -96,7 +96,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
               child: GestureDetector(
                 onTap: () {
-
+                  HapticFeedback.selectionClick();
                   context.push('/search');
                 },
                 child: Container(
@@ -326,7 +326,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }) {
     return InkWell(
       onTap: () {
-
+        HapticFeedback.selectionClick();
         onTap();
       },
       borderRadius: BorderRadius.circular(20),
@@ -440,7 +440,7 @@ class _HomeSearchFieldState extends State<_HomeSearchField> {
             ? IconButton(
                 icon: const Icon(Icons.clear, size: 18),
                 onPressed: () {
-        
+                  HapticFeedback.selectionClick();
                   _controller.clear();
                 },
               )

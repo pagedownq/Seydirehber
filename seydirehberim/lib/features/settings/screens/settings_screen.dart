@@ -221,6 +221,7 @@ class SettingsScreen extends ConsumerWidget {
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () async {
+                    HapticFeedback.vibrate();
 
                     final confirmed = await showDialog<bool>(
                       context: context,
@@ -229,11 +230,17 @@ class SettingsScreen extends ConsumerWidget {
                         content: const Text('Çıkış yapmak istediğinize emin misiniz?'),
                         actions: [
                           TextButton(
-                            onPressed: () => Navigator.pop(ctx, false),
+                            onPressed: () {
+                              HapticFeedback.selectionClick();
+                              Navigator.pop(ctx, false);
+                            },
                             child: const Text('İptal'),
                           ),
                           TextButton(
-                            onPressed: () => Navigator.pop(ctx, true),
+                            onPressed: () {
+                              HapticFeedback.selectionClick();
+                              Navigator.pop(ctx, true);
+                            },
                             child: const Text('Çıkış Yap'),
                           ),
                         ],
@@ -255,6 +262,7 @@ class SettingsScreen extends ConsumerWidget {
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () async {
+                    HapticFeedback.vibrate();
 
                     final confirmed = await showDialog<bool>(
                       context: context,
@@ -264,11 +272,17 @@ class SettingsScreen extends ConsumerWidget {
                             'Hesabınız kalıcı olarak silinecek. Bu işlem geri alınamaz.'),
                         actions: [
                           TextButton(
-                            onPressed: () => Navigator.pop(ctx, false),
+                            onPressed: () {
+                              HapticFeedback.selectionClick();
+                              Navigator.pop(ctx, false);
+                            },
                             child: const Text('İptal'),
                           ),
                           TextButton(
-                            onPressed: () => Navigator.pop(ctx, true),
+                            onPressed: () {
+                              HapticFeedback.selectionClick();
+                              Navigator.pop(ctx, true);
+                            },
                             style: TextButton.styleFrom(foregroundColor: AppColors.error),
                             child: const Text('Sil'),
                           ),
@@ -327,7 +341,7 @@ class SettingsScreen extends ConsumerWidget {
             width: double.infinity,
             child: ElevatedButton.icon(
               onPressed: () async {
-
+                HapticFeedback.vibrate();
                 await ref.read(authNotifierProvider.notifier).signInWithGoogle();
               },
               icon: const Icon(Icons.login, size: 18),
@@ -422,6 +436,7 @@ class SettingsScreen extends ConsumerWidget {
                           subtitle: Text('UID: ${user.uid.substring(0, 8)}...', style: AppTextStyles.caption),
                           trailing: TextButton(
                             onPressed: () async {
+                              HapticFeedback.selectionClick();
                               await BlockService.unblockUser(user.uid);
                               setModalState(() {});
                               if (context.mounted) {
@@ -459,7 +474,7 @@ class SettingsScreen extends ConsumerWidget {
       borderRadius: BorderRadius.circular(14),
       child: ListTile(
         onTap: () {
-
+          HapticFeedback.selectionClick();
           onTap();
         },
         leading: Container(
@@ -531,7 +546,7 @@ class _NotificationToggleItemState extends State<_NotificationToggleItem> {
         ),
         value: _notificationsEnabled!,
         onChanged: (value) async {
-
+          HapticFeedback.selectionClick();
           setState(() {
             _notificationsEnabled = value;
           });
@@ -598,7 +613,7 @@ class _DailyNotificationToggleItemState extends State<_DailyNotificationToggleIt
         ),
         value: _dailyEnabled!,
         onChanged: (value) async {
-
+          HapticFeedback.selectionClick();
           setState(() {
             _dailyEnabled = value;
           });

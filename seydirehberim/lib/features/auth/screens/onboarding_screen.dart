@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -89,6 +90,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   void _nextPage() {
+    HapticFeedback.vibrate(); // Daha güçlü ve standart titreşim
     if (_currentPage == 4 && !_privacyAccepted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -118,8 +120,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             end: Alignment.bottomCenter,
             colors: [
               AppColors.white,
-              AppColors.primary.withOpacity(0.02),
-              AppColors.primary.withOpacity(0.08),
+              AppColors.primary.withOpacity(0.01),
+              AppColors.primary.withOpacity(0.05),
             ],
           ),
         ),
@@ -165,25 +167,63 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         ),
                         const SizedBox(height: 32),
                         if (_currentPage < _pages.length - 1)
-                          SizedBox(
-                            width: double.infinity,
-                            height: 56,
-                            child: ElevatedButton(
-                              onPressed: _nextPage,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.primary,
-                                foregroundColor: Colors.white,
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(20),
+                            child: BackdropFilter(
+                              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                              child: Container(
+                                width: double.infinity,
+                                height: 56,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20),
+                                  color: AppColors.primary.withOpacity(0.2),
+                                  border: Border.all(
+                                    color: Colors.white.withOpacity(0.2),
+                                    width: 1.5,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppColors.primary.withOpacity(0.1),
+                                      blurRadius: 15,
+                                      offset: const Offset(0, 8),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                              child: const Text(
-                                'Devam Et',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 0.5,
+                                child: ElevatedButton(
+                                  onPressed: () async {
+                                    // 1. Konsola yazdır (Kodu kontrol etmek için)
+                                    debugPrint('[HAPTIC] Devam Et butona basıldı, titreşim isteniyor...');
+                                    
+                                    // 2. Farklı haptic kanallarını dene
+                                    try {
+                                      await HapticFeedback.vibrate();
+                                      await Future.delayed(const Duration(milliseconds: 10));
+                                      await HapticFeedback.selectionClick();
+                                    } catch (e) {
+                                      debugPrint('[HAPTIC] Hata: $e');
+                                    }
+
+                                    // 3. Mevcut fonksiyonu çalıştır
+                                    _nextPage();
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.transparent,
+                                    foregroundColor: AppColors.primary,
+                                    elevation: 0,
+                                    shadowColor: Colors.transparent,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    'Devam Et',
+                                    style: TextStyle(
+                                      color: AppColors.primary,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
@@ -380,19 +420,28 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           
           // Additional components (Privacy / Auth / Notifications)
           if (page.hasPrivacyCheckbox || page.hasAuthButtons || page.hasNotificationButton)
-            Container(
-              constraints: const BoxConstraints(maxHeight: 220),
-              child: SingleChildScrollView(
-                physics: const NeverScrollableScrollPhysics(),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (page.hasNotificationButton) ...[
-                      SizedBox(
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (page.hasNotificationButton) ...[
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      child: Container(
                         width: double.infinity,
                         height: 52,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          color: page.color.withOpacity(0.2),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.2),
+                            width: 1.5,
+                          ),
+                        ),
                         child: ElevatedButton.icon(
                           onPressed: () async {
+                            HapticFeedback.vibrate(); // Garantili titreşim
                             final status = await Permission.notification.request();
                             if (status.isGranted) {
                               if (mounted) {
@@ -415,37 +464,46 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                               }
                             }
                           },
-                          icon: const Icon(Icons.notifications_active_outlined),
-                          label: Text('Bildirimleri Etkinleştir', style: AppTextStyles.button),
+                          icon: Icon(Icons.notifications_active_outlined, color: page.color),
+                          label: Text('Bildirimleri Etkinleştir', style: AppTextStyles.button.copyWith(color: page.color)),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: page.color,
+                            backgroundColor: Colors.transparent,
+                            elevation: 0,
+                            shadowColor: Colors.transparent,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
+                              borderRadius: BorderRadius.circular(20),
                             ),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      TextButton(
-                        onPressed: _nextPage,
-                        child: Text(
-                          'Daha Sonra',
-                          style: TextStyle(color: page.color.withOpacity(0.7)),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                    ],
-                    if (page.hasPrivacyCheckbox) ...[
-                      Container(
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextButton(
+                    onPressed: _nextPage,
+                    child: Text(
+                      'Daha Sonra',
+                      style: TextStyle(color: page.color.withOpacity(0.7)),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+                if (page.hasPrivacyCheckbox) ...[
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                      child: Container(
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: Colors.white.withOpacity(0.7),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: AppColors.primary.withOpacity(0.1),
+                            color: AppColors.primary.withOpacity(0.2),
+                            width: 1.2,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.03),
+                              color: Colors.black.withOpacity(0.02),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),
@@ -531,15 +589,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 24),
-                    ],
-                    if (page.hasAuthButtons) ...[
-                      _buildAuthButtons(),
-                      const SizedBox(height: 24),
-                    ],
-                  ],
-                ),
-              ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                ],
+                if (page.hasAuthButtons) ...[
+                  _buildAuthButtons(),
+                  const SizedBox(height: 24),
+                ],
+              ],
             )
           else
             const SizedBox(height: 60),
@@ -555,61 +613,93 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     return Column(
       children: [
         // Google Sign In
-        SizedBox(
-          width: double.infinity,
-          height: 52,
-          child: ElevatedButton.icon(
-            onPressed: authState.isLoading
-                ? null
-                : () async {
-                    await authNotifier.signInWithGoogle();
-                    final prefs = await SharedPreferences.getInstance();
-                    await prefs.setBool('onboarding_completed', true);
-                    if (mounted) context.go('/');
-                  },
-            icon: Image.network(
-              'https://www.google.com/favicon.ico',
-              width: 24,
-              height: 24,
-              errorBuilder: (_, __, ___) =>
-                  const Icon(Icons.login, color: Colors.white),
-            ),
-            label: Text(
-              authState.isLoading ? 'Giriş yapılıyor...' : 'Google ile Giriş Yap',
-              style: AppTextStyles.button,
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(
+              width: double.infinity,
+              height: 52,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                color: AppColors.primary.withOpacity(0.2),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.2),
+                  width: 1.5,
+                ),
+              ),
+              child: ElevatedButton.icon(
+                onPressed: authState.isLoading
+                    ? null
+                    : () async {
+                        HapticFeedback.vibrate(); 
+                        await authNotifier.signInWithGoogle();
+                        final prefs = await SharedPreferences.getInstance();
+                        await prefs.setBool('onboarding_completed', true);
+                        if (mounted) context.go('/');
+                      },
+                icon: Image.network(
+                  'https://www.google.com/favicon.ico',
+                  width: 24,
+                  height: 24,
+                  errorBuilder: (_, __, ___) =>
+                      const Icon(Icons.login, color: Colors.white),
+                ),
+                label: Text(
+                  authState.isLoading ? 'Giriş yapılıyor...' : 'Google ile Giriş Yap',
+                  style: AppTextStyles.button.copyWith(color: AppColors.primary),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  shadowColor: Colors.transparent,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
               ),
             ),
           ),
         ),
         const SizedBox(height: 16),
         // Guest button
-        SizedBox(
-          width: double.infinity,
-          height: 52,
-          child: OutlinedButton(
-            onPressed: authState.isLoading
-                ? null
-                : () async {
-                    await authNotifier.continueAsGuest();
-                    final prefs = await SharedPreferences.getInstance();
-                    await prefs.setBool('onboarding_completed', true);
-                    if (mounted) context.go('/');
-                  },
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.primary,
-              side: const BorderSide(color: AppColors.primary, width: 1.5),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+            child: Container(
+              width: double.infinity,
+              height: 52,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                color: AppColors.primary.withOpacity(0.12),
+                border: Border.all(
+                  color: AppColors.primary.withOpacity(0.2),
+                  width: 1.5,
+                ),
               ),
-            ),
-            child: Text(
-              'Misafir Olarak Devam Et',
-              style: AppTextStyles.button.copyWith(color: AppColors.primary),
+              child: OutlinedButton(
+                onPressed: authState.isLoading
+                    ? null
+                    : () async {
+                        HapticFeedback.lightImpact(); // Add haptic feedback
+                        await authNotifier.continueAsGuest();
+                        final prefs = await SharedPreferences.getInstance();
+                        await prefs.setBool('onboarding_completed', true);
+                        if (mounted) context.go('/');
+                      },
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.primary,
+                  side: BorderSide.none,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+                child: Text(
+                  'Misafir Olarak Devam Et',
+                  style: AppTextStyles.button.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold),
+                ),
+              ),
             ),
           ),
         ),

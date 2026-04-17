@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 
 // Admin emails
 const List<String> adminEmails = [
@@ -162,9 +163,26 @@ class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
       state = const AsyncValue.loading();
       final user = _auth.currentUser;
       if (user != null) {
-        // We attempt to delete the user from Firebase Auth
+        final userId = user.uid;
+
+        // 1. Delete user's reviews from Firestore
+        final reviews = await FirebaseFirestore.instance
+            .collection('reviews')
+            .where('userId', isEqualTo: userId)
+            .get();
+        
+        if (reviews.docs.isNotEmpty) {
+          final batch = FirebaseFirestore.instance.batch();
+          for (var doc in reviews.docs) {
+            batch.delete(doc.reference);
+          }
+          await batch.commit();
+          debugPrint('Deleted ${reviews.docs.length} reviews for user $userId');
+        }
+
+        // 2. Delete the user from Firebase Auth
         await user.delete();
-        // Also sign out from Google if applicable
+        // 3. Also sign out from Google if applicable
         await _googleSignIn.signOut();
       }
       state = const AsyncValue.data(null);

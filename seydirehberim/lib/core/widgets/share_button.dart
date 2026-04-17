@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 
 class ShareButton extends StatelessWidget {
@@ -16,6 +17,7 @@ class ShareButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return IconButton(
       onPressed: () {
+        HapticFeedback.vibrate();
         Share.share(
           content,
           subject: subject,

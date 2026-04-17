@@ -73,6 +73,7 @@ class _BannerSliderState extends ConsumerState<BannerSlider> {
 
                       return GestureDetector(
                         onTap: () {
+                          HapticFeedback.selectionClick();
                           if (companyId.isNotEmpty) {
                             context.push('/companies/$companyId');
                           } else if (targetUrl.isNotEmpty) {

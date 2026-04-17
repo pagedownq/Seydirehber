@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
@@ -44,7 +45,10 @@ class OtobusScreen extends ConsumerWidget {
                 const SizedBox(height: 16),
                 const Text('Veriler yüklenemedi'),
                 TextButton(
-                  onPressed: () => ref.refresh(otobusSaatleriProvider),
+                  onPressed: () {
+                    HapticFeedback.selectionClick();
+                    ref.refresh(otobusSaatleriProvider);
+                  },
                   child: const Text('Tekrar Dene'),
                 ),
               ],
@@ -148,7 +152,10 @@ class _BusScheduleItemState extends State<_BusScheduleItem> {
       child: Column(
         children: [
           InkWell(
-            onTap: () => setState(() => _isExpanded = !_isExpanded),
+            onTap: () {
+              HapticFeedback.selectionClick();
+              setState(() => _isExpanded = !_isExpanded);
+            },
             borderRadius: BorderRadius.circular(24),
             child: Padding(
               padding: const EdgeInsets.all(20),

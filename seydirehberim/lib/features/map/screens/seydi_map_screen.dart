@@ -171,7 +171,10 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
                 children: [
                   Expanded(
                     child: TextButton(
-                      onPressed: () => Navigator.pop(ctx),
+                      onPressed: () {
+                        HapticFeedback.selectionClick();
+                        Navigator.pop(ctx);
+                      },
                       child: const Text('Vazgeç', style: TextStyle(fontWeight: FontWeight.w600)),
                     ),
                   ),
@@ -179,6 +182,7 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () {
+                        HapticFeedback.vibrate();
                         Navigator.pop(ctx);
                         Geolocator.openAppSettings();
                       },
@@ -233,6 +237,7 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
               child: const Icon(Icons.my_location, color: AppColors.primary, size: 20),
             ),
             onPressed: () {
+              HapticFeedback.vibrate();
               if (_userLocation != null) {
                 _mapController.move(_userLocation!, 15.0);
               } else {
@@ -330,7 +335,7 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
             child: InkWell(
               onTap: () {
                 if (_selectedFilter != filter) {
-                  HapticFeedback.lightImpact(); // Add tactile feel
+                  HapticFeedback.vibrate(); // Upgrade to vibrate to ensure it's felt
                   setState(() => _selectedFilter = filter);
                 }
               },
@@ -570,6 +575,7 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () {
+          HapticFeedback.vibrate();
           if (data != null) {
             _showMarkerPreview(id, name, position, color, routePrefix, type, data);
           } else if (type == 'noter' || type == 'pazar') {
@@ -713,6 +719,7 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
                   Expanded(
                     child: ElevatedButton.icon(
                       onPressed: () {
+                        HapticFeedback.selectionClick();
                         Navigator.pop(context);
                         if (type == 'noter' || type == 'pazar') {
                            context.push(routePrefix);
@@ -737,7 +744,10 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: IconButton(
-                      onPressed: () => MapHelper.openOnMap(position.latitude, position.longitude),
+                      onPressed: () {
+                        HapticFeedback.vibrate();
+                        MapHelper.openOnMap(position.latitude, position.longitude);
+                      },
                       icon: const Icon(Icons.navigation_rounded, color: AppColors.primary),
                       tooltip: 'Yol Tarifi',
                     ),

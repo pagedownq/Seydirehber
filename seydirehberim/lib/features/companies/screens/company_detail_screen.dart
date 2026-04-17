@@ -132,8 +132,9 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
                       child: IconButton(
                         icon: const Icon(Icons.arrow_back, size: 20, color: Colors.white),
                         onPressed: () {
-                      Navigator.pop(context);
-                    },
+                          HapticFeedback.selectionClick();
+                          Navigator.pop(context);
+                        },
                       ),
                     ),
                     flexibleSpace: FlexibleSpaceBar(
@@ -175,8 +176,9 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
                         child: IconButton(
                           icon: const Icon(Icons.share_outlined, size: 20),
                           onPressed: () {
-                        Share.share('$name firmasını Seydi Rehber\'de keşfet!');
-                      },
+                            HapticFeedback.selectionClick();
+                            Share.share('$name firmasını Seydi Rehber\'de keşfet!');
+                          },
                         ),
                       ),
                           FavoriteButton(id: widget.companyId, type: 'company'),
@@ -302,8 +304,9 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
                                 width: double.infinity,
                                 child: ElevatedButton.icon(
                                   onPressed: () {
-                              _launchMap(konum);
-                            },
+                                    HapticFeedback.selectionClick();
+                                    _launchMap(konum);
+                                  },
                                   icon: const Icon(Icons.near_me_rounded),
                                   label: const Text('HARİTA ÜZERİNDEN BAK', 
                                     style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 0.5)),
@@ -346,6 +349,7 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: InkWell(
         onTap: () {
+          HapticFeedback.selectionClick();
           if (onTap != null) {
             onTap();
           }
@@ -395,6 +399,7 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
       padding: const EdgeInsets.only(bottom: 25),
       child: InkWell(
         onTap: () {
+          HapticFeedback.selectionClick();
           if (onTap != null) {
             onTap!();
           }
@@ -445,6 +450,7 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
   Widget _buildSocialIcon(dynamic icon, VoidCallback onTap) {
     return InkWell(
       onTap: () {
+        HapticFeedback.selectionClick();
         onTap();
       },
       borderRadius: BorderRadius.circular(20),

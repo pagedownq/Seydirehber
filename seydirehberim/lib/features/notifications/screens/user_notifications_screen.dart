@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
@@ -106,6 +108,9 @@ class _UserNotificationsScreenState extends State<UserNotificationsScreen> {
                         ],
                       ),
                       child: ListTile(
+                        onTap: () {
+                          HapticFeedback.selectionClick();
+                        },
                         contentPadding: const EdgeInsets.all(16),
                         leading: Container(
                           padding: const EdgeInsets.all(10),

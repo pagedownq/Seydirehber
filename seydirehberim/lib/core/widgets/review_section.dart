@@ -45,6 +45,7 @@ class ReviewSection extends ConsumerWidget {
             ),
             ElevatedButton.icon(
               onPressed: () {
+                HapticFeedback.selectionClick();
                 _showAddReview(context, ref);
               },
               icon: const Icon(Icons.edit_note_rounded, size: 20),
@@ -121,6 +122,7 @@ class ReviewSection extends ConsumerWidget {
           Center(
             child: TextButton(
               onPressed: () {
+                HapticFeedback.selectionClick();
                 // Show all reviews screen
               },
               child: const Text('Tüm Yorumları Gör'),
@@ -274,6 +276,7 @@ class ReviewSection extends ConsumerWidget {
                 height: 56,
                 child: ElevatedButton(
                   onPressed: () {
+                    HapticFeedback.selectionClick();
                     Navigator.pop(context);
                   },
                   style: ElevatedButton.styleFrom(

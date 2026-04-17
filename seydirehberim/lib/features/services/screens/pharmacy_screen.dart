@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/constants/app_colors.dart';
@@ -81,6 +82,7 @@ class _PharmacyScreenState extends State<PharmacyScreen> {
           ErrorView(
             message: 'Nöbetçi eczaneleri görüntülemek için lütfen internet bağlantınızı açın.',
             onRetry: () {
+              HapticFeedback.selectionClick();
               setState(() {
                 _isLoading = true;
                 _hasError = false;

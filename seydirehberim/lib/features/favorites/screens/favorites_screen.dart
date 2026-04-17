@@ -82,6 +82,7 @@ class _FavoriteItemCard extends StatelessWidget {
           color: Colors.transparent,
           child: InkWell(
             onTap: () {
+              HapticFeedback.selectionClick();
               context.push('/$routePrefix/$id');
             },
             borderRadius: BorderRadius.circular(20),

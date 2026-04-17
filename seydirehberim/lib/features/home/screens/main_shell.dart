@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
@@ -90,6 +91,7 @@ class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
         child: NavigationBar(
           selectedIndex: _currentIndex,
           onDestinationSelected: (i) {
+            HapticFeedback.selectionClick();
             setState(() => _currentIndex = i);
           },
           backgroundColor: AppColors.white,

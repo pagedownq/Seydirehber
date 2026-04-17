@@ -118,10 +118,10 @@ class NotificationService {
     // Get FCM token
     String? token = await _firebaseMessaging.getToken();
     if (token != null) {
-      await _saveTokenToFirestore(token);
+      final isEnabled = await isNotificationsEnabled();
+      await _saveTokenToFirestore(token, isEnabled: isEnabled);
       
       // Handle topic subscription based on user preference
-      final isEnabled = await isNotificationsEnabled();
       if (isEnabled) {
         await _firebaseMessaging.subscribeToTopic('all');
         debugPrint('Auto-subscribed to "all" topic on init');
@@ -130,6 +130,25 @@ class NotificationService {
         debugPrint('Auto-unsubscribed from "all" topic on init');
       }
     }
+
+    // --- Reliability Boost: Listen to Auth Changes ---
+    // This ensures that when a user logs in or out, the token is instantly updated in Firestore
+    FirebaseAuth.instance.authStateChanges().listen((User? user) async {
+      String? currentToken = await _firebaseMessaging.getToken();
+      if (currentToken != null) {
+        final enabled = await isNotificationsEnabled();
+        await _saveTokenToFirestore(currentToken, isEnabled: enabled);
+        debugPrint('FCM Token sync triggered by Auth Change for: ${user?.email ?? "Guest"}');
+      }
+    });
+
+    // --- Reliability Boost: Listen to Token Refresh ---
+    // In rare cases where Firebase refreshes the token while app is running
+    _firebaseMessaging.onTokenRefresh.listen((newToken) async {
+      final enabled = await isNotificationsEnabled();
+      await _saveTokenToFirestore(newToken, isEnabled: enabled);
+      debugPrint('FCM Token refreshed and synced in Firestore');
+    });
   }
 
   Future<void> _initInstallationDate() async {
@@ -163,6 +182,12 @@ class NotificationService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_notificationsEnabledKey, enabled);
 
+    // Update Firestore status
+    final token = await _firebaseMessaging.getToken();
+    if (token != null) {
+      await _saveTokenToFirestore(token, isEnabled: enabled);
+    }
+
     if (enabled) {
       await _firebaseMessaging.subscribeToTopic('all');
       debugPrint('Subscribed to "all" topic');
@@ -191,9 +216,25 @@ class NotificationService {
     }
   }
 
-  Future<void> _saveTokenToFirestore(String token) async {
+  Future<void> _saveTokenToFirestore(String token, {required bool isEnabled}) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
+      final prefs = await SharedPreferences.getInstance();
+      
+      // Check if we have a different old token stored locally
+      const String oldTokenKey = 'last_registered_fcm_token';
+      final String? oldToken = prefs.getString(oldTokenKey);
+      
+      if (oldToken != null && oldToken != token) {
+        // App probably reinstalled or token changed, delete the old document
+        try {
+          await FirebaseFirestore.instance.collection('user_tokens').doc(oldToken).delete();
+          debugPrint('Stale FCM token deleted: $oldToken');
+        } catch (e) {
+          debugPrint('Error deleting stale token: $e');
+        }
+      }
+
       final docRef = FirebaseFirestore.instance.collection('user_tokens').doc(token);
       
       await docRef.set({
@@ -201,11 +242,16 @@ class NotificationService {
         'userId': user?.uid,
         'platform': Platform.isAndroid ? 'android' : 'ios',
         'lastUpdated': FieldValue.serverTimestamp(),
+        'isEnabled': isEnabled,
+        'lastSeen': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
       
-      await _firebaseMessaging.subscribeToTopic('all');
+      // Update local storage with the current latest token
+      await prefs.setString(oldTokenKey, token);
+      
+      // Topic subscription is handled by the caller
     } catch (e) {
-      print('Token error: $e');
+      debugPrint('Token registration error: $e');
     }
   }
 

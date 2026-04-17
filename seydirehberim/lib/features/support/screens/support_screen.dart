@@ -210,6 +210,7 @@ class _SupportScreenState extends ConsumerState<SupportScreen> {
                   child: Text(cat),
                 )).toList(),
                 onChanged: (val) {
+                  HapticFeedback.selectionClick();
                   if (val != null) setState(() => _selectedCategory = val);
                 },
                 decoration: const InputDecoration(
@@ -238,6 +239,7 @@ class _SupportScreenState extends ConsumerState<SupportScreen> {
                 height: 54,
                 child: ElevatedButton(
                   onPressed: _isSending ? null : () {
+                    HapticFeedback.selectionClick();
                     _submitForm();
                   },
                   child: _isSending 
