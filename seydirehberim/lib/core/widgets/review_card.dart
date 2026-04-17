@@ -120,7 +120,11 @@ class _ReviewCardState extends State<ReviewCard> {
                       if (value == 'report') _showReportDialog(context);
                       if (value == 'block') {
                         setState(() => _isHidden = true);
-                        BlockService.blockUser(widget.review.userId);
+                        BlockService.blockUser(
+                          widget.review.userId,
+                          name: widget.review.userName,
+                          imageUrl: widget.review.userImageUrl,
+                        );
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text('Kullanıcı engellendi ve içerikleri gizlendi.'),

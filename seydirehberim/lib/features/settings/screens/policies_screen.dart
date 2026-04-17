@@ -82,6 +82,12 @@ Uygulama içinde paylaşılan tüm içerikler moderasyona tabidir. Aşağıdaki 
 
 4. Yaptırımlar:
 Kural ihlali yapan kullanıcıların yorumları silinir ve ihlalin tekrarı durumunda hesapları askıya alınabilir.
+
+5. Haber İçerikleri ve Telif Hakları (RSS):
+Uygulama içindeki "Haberler" bölümündeki içerikler, yerel basın kuruluşlarından RSS (Rich Site Summary) aracılığıyla otomatik olarak çekilmektedir.
+• Haberin tüm mali ve manevi hakları asıl kaynak kuruluşlara aittir.
+• Haber içeriğinin doğruluğu ve yasal sorumluluğu kaynak siteye aittir.
+• "Uyar-Kaldır" Sistemi: Hak sahibi olduğunuz bir içeriğin kaldırılmasını istiyorsanız, bize bildirdiğiniz takdirde içerik 24 saat içinde sistemimizden kaldırılacaktır.
 ''';
 
   static const String kvkkContent = '''

@@ -57,7 +57,7 @@ const ManageCollection: React.FC<ManageCollectionProps> = ({ collectionId }) => 
     // We always want to fetch companies for filtering and picking
     const q = query(collection(db, 'firmalar'), orderBy('ad'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      setCompanies(snapshot.docs.map(doc => ({ id: doc.id, ad: doc.data().ad })));
+      setCompanies(snapshot.docs.map(doc => ({ id: doc.id, ad: doc.data().ad, kategori: doc.data().kategori })));
     });
     return unsubscribe;
   }, []);
@@ -429,7 +429,10 @@ const ManageCollection: React.FC<ManageCollectionProps> = ({ collectionId }) => 
                           const updates: any = { [field.key]: val };
                           if ((collectionId === 'coupons' || collectionId === 'esnaf_users') && field.key === 'companyId') {
                             const company = companies.find(c => c.id === val);
-                            if (company) updates.companyName = company.ad;
+                            if (company) {
+                                updates.companyName = company.ad;
+                                updates.companyCategory = company.kategori;
+                            }
                           }
                           setFormData({ ...formData, ...updates });
                         }}

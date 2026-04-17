@@ -19,18 +19,64 @@ const ADMIN_EMAILS = [
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [user, setUser] = useState<any>(null);
+  const [permissions, setPermissions] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const checkAdminStatus = async (u: any) => {
-    if (ADMIN_EMAILS.includes(u.email || '')) return true;
+  const checkAdminStatus = async (u: any): Promise<{ isAdmin: boolean; permissions: Record<string, boolean> }> => {
+    const email = u.email?.toLowerCase() || '';
+    
+    // 1. Super admin check
+    if (ADMIN_EMAILS.map(e => e.toLowerCase()).includes(email)) {
+      return {
+        isAdmin: true,
+        permissions: {
+          canManageBanners: true,
+          canManageEvents: true,
+          canManageNotaries: true,
+          canManageMarkets: true,
+          canManageBuses: true,
+          canManagePlaces: true,
+          canManageCompanies: true,
+          canManageSupport: true,
+          canManageReviews: true,
+          canManageReports: true,
+          canManageNotifications: true,
+          canManageEsnaf: true,
+          canManageCoupons: true,
+          canManageAdmins: true,
+        }
+      };
+    }
     
     try {
-      const adminDoc = await getDoc(doc(db, 'admins', u.email || ''));
-      return adminDoc.exists() && adminDoc.data()?.isActive !== false;
+      const adminDoc = await getDoc(doc(db, 'admins', email));
+      if (adminDoc.exists() && adminDoc.data()?.isActive !== false) {
+        const data = adminDoc.data();
+        return {
+          isAdmin: true,
+          permissions: {
+            canManageBanners: data.canManageBanners || false,
+            canManageEvents: data.canManageEvents || false,
+            canManageNotaries: data.canManageNotaries || false,
+            canManageMarkets: data.canManageMarkets || false,
+            canManageBuses: data.canManageBuses || false,
+            canManagePlaces: data.canManagePlaces || false,
+            canManageCompanies: data.canManageCompanies || false,
+            canManageSupport: data.canManageSupport || false,
+            canManageReviews: data.canManageReviews || false,
+            canManageReports: data.canManageReports || false,
+            canManageNotifications: data.canManageNotifications || false,
+            canManageEsnaf: data.canManageEsnaf || false,
+            canManageCoupons: data.canManageCoupons || false,
+            canManageAdmins: data.canManageAdmins || false,
+          }
+        };
+      }
+      return { isAdmin: false, permissions: {} };
     } catch (err) {
       console.error('Admin check error:', err);
-      return false;
+      return { isAdmin: false, permissions: {} };
     }
   };
 
@@ -38,16 +84,19 @@ function App() {
     const unsubscribe = onAuthStateChanged(auth, async (u) => {
       if (u) {
         setLoading(true);
-        const isAdmin = await checkAdminStatus(u);
+        const { isAdmin, permissions: userPerms } = await checkAdminStatus(u);
         if (isAdmin) {
           setUser(u);
+          setPermissions(userPerms);
         } else {
           await signOut(auth);
           setError('Bu hesabı kullanma yetkiniz yok.');
           setUser(null);
+          setPermissions({});
         }
       } else {
         setUser(null);
+        setPermissions({});
       }
       setLoading(false);
     });
@@ -61,14 +110,16 @@ function App() {
     try {
       const result = await signInWithPopup(auth, provider);
       const u = result.user;
-      const isAdmin = await checkAdminStatus(u);
+      const { isAdmin, permissions: userPerms } = await checkAdminStatus(u);
       
       if (!isAdmin) {
         await signOut(auth);
         setError('Yetkisiz giriş: Bu e-posta admin listesinde değil.');
         setUser(null);
+        setPermissions({});
       } else {
         setUser(u);
+        setPermissions(userPerms);
       }
     } catch (err: any) {
       setError('Giriş başarısız: ' + err.message);
@@ -122,7 +173,7 @@ function App() {
 
   return (
     <div className="app-container">
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} permissions={permissions} />
 
       <main className="main-content">
         <div className="top-nav" style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '2rem', gap: '1rem', alignItems: 'center' }}>
@@ -136,7 +187,7 @@ function App() {
         </div>
 
         {activeTab === 'dashboard' ? (
-          <DashboardOverview />
+          <DashboardOverview permissions={permissions} />
         ) : activeTab === 'notifications' ? (
           <NotificationManagement />
         ) : (

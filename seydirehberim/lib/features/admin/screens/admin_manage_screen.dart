@@ -320,8 +320,7 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
         return [
           _FieldConfig('ad', 'Etkinlik Adı', required: true),
           _FieldConfig('hakkinda', 'Hakkında', multiline: true),
-          _FieldConfig('baslangic_tarihi_str', 'Başlangıç Tarihi',
-              isDate: true, required: true),
+          _FieldConfig('baslangic_tarihi_str', 'Başlangıç Tarihi', isDate: true),
           _FieldConfig('bitis_tarihi_str', 'Bitiş Tarihi', isDate: true),
           _FieldConfig('saat', 'Saat', isTime: true),
           _FieldConfig('adres', 'Görünecek Adres (Örn: Aşağı Hisar...)'),
@@ -381,7 +380,7 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
       case 'coupons':
         return [
           _FieldConfig('title', 'Kupon Başlığı (Örn: %20 İndirim)', required: true),
-          _FieldConfig('description', 'Kupon Detayı', multiline: true, required: true),
+          _FieldConfig('description', 'Kupon Detayı', multiline: true),
           _FieldConfig('companyId', 'Firma Seç', isCompanyPicker: true, required: true),
           _FieldConfig('companyName', 'Firma Adı (Otomatik dolar)', readOnly: true),
           _FieldConfig('discountPercentage', 'İndirim Yüzdesi (Örn: 20)', isNumber: true),
@@ -394,6 +393,20 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
           _FieldConfig('email', 'Admin Email', required: true),
           _FieldConfig('ad_soyad', 'Ad Soyad', required: true),
           _FieldConfig('isActive', 'Aktif Mi?', isBoolean: true, defaultValue: true),
+          _FieldConfig('canManageBanners', 'Banner Yönetimi', isBoolean: true, defaultValue: false),
+          _FieldConfig('canManageEvents', 'Etkinlik Yönetimi', isBoolean: true, defaultValue: false),
+          _FieldConfig('canManageNotaries', 'Noter Yönetimi', isBoolean: true, defaultValue: false),
+          _FieldConfig('canManageMarkets', 'Pazar Yönetimi', isBoolean: true, defaultValue: false),
+          _FieldConfig('canManageBuses', 'Ulaşım Yönetimi', isBoolean: true, defaultValue: false),
+          _FieldConfig('canManagePlaces', 'Mekan Yönetimi', isBoolean: true, defaultValue: false),
+          _FieldConfig('canManageCompanies', 'Firma Yönetimi', isBoolean: true, defaultValue: false),
+          _FieldConfig('canManageSupport', 'Destek Yönetimi', isBoolean: true, defaultValue: false),
+          _FieldConfig('canManageReviews', 'Yorum Yönetimi', isBoolean: true, defaultValue: false),
+          _FieldConfig('canManageReports', 'Şikayet Yönetimi', isBoolean: true, defaultValue: false),
+          _FieldConfig('canManageNotifications', 'Bildirim Yönetimi', isBoolean: true, defaultValue: false),
+          _FieldConfig('canManageEsnaf', 'Esnaf Yönetimi', isBoolean: true, defaultValue: false),
+          _FieldConfig('canManageCoupons', 'Kupon Yönetimi', isBoolean: true, defaultValue: false),
+          _FieldConfig('canManageAdmins', 'Admin Yönetimi', isBoolean: true, defaultValue: false),
         ];
       default:
         return [_FieldConfig('ad', 'Ad', required: true)];
@@ -573,13 +586,17 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
                                             "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}";
                                       }
                                     } else if (field.isCompanyPicker) {
-                                      _showCompanyPicker(context, (id, name) {
+                                      _showCompanyPicker(context, (data, id) {
+                                        final name = data['ad'] ?? 'İsimsiz';
+                                        final category = data['kategori'] ?? '';
                                         setModalState(() {
                                           controllers[field.key]?.text = "$name | $id";
-                                          // Auto-fill companyName if it exists in fields
+                                          // Auto-fill companyName and category if applicable
                                           if (controllers.containsKey('companyName')) {
                                             controllers['companyName']?.text = name;
                                           }
+                                          // Store category in a temporary state or just ensure it gets saved
+                                          existingData?['companyCategory'] = category;
                                         });
                                       });
                                     }
@@ -688,6 +705,10 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
                                     } else if (field.isCompanyPicker) {
                                       final parts = value.split(' | ');
                                       docData[field.key] = parts.last;
+                                      // If we have a category in existingData (from picker), add it to docData
+                                      if (existingData?['companyCategory'] != null) {
+                                        docData['companyCategory'] = existingData!['companyCategory'];
+                                      }
                                     } else {
                                       docData[field.key] = value;
                                     }
@@ -863,7 +884,7 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
   }
 
   void _showCompanyPicker(
-      BuildContext context, Function(String id, String name) onSelect) {
+      BuildContext context, Function(Map<String, dynamic> companyData, String id) onSelect) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -907,7 +928,7 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
                         return ListTile(
                           title: Text(name),
                           onTap: () {
-                            onSelect(id, name);
+                            onSelect(data, id);
                             Navigator.pop(context);
                           },
                         );

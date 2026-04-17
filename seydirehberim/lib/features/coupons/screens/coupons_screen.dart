@@ -150,20 +150,52 @@ class CouponsScreen extends ConsumerWidget {
                                 const SizedBox(height: 8),
                                 Row(
                                   children: [
-                                    const Icon(Icons.storefront, color: Colors.white70, size: 16),
-                                    const SizedBox(width: 6),
+                                    const Icon(Icons.storefront, color: Colors.white70, size: 14),
+                                    const SizedBox(width: 4),
                                     Expanded(
                                       child: Text(
                                         companyName,
                                         style: const TextStyle(
-                                          color: Colors.white70,
-                                          fontSize: 14,
+                                          color: Colors.white,
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600,
                                         ),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
                                   ],
+                                ),
+                                const SizedBox(height: 4),
+                                // Display category if found
+                                Builder(
+                                  builder: (context) {
+                                    final companiesAsync = ref.watch(alphabeticalCompaniesProvider);
+                                    return companiesAsync.when(
+                                      data: (companies) {
+                                        final company = companies.where((c) => c.id == data['companyId']).firstOrNull;
+                                        final category = company?.data()['kategori']?.toString();
+                                        if (category == null || category.isEmpty) return const SizedBox.shrink();
+                                        return Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white24,
+                                            borderRadius: BorderRadius.circular(4),
+                                          ),
+                                          child: Text(
+                                            category,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      loading: () => const SizedBox.shrink(),
+                                      error: (_, __) => const SizedBox.shrink(),
+                                    );
+                                  },
                                 ),
                               ],
                             ),

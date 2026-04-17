@@ -11,6 +11,7 @@ import '../../../core/constants/app_text_styles.dart';
 import '../../../core/utils/map_helper.dart';
 import '../../home/providers/home_providers.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:location/location.dart' as loc;
 import 'dart:async';
 
 class SeydiMapScreen extends ConsumerStatefulWidget {
@@ -23,6 +24,15 @@ class SeydiMapScreen extends ConsumerStatefulWidget {
 class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
   String _selectedFilter = 'Tümü';
   final List<String> _filters = ['Tümü', 'Yerler', 'Firmalar', 'Etkinlikler', 'Noterler', 'Pazarlar'];
+  
+  final Map<String, IconData> _filterIcons = {
+    'Tümü': Icons.explore_rounded,
+    'Yerler': Icons.park_rounded,
+    'Firmalar': Icons.business_rounded,
+    'Etkinlikler': Icons.celebration_rounded,
+    'Noterler': Icons.gavel_rounded,
+    'Pazarlar': Icons.shopping_basket_rounded,
+  };
   
   final MapController _mapController = MapController();
   
@@ -37,6 +47,7 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
   // User Location
   LatLng? _userLocation;
   StreamSubscription<Position>? _locationSubscription;
+  StreamSubscription<ServiceStatus>? _serviceStatusSubscription;
 
   // Seydişehir Center
   final LatLng _seydisehirCenter = const LatLng(37.418, 31.846);
@@ -45,52 +56,149 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
   void initState() {
     super.initState();
     _checkPermissionAndGetLocation();
+
+    // Listen for service status changes (e.g. user turns on GPS from notification tray)
+    _serviceStatusSubscription = Geolocator.getServiceStatusStream().listen((status) {
+      if (status == ServiceStatus.enabled) {
+        _checkPermissionAndGetLocation();
+      }
+    });
   }
 
   @override
   void dispose() {
     _locationSubscription?.cancel();
+    _serviceStatusSubscription?.cancel();
     super.dispose();
   }
 
   Future<void> _checkPermissionAndGetLocation() async {
-    bool serviceEnabled;
     LocationPermission permission;
 
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) return;
-
+    // 1. Check/Request Permission FIRST (so user sees the prompt regardless of service status)
     permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) return;
     }
 
-    if (permission == LocationPermission.deniedForever) return;
+    if (permission == LocationPermission.deniedForever) {
+      // Permission is permanently denied, show a help dialog
+      if (mounted) _showPermissionDeniedDialog();
+      return;
+    }
 
-    // Get initial position
-    try {
-      Position position = await Geolocator.getCurrentPosition();
+    // 2. Check Service
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
       if (mounted) {
-        setState(() {
-          _userLocation = LatLng(position.latitude, position.longitude);
-        });
+        // Trigger the NATIVE SYSTEM dialog (Google Play Services popup)
+        final location = loc.Location();
+        serviceEnabled = await location.requestService();
+        
+        if (!serviceEnabled) {
+          // User still refused to turn on GPS from the system popup
+          return;
+        }
+      } else {
+        return;
       }
-    } catch (_) {}
+    }
 
-    // Listen for updates
-    _locationSubscription = Geolocator.getPositionStream(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.high,
-        distanceFilter: 10,
+    // Get initial position if we don't have it
+    if (_userLocation == null) {
+      try {
+        Position position = await Geolocator.getCurrentPosition(
+          locationSettings: const LocationSettings(accuracy: LocationAccuracy.medium),
+        );
+        if (mounted) {
+          setState(() {
+            _userLocation = LatLng(position.latitude, position.longitude);
+          });
+        }
+      } catch (_) {}
+    }
+
+    // Listen for updates if not already listening
+    if (_locationSubscription == null) {
+      _locationSubscription = Geolocator.getPositionStream(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          distanceFilter: 10,
+        ),
+      ).listen((Position position) {
+        if (mounted) {
+          setState(() {
+            _userLocation = LatLng(position.latitude, position.longitude);
+          });
+        }
+      });
+    }
+  }
+
+  void _showPermissionDeniedDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.error.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.security_rounded, size: 32, color: AppColors.error),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Konum İzni Gerekli',
+                textAlign: TextAlign.center,
+                style: AppTextStyles.heading2,
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'Uygulama özelliklerini tam kullanabilmek için konum iznine ihtiyacımız var. Lütfen uygulama ayarlarından izin verin.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: AppColors.textSecondary, height: 1.4),
+              ),
+              const SizedBox(height: 32),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: const Text('Vazgeç', style: TextStyle(fontWeight: FontWeight.w600)),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        Geolocator.openAppSettings();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const Text('Ayarları Aç', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
-    ).listen((Position position) {
-      if (mounted) {
-        setState(() {
-          _userLocation = LatLng(position.latitude, position.longitude);
-        });
-      }
-    });
+    );
   }
 
   @override
@@ -159,50 +267,76 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
 
   Widget _buildFilterBar() {
     return Container(
-      height: 70,
-      padding: const EdgeInsets.symmetric(vertical: 12),
+      height: 75,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         itemCount: _filters.length,
         itemBuilder: (context, index) {
           final filter = _filters[index];
           final isSelected = _selectedFilter == filter;
+          final icon = _filterIcons[filter] ?? Icons.category_rounded;
+          
           return Padding(
             padding: const EdgeInsets.only(right: 12),
             child: InkWell(
               onTap: () {
-                setState(() => _selectedFilter = filter);
+                if (_selectedFilter != filter) {
+                  HapticFeedback.lightImpact(); // Add tactile feel
+                  setState(() => _selectedFilter = filter);
+                }
               },
-              borderRadius: BorderRadius.circular(25),
+              borderRadius: BorderRadius.circular(16),
               child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
-                  color: isSelected ? AppColors.primary : Colors.white,
-                  borderRadius: BorderRadius.circular(25),
+                  gradient: isSelected ? AppColors.primaryGradient : null,
+                  color: isSelected ? null : AppColors.primarySurface.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isSelected ? Colors.transparent : AppColors.primary.withOpacity(0.1),
+                    width: 1,
+                  ),
                   boxShadow: [
                     if (isSelected)
                       BoxShadow(
                         color: AppColors.primary.withOpacity(0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      )
-                    else
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
+                        blurRadius: 12,
+                        offset: const Offset(0, 6),
                       ),
                   ],
                 ),
-                child: Text(
-                  filter,
-                  style: TextStyle(
-                    color: isSelected ? Colors.white : AppColors.textSecondary,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                    fontSize: 14,
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      icon,
+                      size: 18,
+                      color: isSelected ? Colors.white : AppColors.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      filter,
+                      style: TextStyle(
+                        color: isSelected ? Colors.white : AppColors.primary.withOpacity(0.8),
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                        fontSize: 13,
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -307,7 +441,7 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
 
     // Filter detection
     if (_lastFilterUsed != _selectedFilter) {
-      // We could clear some caches here if needed, but not necessary yet
+      _markerCache.clear(); // Clear so markers are rebuilt with new selection/logic
       _lastFilterUsed = _selectedFilter;
     }
 
@@ -353,7 +487,7 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
             } 
             // Then check Coordinate Cache and build marker if found
             else if (_coordinateCache.containsKey(docKey)) {
-              final m = _buildMarker(doc.id, name, _coordinateCache[docKey]!, color, routePrefix, type);
+              final m = _buildMarker(doc.id, name, _coordinateCache[docKey]!, color, routePrefix, type, data: data);
               _markerCache[docKey] = m;
               markers.add(m);
             } 
@@ -362,7 +496,7 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
               final coords = _quickParseCoords(konum);
               if (coords != null) {
                 _coordinateCache[docKey] = coords;
-                final m = _buildMarker(doc.id, name, coords, color, routePrefix, type);
+                final m = _buildMarker(doc.id, name, coords, color, routePrefix, type, data: data);
                 _markerCache[docKey] = m;
                 markers.add(m);
               } else if (!_pendingResolutions.contains(docKey)) {
@@ -404,7 +538,7 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
     return null;
   }
 
-  Marker _buildMarker(String id, String name, LatLng position, Color color, String routePrefix, String type) {
+  Marker _buildMarker(String id, String name, LatLng position, Color color, String routePrefix, String type, {Map<String, dynamic>? data}) {
     // Simplified Marker Widget for better performance
     return Marker(
       point: position,
@@ -414,7 +548,9 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () {
-          if (type == 'noter' || type == 'pazar') {
+          if (data != null) {
+            _showMarkerPreview(id, name, position, color, routePrefix, type, data);
+          } else if (type == 'noter' || type == 'pazar') {
              context.push(routePrefix);
           } else {
              context.push('$routePrefix$id');
@@ -423,13 +559,18 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Using a simpler container without complex animations/shadows for base markers
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(6),
                 border: Border.all(color: color.withOpacity(0.4), width: 1),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 4,
+                  )
+                ],
               ),
               child: Text(
                 name.length > 15 ? '${name.substring(0, 12)}...' : name,
@@ -444,6 +585,144 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
               ),
             ),
             Icon(Icons.location_on, color: color, size: 28),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showMarkerPreview(String id, String name, LatLng position, Color color, String routePrefix, String type, Map<String, dynamic> data) {
+    final imageUrl = data['image_url'] as String? ?? data['gorsel'] as String? ?? '';
+    final rating = data['rating'] as num? ?? 0.0;
+    final address = data['adres'] as String? ?? data['address'] as String? ?? '';
+    
+    // Calculate distance
+    String distanceText = '';
+    if (_userLocation != null) {
+      double distanceInMeters = Geolocator.distanceBetween(
+        _userLocation!.latitude, _userLocation!.longitude,
+        position.latitude, position.longitude
+      );
+      if (distanceInMeters < 1000) {
+        distanceText = '${distanceInMeters.round()} m';
+      } else {
+        distanceText = '${(distanceInMeters / 1000).toStringAsFixed(1)} km';
+      }
+    }
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      builder: (context) => Container(
+        margin: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.15),
+              blurRadius: 20,
+              offset: const Offset(0, -5),
+            )
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle for drag
+            Container(
+              margin: const EdgeInsets.symmetric(vertical: 12),
+              width: 40,
+              height: 4),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Image
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: SizedBox(
+                      width: 100,
+                      height: 100,
+                      child: imageUrl.isNotEmpty 
+                        ? Image.network(imageUrl, fit: BoxFit.cover)
+                        : Container(color: color.withOpacity(0.1), child: Icon(Icons.image, color: color)),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  // Details
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(name, style: AppTextStyles.heading3, maxLines: 1, overflow: TextOverflow.ellipsis),
+                        const SizedBox(height: 4),
+                        if (address.isNotEmpty)
+                          Text(address, style: AppTextStyles.bodySmall, maxLines: 1, overflow: TextOverflow.ellipsis),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            if (rating > 0) ...[
+                              const Icon(Icons.star_rounded, color: Colors.amber, size: 18),
+                              const SizedBox(width: 4),
+                              Text(rating.toStringAsFixed(1), style: const TextStyle(fontWeight: FontWeight.bold)),
+                              const SizedBox(width: 12),
+                            ],
+                            if (distanceText.isNotEmpty) ...[
+                              const Icon(Icons.near_me_rounded, color: AppColors.primary, size: 16),
+                              const SizedBox(width: 4),
+                              Text(distanceText, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                            ],
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Actions
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        if (type == 'noter' || type == 'pazar') {
+                           context.push(routePrefix);
+                        } else {
+                           context.push('$routePrefix$id');
+                        }
+                      },
+                      icon: const Icon(Icons.info_outline_rounded, size: 18),
+                      label: const Text('Detayları Gör'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.primarySurface,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: IconButton(
+                      onPressed: () => MapHelper.openOnMap(position.latitude, position.longitude),
+                      icon: const Icon(Icons.navigation_rounded, color: AppColors.primary),
+                      tooltip: 'Yol Tarifi',
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),

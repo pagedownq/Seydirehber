@@ -1,7 +1,16 @@
 import 'package:latlong2/latlong.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 class MapHelper {
+  /// Launches external map application for directions
+  static Future<void> openOnMap(double lat, double lng) async {
+    final url = 'https://www.google.com/maps/search/?api=1&query=$lat,$lng';
+    if (await canLaunchUrlString(url)) {
+      await launchUrlString(url, mode: LaunchMode.externalApplication);
+    }
+  }
+
   /// Converts various location formats (URLs, text addresses, coordinates, DMS) to LatLng
   static Future<LatLng?> getCoordinates(String locationData) async {
     if (locationData.isEmpty) return null;

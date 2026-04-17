@@ -6,25 +6,58 @@ final firestoreProvider = Provider((ref) => FirebaseFirestore.instance);
 // Typed alias for the list of documents we'll be using everywhere
 typedef FirestoreDocs = List<QueryDocumentSnapshot<Map<String, dynamic>>>;
 
-// Events - last 5
+// Events - last 5 (now sorted by actual event date, and filtered for expired events)
 final latestEventsProvider = StreamProvider<FirestoreDocs>((ref) {
   return ref
-      .watch(firestoreProvider)
-      .collection('etkinlikler')
-      .orderBy('created_at', descending: true)
-      .limit(5)
-      .snapshots()
-      .map((s) => s.docs);
+      .watch(allEventsProvider.stream)
+      .map((docs) => docs.take(5).toList());
 });
 
-// All events
+// All events - Sorted by event date and auto-cleans expired ones
 final allEventsProvider = StreamProvider<FirestoreDocs>((ref) {
   return ref
       .watch(firestoreProvider)
       .collection('etkinlikler')
-      .orderBy('created_at', descending: true)
       .snapshots()
-      .map((s) => s.docs);
+      .map((snapshot) {
+    final now = DateTime.now();
+    // Silme sınırı: Bugünün başlangıcı (00:00). 
+    // Böylece dünü tamamlamış tüm etkinlikler temizlenir.
+    final cleanupThreshold = DateTime(now.year, now.month, now.day);
+
+    final docs = snapshot.docs.where((doc) {
+      final data = doc.data();
+      // Use end date if exists, otherwise use start date
+      final expiry = data['bitis_tarihi_str'] ?? data['baslangic_tarihi_str'];
+
+      if (expiry is Timestamp) {
+        final expiryDate = expiry.toDate();
+        // Eğer bitiş tarihi, bugünün başlangıcından (00:00) önceyse silme işlemini yap
+        if (expiryDate.isBefore(cleanupThreshold)) {
+          // EXPIRED! 
+          // Attempt to delete from DB (only works if user is Admin)
+          doc.reference.delete().catchError((_) {}); 
+          return false;
+        }
+      }
+      return true;
+    }).toList();
+
+    // Sort by event start date (closest to now first)
+    docs.sort((a, b) {
+      final aData = a.data();
+      final bData = b.data();
+      final aDate = aData['baslangic_tarihi_str'] ?? aData['baslangic_tarihi'];
+      final bDate = bData['baslangic_tarihi_str'] ?? bData['baslangic_tarihi'];
+
+      if (aDate is Timestamp && bDate is Timestamp) {
+        return aDate.compareTo(bDate);
+      }
+      return 0;
+    });
+
+    return docs;
+  });
 });
 
 // Places - last 5

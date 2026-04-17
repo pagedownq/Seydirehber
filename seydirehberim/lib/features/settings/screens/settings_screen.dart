@@ -129,84 +129,12 @@ class SettingsScreen extends ConsumerWidget {
               await inAppReview.openStoreListing();
             },
           ),
-          // Clear Blocked Users
           _buildSettingsItem(
             icon: Icons.person_remove_outlined,
-            title: 'Engellenen Kullanıcıları Kaldır',
-            subtitle: 'Tüm engelleri temizle',
+            title: 'Engellenen Kullanıcılar',
+            subtitle: 'Engellediğiniz kişileri yönetin',
             iconColor: AppColors.error,
-            onTap: () async {
-              final confirm = await showDialog<bool>(
-                context: context,
-                builder: (ctx) => Dialog(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: AppColors.error.withOpacity(0.1),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(Icons.person_remove_rounded, size: 32, color: AppColors.error),
-                        ),
-                        const SizedBox(height: 24),
-                        Text(
-                          'Engelleri Kaldır',
-                          textAlign: TextAlign.center,
-                          style: AppTextStyles.heading2,
-                        ),
-                        const SizedBox(height: 12),
-                        const Text(
-                          'Tüm engellediğiniz kullanıcıların engelini kaldırmak istediğinize emin misiniz? Bu işlem geri alınamaz.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: AppColors.textSecondary, height: 1.4),
-                        ),
-                        const SizedBox(height: 32),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextButton(
-                                onPressed: () => Navigator.pop(ctx, false),
-                                style: TextButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(vertical: 14),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                ),
-                                child: const Text('Vazgeç', style: TextStyle(fontWeight: FontWeight.w600)),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: ElevatedButton(
-                                onPressed: () => Navigator.pop(ctx, true),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.error,
-                                  foregroundColor: Colors.white,
-                                  elevation: 0,
-                                  padding: const EdgeInsets.symmetric(vertical: 14),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                ),
-                                child: const Text('Kaldır', style: TextStyle(fontWeight: FontWeight.bold)),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-
-              if (confirm == true) {
-                await BlockService.clearBlockedUsers();
-                if (context.mounted) {
-                  AppNotification.success(context, 'Tüm kullanıcıların engeli kaldırıldı.');
-                }
-              }
-            },
+            onTap: () => _showBlockedUsersBottomSheet(context),
           ),
           const SizedBox(height: 8),
 
@@ -416,6 +344,114 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showBlockedUsersBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) => Container(
+          height: MediaQuery.of(context).size.height * 0.7,
+          decoration: const BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+          ),
+          child: Column(
+            children: [
+              const SizedBox(height: 12),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.border,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Row(
+                  children: [
+                    const Icon(Icons.person_off_rounded, color: AppColors.error),
+                    const SizedBox(width: 12),
+                    Text('Engellenen Kullanıcılar', style: AppTextStyles.heading2),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Text(
+                  'Engelini kaldırmak istediğiniz kullanıcının yanındaki butona basın.',
+                  style: AppTextStyles.bodySmall,
+                ),
+              ),
+              const Divider(height: 32),
+              Expanded(
+                child: FutureBuilder<List<BlockedUser>>(
+                  future: BlockService.getBlockedUsersList(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    
+                    final list = snapshot.data ?? [];
+                    if (list.isEmpty) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.person_outline, size: 48, color: AppColors.textLight.withOpacity(0.5)),
+                            const SizedBox(height: 16),
+                            Text('Henüz kimseyi engellemediniz.', style: AppTextStyles.bodySmall),
+                          ],
+                        ),
+                      );
+                    }
+
+                    return ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                      itemCount: list.length,
+                      separatorBuilder: (_, __) => const Divider(height: 1),
+                      itemBuilder: (context, index) {
+                        final user = list[index];
+                        return ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: CircleAvatar(
+                            radius: 20,
+                            backgroundColor: AppColors.primarySurface,
+                            backgroundImage: user.imageUrl != null ? NetworkImage(user.imageUrl!) : null,
+                            child: user.imageUrl == null ? const Icon(Icons.person, color: AppColors.primary, size: 20) : null,
+                          ),
+                          title: Text(user.name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                          subtitle: Text('UID: ${user.uid.substring(0, 8)}...', style: AppTextStyles.caption),
+                          trailing: TextButton(
+                            onPressed: () async {
+                              await BlockService.unblockUser(user.uid);
+                              setModalState(() {});
+                              if (context.mounted) {
+                                AppNotification.success(context, 'Engel kaldırıldı.');
+                              }
+                            },
+                            style: TextButton.styleFrom(
+                              foregroundColor: AppColors.primary,
+                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                            ),
+                            child: const Text('Engeli Kaldır', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

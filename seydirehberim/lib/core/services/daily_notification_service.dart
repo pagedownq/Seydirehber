@@ -22,18 +22,18 @@ class DailyNotificationService {
   final FlutterLocalNotificationsPlugin _localNotif = FlutterLocalNotificationsPlugin();
 
   static const List<_NotifTemplate> _morningMessages = [
-    _NotifTemplate(title: 'Günaydın! ☀️', body: 'Bugünün hava durumuna göz attın mı? Hemen kontrol et!', route: '/weather'),
-    _NotifTemplate(title: 'Günaydın Seydişehir! 🌄', body: 'Yeni haberler seni bekliyor, bir göz at!', route: '/news'),
-    _NotifTemplate(title: 'Günaydın! 🌞', body: 'Bugünün nöbetçi eczanesi hangisi? Hemen öğren!', route: '/pharmacy'),
+    _NotifTemplate(title: 'Günaydın! ', body: 'Bugünün hava durumuna göz attın mı? Hemen kontrol et!', route: '/weather'),
+    _NotifTemplate(title: 'Günaydın Seydişehir! ', body: 'Yeni haberler seni bekliyor, bir göz at!', route: '/news'),
+    _NotifTemplate(title: 'Günaydın! ', body: 'Bugünün nöbetçi eczanesi hangisi? Hemen öğren!', route: '/pharmacy'),
   ];
 
   static const List<_NotifTemplate> _afternoonMessages = [
-    _NotifTemplate(title: 'Seydi Rehber 📱', body: 'Fırsat kuponlarına baktın mı? İndirimli fırsatlar seni bekliyor!', route: '/coupons'),
-    _NotifTemplate(title: 'Öğle Molası ☕', body: 'Seydişehir\'deki en popüler mekanlar hangileri? Keşfet!', route: '/companies/popular'),
+    _NotifTemplate(title: 'Seydi Rehber ', body: 'Fırsat kuponlarına baktın mı? İndirimli fırsatlar seni bekliyor!', route: '/coupons'),
+    _NotifTemplate(title: 'Öğle Molası ', body: 'Seydişehir\'deki en popüler mekanlar hangileri? Keşfet!', route: '/companies/popular'),
   ];
 
   static const List<_NotifTemplate> _eveningMessages = [
-    _NotifTemplate(title: 'İyi Akşamlar! 🌙', body: 'Yarının hava durumuna şimdiden göz at!', route: '/weather'),
+    _NotifTemplate(title: 'İyi Akşamlar! ', body: 'Yarının hava durumuna şimdiden göz at!', route: '/weather'),
     _NotifTemplate(title: 'Unutma! 💊', body: 'Bugünün nöbetçi eczanesini kontrol ettin mi?', route: '/pharmacy'),
   ];
 

@@ -1,5 +1,7 @@
 {
-  "projects": {},
+  "projects": {
+    "seydirehber": "seydirehber1"
+  },
   "targets": {},
   "etags": {}
 }

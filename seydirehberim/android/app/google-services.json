@@ -14,6 +14,46 @@
       },
       "oauth_client": [
         {
+          "client_id": "619370654049-0o16lslkl98utsdlgg2t4dkaeitgoets.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mgverse.seydirehberim",
+            "certificate_hash": "fe7d51932e819219119de59936b7d64a5e539452"
+          }
+        },
+        {
+          "client_id": "619370654049-2gth6jd6bsh4icm592toaj69tnin9kak.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mgverse.seydirehberim",
+            "certificate_hash": "82b6f7c609cf03f199b9c00d1a7f5f93402f88b3"
+          }
+        },
+        {
+          "client_id": "619370654049-efa7nqigfk5dk9imi08lgdllbkmgn00g.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mgverse.seydirehberim",
+            "certificate_hash": "05ce98105e6bd06d178970cbdf3ff0efab936491"
+          }
+        },
+        {
+          "client_id": "619370654049-mac427g168u7425tc05trjvamlfhl3gm.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mgverse.seydirehberim",
+            "certificate_hash": "be188ad264b836f996893cc81d5295a74c370bf4"
+          }
+        },
+        {
+          "client_id": "619370654049-u3o4qfh925rc171n0o8q3mjmppin2769.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mgverse.seydirehberim",
+            "certificate_hash": "dfa801aeac82913743df90971d81042760701046"
+          }
+        },
+        {
           "client_id": "619370654049-l3gs5bb03cfe5jlfigogico6md8qlr2i.apps.googleusercontent.com",
           "client_type": 3
         }

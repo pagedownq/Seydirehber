@@ -59,4 +59,5 @@ class DefaultFirebaseOptions {
     projectId: 'seydirehber1',
     storageBucket: 'seydirehber1.firebasestorage.app',
   );
+
 }

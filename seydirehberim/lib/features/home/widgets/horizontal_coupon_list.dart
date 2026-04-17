@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/widgets/shimmer_widget.dart';
+import '../providers/home_providers.dart';
 
 class HorizontalCouponList extends ConsumerWidget {
   final StreamProvider<List<QueryDocumentSnapshot<Map<String, dynamic>>>> provider;
@@ -210,14 +211,45 @@ class HorizontalCouponList extends ConsumerWidget {
                                 child: Text(
                                   companyName,
                                   style: const TextStyle(
-                                    color: Colors.white70,
+                                    color: Colors.white,
                                     fontSize: 13,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                             ],
+                          ),
+                          const SizedBox(height: 4),
+                          Consumer(
+                            builder: (context, ref, child) {
+                              final companiesAsync = ref.watch(alphabeticalCompaniesProvider);
+                              return companiesAsync.when(
+                                data: (companies) {
+                                  final company = companies.where((c) => c.id == data['companyId']).firstOrNull;
+                                  final category = company?.data()['kategori']?.toString();
+                                  if (category == null || category.isEmpty) return const SizedBox.shrink();
+                                  return Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white24,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      category,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                loading: () => const SizedBox.shrink(),
+                                error: (_, __) => const SizedBox.shrink(),
+                              );
+                            },
                           ),
                         ],
                       ),

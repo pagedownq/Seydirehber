@@ -46,6 +46,10 @@ final newsProvider = FutureProvider<List<NewsModel>>((ref) async {
     allNews.addAll(newsList);
   }
 
+  if (allNews.isEmpty) {
+    throw Exception('Haberler yüklenemedi. Lütfen internet bağlantınızı kontrol edin.');
+  }
+
   // Sort by date (newest first)
   allNews.sort((a, b) {
     if (a.date == null && b.date == null) return 0;

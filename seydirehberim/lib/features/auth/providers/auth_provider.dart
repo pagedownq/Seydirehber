@@ -26,20 +26,66 @@ final onboardingCompletedProvider = FutureProvider<bool>((ref) async {
 
 // Is Admin check
 final isAdminProvider = StreamProvider<bool>((ref) {
+  return ref.watch(adminPermissionsProvider.stream).map((perms) => perms.isNotEmpty);
+});
+
+// Detailed Admin Permissions Provider
+final adminPermissionsProvider = StreamProvider<Map<String, bool>>((ref) {
   final authState = ref.watch(authStateProvider).value;
   if (authState == null || authState.email == null) {
-    return Stream.value(false);
+    return Stream.value({});
   }
   
-  if (adminEmails.contains(authState.email)) {
-    return Stream.value(true);
+  final email = authState.email!.toLowerCase();
+
+  // 1. Check Hardcoded Super Admins
+  if (adminEmails.contains(email)) {
+    return Stream.value({
+      'canManageBanners': true,
+      'canManageEvents': true,
+      'canManageNotaries': true,
+      'canManageMarkets': true,
+      'canManageBuses': true,
+      'canManagePlaces': true,
+      'canManageCompanies': true,
+      'canManageSupport': true,
+      'canManageReviews': true,
+      'canManageReports': true,
+      'canManageNotifications': true,
+      'canManageEsnaf': true,
+      'canManageCoupons': true,
+      'canManageAdmins': true,
+    });
   }
 
+  // 2. Check Database Admins
   return FirebaseFirestore.instance
       .collection('admins')
-      .doc(authState.email)
+      .doc(email)
       .snapshots()
-      .map((doc) => doc.exists && (doc.data()?['isActive'] ?? true));
+      .map((doc) {
+        if (!doc.exists || !(doc.data()?['isActive'] ?? false)) {
+          return {};
+        }
+        
+        final data = doc.data()!;
+        return {
+          'canManageBanners': data['canManageBanners'] ?? false,
+          'canManageEvents': data['canManageEvents'] ?? false,
+          'canManageNotaries': data['canManageNotaries'] ?? false,
+          'canManageMarkets': data['canManageMarkets'] ?? false,
+          'canManageBuses': data['canManageBuses'] ?? false,
+          'canManagePlaces': data['canManagePlaces'] ?? false,
+          'canManageCompanies': data['canManageCompanies'] ?? false,
+          'canManageSupport': data['canManageSupport'] ?? false,
+          'canManageReviews': data['canManageReviews'] ?? false,
+          'canManageReports': data['canManageReports'] ?? false,
+          'canManageNotifications': data['canManageNotifications'] ?? false,
+          'canManageEsnaf': data['canManageEsnaf'] ?? false,
+          'canManageCoupons': data['canManageCoupons'] ?? false,
+          'canManageAdmins': data['canManageAdmins'] ?? false,
+        };
+      });
 });
 
 // Is Guest check

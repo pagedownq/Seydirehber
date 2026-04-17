@@ -3,7 +3,11 @@ import { db } from '../lib/firebase';
 import { collection, query, onSnapshot, where } from 'firebase/firestore';
 import { Users, Activity, Award, Clock, MapPin, Bus, Tag, MessageSquare, ShieldCheck, Image, Store, CheckCircle2 } from 'lucide-react';
 
-const DashboardOverview = () => {
+interface DashboardOverviewProps {
+  permissions: Record<string, boolean>;
+}
+
+const DashboardOverview = ({ permissions }: DashboardOverviewProps) => {
   const [stats, setStats] = useState({
     firmalar: 0,
     etkinlikler: 0,
@@ -20,34 +24,50 @@ const DashboardOverview = () => {
   });
 
   useEffect(() => {
+    // Only fetch counts for allowed collections
     const collectionsToCount = [
-      'firmalar', 'etkinlikler', 'gezilecek_yerler', 
-      'noterler', 'pazarlar', 'otobus_saatleri', 
-      'banners', 'reviews', 'esnaf_users', 'coupons'
-    ];
+      { key: 'firmalar', perm: 'canManageCompanies' },
+      { key: 'etkinlikler', perm: 'canManageEvents' },
+      { key: 'gezilecek_yerler', perm: 'canManagePlaces' },
+      { key: 'noterler', perm: 'canManageNotaries' },
+      { key: 'pazarlar', perm: 'canManageMarkets' },
+      { key: 'otobus_saatleri', perm: 'canManageBuses' },
+      { key: 'banners', perm: 'canManageBanners' },
+      { key: 'reviews', perm: 'canManageReviews' },
+      { key: 'esnaf_users', perm: 'canManageEsnaf' },
+      { key: 'coupons', perm: 'canManageCoupons' }
+    ].filter(col => permissions[col.perm]);
 
     const unsubscribes = collectionsToCount.map(col => {
-      return onSnapshot(collection(db, col), (snap) => {
-        setStats(prev => ({ ...prev, [col]: snap.size }));
+      return onSnapshot(collection(db, col.key), (snap) => {
+        setStats(prev => ({ ...prev, [col.key]: snap.size }));
       });
     });
 
-    const qSupport = query(collection(db, 'yardim_destek'), where('durum', '==', 'Bekliyor'));
-    const unsubscribeSupport = onSnapshot(qSupport, (snap) => {
-      setStats(prev => ({ ...prev, destek_bekleyen: snap.size }));
-    });
+    let unsubscribeSupport = () => {};
+    if (permissions['canManageSupport']) {
+      const qSupport = query(collection(db, 'yardim_destek'), where('durum', '==', 'Bekliyor'));
+      unsubscribeSupport = onSnapshot(qSupport, (snap) => {
+        setStats(prev => ({ ...prev, destek_bekleyen: snap.size }));
+      });
+    }
 
-    // Count ACTUAL used coupons
-    const qUsed = query(collection(db, 'generated_codes'), where('status', '==', 'used'));
-    const unsubscribeUsed = onSnapshot(qUsed, (snap) => {
-      // @ts-ignore
-      setStats(prev => ({ ...prev, used_coupons: snap.size }));
-    });
+    let unsubscribeUsed = () => {};
+    if (permissions['canManageCoupons']) {
+      const qUsed = query(collection(db, 'generated_codes'), where('status', '==', 'used'));
+      unsubscribeUsed = onSnapshot(qUsed, (snap) => {
+        // @ts-ignore
+        setStats(prev => ({ ...prev, used_coupons: snap.size }));
+      });
+    }
 
-    const qReports = query(collection(db, 'sikayetler'), where('status', '==', 'pending'));
-    const unsubscribeReports = onSnapshot(qReports, (snap) => {
-      setStats(prev => ({ ...prev, bekleyen_sikayetler: snap.size }));
-    });
+    let unsubscribeReports = () => {};
+    if (permissions['canManageReports']) {
+      const qReports = query(collection(db, 'sikayetler'), where('status', '==', 'pending'));
+      unsubscribeReports = onSnapshot(qReports, (snap) => {
+        setStats(prev => ({ ...prev, bekleyen_sikayetler: snap.size }));
+      });
+    }
 
     return () => {
       unsubscribes.forEach(unsub => unsub());
@@ -55,7 +75,7 @@ const DashboardOverview = () => {
       unsubscribeUsed();
       unsubscribeReports();
     };
-  }, []);
+  }, [permissions]);
 
   return (
     <div className="dashboard-overview">
@@ -65,19 +85,19 @@ const DashboardOverview = () => {
       </div>
 
       <div className="grid">
-        <StatCard icon={Award} label="Kayıtlı Firma" value={stats.firmalar} color="#6366f1" />
-        <StatCard icon={Activity} label="Aktif Etkinlik" value={stats.etkinlikler} color="#ec4899" />
-        <StatCard icon={Users} label="Gezilecek Yer" value={stats.gezilecek_yerler} color="#a855f7" />
-        <StatCard icon={Clock} label="Bekleyen Destek" value={stats.destek_bekleyen} color="#f59e0b" />
-        <StatCard icon={MapPin} label="Noterler" value={stats.noterler} color="#ef4444" />
-        <StatCard icon={Store} label="Pazarlar" value={stats.pazarlar} color="#10b981" />
-        <StatCard icon={Bus} label="Otobüs Saatleri" value={stats.otobus_saatleri} color="#0ea5e9" />
-        <StatCard icon={Tag} label="Kupon Sayısı" value={stats.coupons} color="#f97316" />
-        <StatCard icon={CheckCircle2} label="Kullanılan Kuponlar" value={(stats as any).used_coupons || 0} color="#22c55e" />
-        <StatCard icon={MessageSquare} label="Yorumlar" value={stats.reviews} color="#8b5cf6" />
-        <StatCard icon={ShieldCheck} label="Bekleyen Şikayet" value={stats.bekleyen_sikayetler} color="#f43f5e" />
-        <StatCard icon={Users} label="Esnaf Hesapları" value={stats.esnaf_users} color="#06b6d4" />
-        <StatCard icon={Image} label="Bannerler" value={stats.banners} color="#db2777" />
+        {permissions['canManageCompanies'] && <StatCard icon={Award} label="Kayıtlı Firma" value={stats.firmalar} color="#6366f1" />}
+        {permissions['canManageEvents'] && <StatCard icon={Activity} label="Aktif Etkinlik" value={stats.etkinlikler} color="#ec4899" />}
+        {permissions['canManagePlaces'] && <StatCard icon={Users} label="Gezilecek Yer" value={stats.gezilecek_yerler} color="#a855f7" />}
+        {permissions['canManageSupport'] && <StatCard icon={Clock} label="Bekleyen Destek" value={stats.destek_bekleyen} color="#f59e0b" />}
+        {permissions['canManageNotaries'] && <StatCard icon={MapPin} label="Noterler" value={stats.noterler} color="#ef4444" />}
+        {permissions['canManageMarkets'] && <StatCard icon={Store} label="Pazarlar" value={stats.pazarlar} color="#10b981" />}
+        {permissions['canManageBuses'] && <StatCard icon={Bus} label="Otobüs Saatleri" value={stats.otobus_saatleri} color="#0ea5e9" />}
+        {permissions['canManageCoupons'] && <StatCard icon={Tag} label="Kupon Sayısı" value={stats.coupons} color="#f97316" />}
+        {permissions['canManageCoupons'] && <StatCard icon={CheckCircle2} label="Kullanılan Kuponlar" value={(stats as any).used_coupons || 0} color="#22c55e" />}
+        {permissions['canManageReviews'] && <StatCard icon={MessageSquare} label="Yorumlar" value={stats.reviews} color="#8b5cf6" />}
+        {permissions['canManageReports'] && <StatCard icon={ShieldCheck} label="Bekleyen Şikayet" value={stats.bekleyen_sikayetler} color="#f43f5e" />}
+        {permissions['canManageEsnaf'] && <StatCard icon={Users} label="Esnaf Hesapları" value={stats.esnaf_users} color="#06b6d4" />}
+        {permissions['canManageBanners'] && <StatCard icon={Image} label="Bannerler" value={stats.banners} color="#db2777" />}
       </div>
 
       <div className="card" style={{ marginTop: '2rem' }}>

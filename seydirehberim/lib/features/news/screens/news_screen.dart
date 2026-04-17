@@ -27,7 +27,11 @@ class NewsScreen extends ConsumerWidget {
       body: newsAsync.when(
         data: (newsList) {
           if (newsList.isEmpty) {
-            return const Center(child: Text('Şu an haber bulunamadı.'));
+            return ErrorView(
+              title: 'Haber Bulunamadı',
+              message: 'Şu an görüntülenecek bir haber bulunamadı veya internet bağlantınızda bir sorun var.',
+              onRetry: () => ref.refresh(newsProvider),
+            );
           }
           return RefreshIndicator(
             onRefresh: () => ref.refresh(newsProvider.future),
@@ -49,7 +53,7 @@ class NewsScreen extends ConsumerWidget {
           itemBuilder: (_, __) => NewsCardShimmer(),
         ),
         error: (e, stack) => ErrorView(
-          message: 'Haberleri güncellemek için lütfen internet bağlantınızı kontrol edin ve tekrar deneyin.',
+          message: 'Haberler yüklenirken bir hata oluştu. Lütfen internet bağlantınızı kontrol edip tekrar deneyin.',
           onRetry: () => ref.refresh(newsProvider),
         ),
       ),
