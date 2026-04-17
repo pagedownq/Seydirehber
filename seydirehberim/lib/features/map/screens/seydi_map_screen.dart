@@ -243,40 +243,78 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
           const SizedBox(width: 8),
         ],
       ),
-      body: Column(
+      body: Stack(
         children: [
-          _buildFilterBar(),
-          Expanded(
-            child: ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(32),
-                topRight: Radius.circular(32),
-              ),
-              child: Stack(
-                children: [
-                  _buildMap(markers),
-                  _buildLoadingOverlay(places, companies, events, noterler, pazarlar),
-                ],
-              ),
+          // Map fills the whole area
+          Positioned.fill(
+            child: RepaintBoundary(
+              child: _buildMap(markers),
             ),
+          ),
+          
+          // Floating Filter Bar at the top
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: _buildFilterBar(),
+          ),
+          
+          // Compact loading indicator
+          Positioned(
+            top: 85, // Adjusted to not overlap with filter bar
+            right: 20,
+            child: _buildCompactLoadingIndicator(places, companies, events, noterler, pazarlar),
           ),
         ],
       ),
     );
   }
 
+  Widget _buildCompactLoadingIndicator(
+    AsyncValue<FirestoreDocs> places,
+    AsyncValue<FirestoreDocs> companies,
+    AsyncValue<FirestoreDocs> events,
+    AsyncValue<FirestoreDocs> noterler,
+    AsyncValue<FirestoreDocs> pazarlar,
+  ) {
+    final isLoading = [places, companies, events, noterler, pazarlar].any((val) => val.isLoading);
+    if (!isLoading) return const SizedBox.shrink();
+    
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.9),
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8)
+        ],
+      ),
+      child: const SizedBox(
+        width: 20,
+        height: 20,
+        child: CircularProgressIndicator(
+          color: AppColors.primary,
+          strokeWidth: 2,
+        ),
+      ),
+    );
+  }
+
   Widget _buildFilterBar() {
     return Container(
-      height: 75,
+      height: 90,
+      padding: const EdgeInsets.only(top: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Colors.white.withOpacity(0.8),
+            Colors.white.withOpacity(0.4),
+            Colors.transparent,
+          ],
+        ),
       ),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
@@ -346,23 +384,6 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
     );
   }
 
-  Widget _buildLoadingOverlay(
-    AsyncValue<FirestoreDocs> places,
-    AsyncValue<FirestoreDocs> companies,
-    AsyncValue<FirestoreDocs> events,
-    AsyncValue<FirestoreDocs> noterler,
-    AsyncValue<FirestoreDocs> pazarlar,
-  ) {
-    final isLoading = [places, companies, events, noterler, pazarlar].any((val) => val.isLoading);
-    if (!isLoading) return const SizedBox.shrink();
-    
-    return Container(
-      color: Colors.white.withOpacity(0.3),
-      child: const Center(
-        child: CircularProgressIndicator(color: AppColors.primary, strokeWidth: 3),
-      ),
-    );
-  }
 
   Widget _buildMap(List<Marker> markers) {
     return FlutterMap(
@@ -382,8 +403,9 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
           subdomains: const ['a', 'b', 'c', 'd'],
           userAgentPackageName: 'com.seydirehberim.app',
           tileProvider: CancellableNetworkTileProvider(),
-          // Optimize tile loading
-          tileDisplay: const TileDisplay.fadeIn(duration: Duration(milliseconds: 300)),
+          // Optimize tile loading performance
+          tileDisplay: const TileDisplay.fadeIn(duration: Duration(milliseconds: 150)),
+          keepBuffer: 3,
         ),
         MarkerLayer(
           markers: [

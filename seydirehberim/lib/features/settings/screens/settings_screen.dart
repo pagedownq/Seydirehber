@@ -97,15 +97,6 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
 
-          // Interactive Map
-          _buildSettingsItem(
-            icon: Icons.map_outlined,
-            title: 'Seydi Harita',
-            subtitle: 'Şehri interaktif keşfedin',
-            iconColor: AppColors.primary,
-            onTap: () => context.push('/seydi-map'),
-          ),
-          const SizedBox(height: 8),
 
           // Help & Support
           _buildSettingsItem(

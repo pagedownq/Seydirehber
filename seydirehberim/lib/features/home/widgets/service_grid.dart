@@ -13,7 +13,7 @@ class ServiceGrid extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         children: [
-          // 2x2 Grid for standard services
+          // 2x3 Grid for all services
           GridView.count(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -50,6 +50,7 @@ class ServiceGrid extends StatelessWidget {
                   colors: [Color(0xFFFF8F00), Color(0xFFFFB300)],
                 ),
                 iconColor: Colors.white,
+                showMarketPattern: true,
                 onTap: () => context.push('/pazarlar'),
               ),
               _ServiceCard(
@@ -59,26 +60,170 @@ class ServiceGrid extends StatelessWidget {
                   colors: [Color(0xFF00897B), Color(0xFF26A69A)],
                 ),
                 iconColor: Colors.white,
+                showBusPattern: true,
                 onTap: () => context.push('/otobus'),
               ),
+              _ServiceCard(
+                icon: Icons.newspaper_rounded,
+                title: 'Haberler',
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF2E7D32), Color(0xFF43A047)],
+                ),
+                iconColor: Colors.white,
+                showNewsPattern: true,
+                onTap: () => context.push('/news'),
+              ),
+              _ServiceCard(
+                icon: Icons.map_rounded,
+                title: 'Seydi Harita',
+                backgroundColor: Colors.white,
+                borderColor: AppColors.primary.withOpacity(0.3),
+                textColor: AppColors.primary,
+                iconColor: AppColors.primary,
+                showMapPattern: true,
+                onTap: () => context.push('/seydi-map'),
+              ),
             ],
-          ),
-          const SizedBox(height: 12),
-          // Full width Haberler button
-          _ServiceCard(
-            icon: Icons.newspaper_rounded,
-            title: 'Haberler',
-            isFullWidth: true,
-            gradient: const LinearGradient(
-              colors: [Color(0xFF2E7D32), Color(0xFF43A047)],
-            ),
-            iconColor: Colors.white,
-            onTap: () => context.push('/news'),
           ),
         ],
       ),
     );
   }
+}
+
+class _MapPatternPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = AppColors.primary.withOpacity(0.12)
+      ..strokeWidth = 1.2
+      ..style = PaintingStyle.stroke;
+
+    final path = Path();
+    
+    // Schematic "street" lines (Map pattern)
+    path.moveTo(0, size.height * 0.4);
+    path.lineTo(size.width * 0.3, size.height * 0.35);
+    path.lineTo(size.width * 0.4, 0);
+    
+    path.moveTo(size.width * 0.2, 0);
+    path.lineTo(size.width * 0.25, size.height * 0.6);
+    path.lineTo(0, size.height * 0.75);
+    
+    path.moveTo(size.width * 0.8, 0);
+    path.lineTo(size.width * 0.7, size.height * 0.45);
+    path.lineTo(size.width, size.height * 0.55);
+    
+    path.moveTo(size.width * 0.7, size.height * 0.45);
+    path.lineTo(size.width * 0.6, size.height);
+
+    path.moveTo(size.width, size.height * 0.1);
+    path.lineTo(size.width * 0.85, size.height * 0.25);
+
+    path.moveTo(size.width * 0.5, size.height);
+    path.lineTo(size.width * 0.55, size.height * 0.7);
+    path.lineTo(size.width, size.height * 0.85);
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class _NewsPatternPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.15)
+      ..strokeWidth = 2.0
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke;
+
+    final path = Path();
+    
+    // Schematic "newspaper lines" or "data flow"
+    for (var i = 1; i < 6; i++) {
+      double y = size.height * (0.15 + (i * 0.15));
+      double startX = size.width * (0.4 + (i % 2 * 0.1));
+      double endX = size.width * (0.85 - (i % 3 * 0.05));
+      
+      path.moveTo(startX, y);
+      path.lineTo(endX, y);
+    }
+    
+    // A vertical "divider"
+    path.moveTo(size.width * 0.38, size.height * 0.2);
+    path.lineTo(size.width * 0.38, size.height * 0.8);
+
+    canvas.drawPath(path, paint);
+    
+    // Add some small "dot" highlights
+    final dotPaint = Paint()..color = Colors.white.withOpacity(0.2);
+    canvas.drawCircle(Offset(size.width * 0.9, size.height * 0.2), 3, dotPaint);
+    canvas.drawCircle(Offset(size.width * 0.88, size.height * 0.7), 2, dotPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class _BusPatternPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.12)
+      ..strokeWidth = 2.0
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke;
+
+    final path = Path();
+    
+    // Schematic "bus route"
+    path.moveTo(size.width * 0.4, size.height * 0.2);
+    path.lineTo(size.width * 0.8, size.height * 0.2);
+    path.lineTo(size.width * 0.8, size.height * 0.5);
+    path.lineTo(size.width * 0.5, size.height * 0.5);
+    path.lineTo(size.width * 0.5, size.height * 0.8);
+    path.lineTo(size.width * 0.9, size.height * 0.8);
+
+    canvas.drawPath(path, paint);
+    
+    // Add "stops" (dots)
+    final dotPaint = Paint()..color = Colors.white.withOpacity(0.2);
+    canvas.drawCircle(Offset(size.width * 0.4, size.height * 0.2), 3, dotPaint);
+    canvas.drawCircle(Offset(size.width * 0.8, size.height * 0.5), 3, dotPaint);
+    canvas.drawCircle(Offset(size.width * 0.9, size.height * 0.8), 3, dotPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class _MarketPatternPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.15)
+      ..strokeWidth = 1.5
+      ..style = PaintingStyle.stroke;
+
+    // Schematic "market tents" (Triangles/Trapezoids)
+    for (var i = 0; i < 3; i++) {
+      double xBase = size.width * (0.45 + (i * 0.15));
+      double yBase = size.height * (0.3 + (i * 0.15));
+      
+      final path = Path();
+      path.moveTo(xBase, yBase);
+      path.lineTo(xBase + 15, yBase - 15);
+      path.lineTo(xBase + 30, yBase);
+      path.close();
+      canvas.drawPath(path, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class _ServiceCard extends StatelessWidget {
@@ -94,6 +239,10 @@ class _ServiceCard extends StatelessWidget {
   final bool isFullWidth;
   final bool applyColorToImage;
   final double? imageSize;
+  final bool showMapPattern;
+  final bool showNewsPattern;
+  final bool showBusPattern;
+  final bool showMarketPattern;
 
   const _ServiceCard({
     this.icon,
@@ -108,6 +257,10 @@ class _ServiceCard extends StatelessWidget {
     this.isFullWidth = false,
     this.applyColorToImage = true,
     this.imageSize,
+    this.showMapPattern = false,
+    this.showNewsPattern = false,
+    this.showBusPattern = false,
+    this.showMarketPattern = false,
   });
 
   @override
@@ -115,13 +268,12 @@ class _ServiceCard extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () {
-          onTap();
-        },
+        onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Container(
           width: isFullWidth ? double.infinity : null,
           height: isFullWidth ? 80 : null,
+          clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
             color: backgroundColor,
             gradient: gradient,
@@ -135,58 +287,86 @@ class _ServiceCard extends StatelessWidget {
               ),
             ],
           ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: isFullWidth
-                ? Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: textColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: _buildIcon(imageSize ?? 32),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Text(
-                          title,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTextStyles.bodyMedium.copyWith(
-                            color: textColor,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 17,
-                          ),
-                        ),
-                      ),
-                      Icon(Icons.arrow_forward_ios, color: textColor.withOpacity(0.7), size: 14),
-                    ],
-                  )
-                : Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: textColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: _buildIcon(imageSize ?? 28),
-                      ),
-                      Text(
-                        title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTextStyles.bodyMedium.copyWith(
-                          color: textColor,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ],
+          child: Stack(
+            children: [
+              if (showMapPattern)
+                Positioned.fill(
+                  child: CustomPaint(
+                    painter: _MapPatternPainter(),
                   ),
+                ),
+              if (showNewsPattern)
+                Positioned.fill(
+                  child: CustomPaint(
+                    painter: _NewsPatternPainter(),
+                  ),
+                ),
+              if (showBusPattern)
+                Positioned.fill(
+                  child: CustomPaint(
+                    painter: _BusPatternPainter(),
+                  ),
+                ),
+              if (showMarketPattern)
+                Positioned.fill(
+                  child: CustomPaint(
+                    painter: _MarketPatternPainter(),
+                  ),
+                ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: isFullWidth
+                    ? Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: textColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: _buildIcon(imageSize ?? 32),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Text(
+                              title,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTextStyles.bodyMedium.copyWith(
+                                color: textColor,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 17,
+                              ),
+                            ),
+                          ),
+                          Icon(Icons.arrow_forward_ios, color: textColor.withOpacity(0.7), size: 14),
+                        ],
+                      )
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: textColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: _buildIcon(imageSize ?? 28),
+                          ),
+                          Text(
+                            title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTextStyles.bodyMedium.copyWith(
+                              color: textColor,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+            ],
           ),
         ),
       ),

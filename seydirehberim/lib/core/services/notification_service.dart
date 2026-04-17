@@ -50,8 +50,6 @@ class NotificationService {
 
     // Request permissions for Android 13+
     if (Platform.isAndroid) {
-      await Permission.notification.request();
-      
       final androidPlugin = _localNotificationsPlugin
           .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
       await androidPlugin?.createNotificationChannel(_channel);
@@ -88,12 +86,6 @@ class NotificationService {
     // 3. Handle deep link when app is in background/background
     FirebaseMessaging.onMessageOpenedApp.listen(_handleMessage);
 
-    // Initial permission for Firebase
-    await _firebaseMessaging.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
 
     // Handle background messages
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);

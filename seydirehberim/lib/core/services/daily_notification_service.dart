@@ -59,15 +59,9 @@ class DailyNotificationService {
       settings: initializationSettings,
     );
 
-    // Android 12+ Hassas Alarm ve Bildirim İzinleri
+    // Android 12+ Hassas Alarm ve Bildirim İzinleri (Sadece kurulumu yap, izin isteme)
     if (defaultTargetPlatform == TargetPlatform.android) {
-      final androidImplementation = _localNotif.resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin>();
-      
-      await androidImplementation?.requestNotificationsPermission();
-      try {
-        await androidImplementation?.requestExactAlarmsPermission();
-      } catch (_) {}
+      // Kurulum ve kanallar burada hazırlanabilir ancak request... metodlarını sildik
     }
 
     await scheduleDailyNotifications();

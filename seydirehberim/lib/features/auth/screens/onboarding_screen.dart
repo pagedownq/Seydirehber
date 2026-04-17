@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:lottie/lottie.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../providers/auth_provider.dart';
@@ -24,9 +26,18 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final List<_OnboardingPageData> _pages = [
     _OnboardingPageData(
       icon: Icons.location_city_rounded,
+      lottiePath: 'assets/animations/merhaba.json',
       title: 'Seydi Rehber\'e Hoş Geldin',
       description:
           'Şehrindeki her şeyi keşfetmek için en doğru yerdesin. Modern ve hızlı rehberinle tanış!',
+      color: AppColors.primary,
+    ),
+    _OnboardingPageData(
+      icon: Icons.map_rounded,
+      lottiePath: 'assets/animations/location.json',
+      title: 'Seydi Harita',
+      description:
+          'Tamamen yenilenen haritamızla şehri keşfet. Önemli konumlar ve ulaşım her an parmaklarının ucunda!',
       color: AppColors.primary,
     ),
     _OnboardingPageData(
@@ -34,7 +45,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       title: 'Hızlı Hizmetler',
       description:
           'Nöbetçi eczaneler, otobüs saatleri ve pazar yerleri gibi ihtiyacın olan her şey elinin altında.',
-      color: const Color(0xFF00897B),
+      color: AppColors.primary,
       mockupType: _MockupType.services,
     ),
     _OnboardingPageData(
@@ -42,7 +53,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       title: 'Şehri Keşfet',
       description:
           'Hava durumunu takip et, en güncel haberleri oku ve sana özel fırsat kuponlarını kaçırma!',
-      color: const Color(0xFFFF8F00),
+      color: AppColors.primary,
       mockupType: _MockupType.daily,
     ),
     _OnboardingPageData(
@@ -50,15 +61,23 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       title: 'Gizlilik ve Güvenlik',
       description:
           'Verileriniz bizimle güvende. Devam etmeden önce lütfen kullanım koşullarımızı onaylayın.',
-      color: AppColors.primaryDark,
+      color: AppColors.primary,
       hasPrivacyCheckbox: true,
+    ),
+    _OnboardingPageData(
+      icon: Icons.notifications_active_rounded,
+      title: 'Bildirimleri Aç',
+      description:
+          'En güncel duyurular, etkinlikler ve hizmetlerden anında haberdar olmak için bildirimleri aktif edin.',
+      color: AppColors.primary,
+      hasNotificationButton: true,
     ),
     _OnboardingPageData(
       icon: Icons.rocket_launch_rounded,
       title: 'Keşfetmeye Hazırsın!',
       description:
           'Google hesabınla giriş yaparak profilini oluşturabilir veya misafir olarak devam edebilirsin.',
-      color: AppColors.accent,
+      color: AppColors.primary,
       hasAuthButtons: true,
     ),
   ];
@@ -70,7 +89,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   void _nextPage() {
-    if (_currentPage == 3 && !_privacyAccepted) {
+    if (_currentPage == 4 && !_privacyAccepted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Devam etmek için gizlilik politikasını onaylayın'),
@@ -91,15 +110,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.white,
-      body: Container(
+      body: AnimatedContainer(
+        duration: const Duration(milliseconds: 600),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
               AppColors.white,
-              AppColors.primary.withOpacity(0.01),
-              AppColors.primary.withOpacity(0.05),
+              AppColors.primary.withOpacity(0.02),
+              AppColors.primary.withOpacity(0.08),
             ],
           ),
         ),
@@ -115,7 +135,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       onPageChanged: (index) {
                         setState(() => _currentPage = index);
                       },
-                      physics: _currentPage == 3 && !_privacyAccepted
+                      physics: _currentPage == 4 && !_privacyAccepted
                           ? const NeverScrollableScrollPhysics()
                           : null,
                       itemBuilder: (context, index) {
@@ -205,6 +225,77 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               },
               child: _buildMockup(page.mockupType!),
             )
+          else if (page.lottiePath != null)
+            TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0.0, end: 1.0),
+              duration: const Duration(milliseconds: 1000),
+              builder: (context, value, child) {
+                return Transform.scale(
+                  scale: value,
+                  child: Opacity(
+                    opacity: value,
+                    child: child,
+                  ),
+                );
+              },
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  if (page.imagePath != null)
+                    Transform.rotate(
+                      angle: -0.05,
+                      child: Container(
+                        width: 240,
+                        height: 240,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(32),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 20,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(32),
+                          child: Image.asset(
+                            page.imagePath!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => Container(
+                              color: AppColors.primary.withOpacity(0.1),
+                              child: const Icon(Icons.image, color: Colors.grey),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  Container(
+                    width: page.imagePath != null ? 180 : 260,
+                    height: page.imagePath != null ? 180 : 260,
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      borderRadius: BorderRadius.circular(page.imagePath != null ? 32 : 48),
+                      boxShadow: [
+                        BoxShadow(
+                          color: page.color.withOpacity(0.12),
+                          blurRadius: 40,
+                          offset: const Offset(0, 12),
+                        ),
+                      ],
+                    ),
+                    padding: EdgeInsets.all(page.imagePath != null ? 16 : 24),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(page.imagePath != null ? 24 : 32),
+                      child: Lottie.asset(
+                        page.lottiePath!,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )
           else
             Container(
               width: 160,
@@ -243,39 +334,107 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               ),
             ),
           const SizedBox(height: 48),
-          Text(
-            page.title,
-            style: AppTextStyles.heading1.copyWith(
-              fontSize: 28,
-              fontWeight: FontWeight.w900,
-              letterSpacing: -0.5,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+          TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0.0, end: 1.0),
+            duration: const Duration(milliseconds: 600),
+            builder: (context, value, child) {
+              return Transform.translate(
+                offset: Offset(0, 20 * (1 - value)),
+                child: Opacity(opacity: value, child: child),
+              );
+            },
             child: Text(
-              page.description,
-              style: AppTextStyles.bodyLarge.copyWith(
-                color: AppColors.textSecondary,
-                height: 1.5,
-                fontSize: 16,
+              page.title,
+              style: AppTextStyles.heading1.copyWith(
+                fontSize: 28,
+                fontWeight: FontWeight.w900,
+                letterSpacing: -0.5,
               ),
               textAlign: TextAlign.center,
             ),
           ),
+          const SizedBox(height: 16),
+          TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0.0, end: 1.0),
+            duration: const Duration(milliseconds: 800),
+            builder: (context, value, child) {
+              return Transform.translate(
+                offset: Offset(0, 20 * (1 - value)),
+                child: Opacity(opacity: value, child: child),
+              );
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                page.description,
+                style: AppTextStyles.bodyLarge.copyWith(
+                  color: AppColors.textSecondary,
+                  height: 1.5,
+                  fontSize: 16,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
           const Spacer(flex: 3),
           
-          // Additional components (Privacy / Auth)
-          if (page.hasPrivacyCheckbox || page.hasAuthButtons)
+          // Additional components (Privacy / Auth / Notifications)
+          if (page.hasPrivacyCheckbox || page.hasAuthButtons || page.hasNotificationButton)
             Container(
               constraints: const BoxConstraints(maxHeight: 220),
               child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
+                physics: const NeverScrollableScrollPhysics(),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    if (page.hasNotificationButton) ...[
+                      SizedBox(
+                        width: double.infinity,
+                        height: 52,
+                        child: ElevatedButton.icon(
+                          onPressed: () async {
+                            final status = await Permission.notification.request();
+                            if (status.isGranted) {
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Bildirimler başarıyla açıldı!'),
+                                    backgroundColor: Colors.green,
+                                  ),
+                                );
+                                _nextPage();
+                              }
+                            } else {
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Bildirim izni verilmedi.'),
+                                    backgroundColor: AppColors.error,
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                          icon: const Icon(Icons.notifications_active_outlined),
+                          label: Text('Bildirimleri Etkinleştir', style: AppTextStyles.button),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: page.color,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextButton(
+                        onPressed: _nextPage,
+                        child: Text(
+                          'Daha Sonra',
+                          style: TextStyle(color: page.color.withOpacity(0.7)),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
                     if (page.hasPrivacyCheckbox) ...[
                       Container(
                         decoration: BoxDecoration(
@@ -660,24 +819,30 @@ class _MockupServiceCard extends StatelessWidget {
   }
 }
 
-enum _MockupType { services, daily }
+enum _MockupType { services, daily, map }
 
 class _OnboardingPageData {
   final IconData icon;
+  final String? lottiePath;
+  final String? imagePath;
   final String title;
   final String description;
   final Color color;
   final bool hasPrivacyCheckbox;
   final bool hasAuthButtons;
+  final bool hasNotificationButton;
   final _MockupType? mockupType;
 
   _OnboardingPageData({
     required this.icon,
+    this.lottiePath,
+    this.imagePath,
     required this.title,
     required this.description,
     required this.color,
     this.hasPrivacyCheckbox = false,
     this.hasAuthButtons = false,
+    this.hasNotificationButton = false,
     this.mockupType,
   });
 }

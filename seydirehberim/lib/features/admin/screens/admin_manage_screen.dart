@@ -344,8 +344,8 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
       case 'otobus_saatleri':
         return [
           _FieldConfig('guzergah', 'Güzergah', required: true),
-          _FieldConfig('saatler', 'Sefer Saatleri (Seçmeli)', multiline: true),
-          _FieldConfig('duraklar', 'Duraklar', multiline: true),
+          _FieldConfig('saatler', 'Sefer Saatleri (Saat Ekle Butonu)', isTimeList: true),
+          _FieldConfig('duraklar', 'Duraklar (Opsiyonel)', multiline: true),
         ];
       case 'gezilecek_yerler':
         return [
@@ -542,7 +542,9 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
                           contentPadding: EdgeInsets.zero,
                           dense: true,
                         ),
-                      if (!isExpiryField || !isUnlimited)
+                        if (field.isTimeList)
+                          _buildTimeListPicker(controllers[field.key]!, setModalState),
+                        if (!field.isTimeList && (!isExpiryField || !isUnlimited))
                         if (!field.isBoolean)
                         Padding(
                           padding: const EdgeInsets.only(bottom: 12),
@@ -943,6 +945,58 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
       ),
     );
   }
+
+  Widget _buildTimeListPicker(TextEditingController controller, StateSetter setModalState) {
+    final times = controller.text.split(',').where((e) => e.trim().isNotEmpty).toList();
+    times.sort();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Sefer Saatleri', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            ...times.map((time) => Chip(
+              label: Text(time, style: const TextStyle(fontSize: 12)),
+              backgroundColor: AppColors.primarySurface,
+              deleteIcon: const Icon(Icons.close, size: 14),
+              onDeleted: () {
+                setModalState(() {
+                  times.remove(time);
+                  controller.text = times.join(',');
+                });
+              },
+            )),
+            ActionChip(
+              avatar: const Icon(Icons.add, size: 16, color: Colors.white),
+              label: const Text('Saat Ekle'),
+              backgroundColor: AppColors.primary,
+              onPressed: () async {
+                final selectedTime = await showTimePicker(
+                  context: context,
+                  initialTime: TimeOfDay.now(),
+                );
+                if (selectedTime != null) {
+                  setModalState(() {
+                    final newTime = "${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}";
+                    if (!times.contains(newTime)) {
+                      times.add(newTime);
+                      times.sort();
+                      controller.text = times.join(',');
+                    }
+                  });
+                }
+              },
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
 }
 
 class _FieldConfig {
@@ -956,6 +1010,7 @@ class _FieldConfig {
   final bool isDateTime;
   final bool isPhone;
   final bool isCompanyPicker;
+  final bool isTimeList;
   final bool isBoolean;
   final bool readOnly;
   final dynamic defaultValue;
@@ -971,6 +1026,7 @@ class _FieldConfig {
     this.isDateTime = false,
     this.isPhone = false,
     this.isCompanyPicker = false,
+    this.isTimeList = false,
     this.isBoolean = false,
     this.readOnly = false,
     this.defaultValue,

@@ -412,7 +412,73 @@ const ManageCollection: React.FC<ManageCollectionProps> = ({ collectionId }) => 
                     )}
                   </div>
                   
-                  {field.isCompanyPicker ? (
+                  {field.isTimeList ? (
+                    <div className="time-list-editor">
+                      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                        <input 
+                          type="time" 
+                          className="input" 
+                          id={`time-input-${field.key}`}
+                          style={{ width: 'auto' }}
+                        />
+                        <button 
+                          type="button"
+                          className="btn btn-primary"
+                          style={{ padding: '0.4rem 1rem', fontSize: '0.8rem' }}
+                          onClick={() => {
+                            const input = document.getElementById(`time-input-${field.key}`) as HTMLInputElement;
+                            if (input && input.value) {
+                              const currentTimes = (formData[field.key] as string || '')
+                                .split(',')
+                                .map(t => t.trim())
+                                .filter(t => t !== '');
+                              
+                              if (!currentTimes.includes(input.value)) {
+                                const newTimes = [...currentTimes, input.value].sort();
+                                setFormData({ ...formData, [field.key]: newTimes.join(',') });
+                              }
+                              input.value = '';
+                            }
+                          }}
+                        >
+                          Saat Ekle
+                        </button>
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                        {(formData[field.key] as string || '')
+                          .split(',')
+                          .map(t => t.trim())
+                          .filter(t => t !== '')
+                          .sort()
+                          .map(time => (
+                            <div key={time} style={{ 
+                              background: 'var(--primary)', 
+                              color: 'white', 
+                              padding: '2px 8px', 
+                              borderRadius: '4px',
+                              fontSize: '0.8rem',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}>
+                              {time}
+                              <X 
+                                size={12} 
+                                style={{ cursor: 'pointer' }} 
+                                onClick={() => {
+                                  const newTimes = (formData[field.key] as string)
+                                    .split(',')
+                                    .map(t => t.trim())
+                                    .filter(t => t !== time && t !== '');
+                                  setFormData({ ...formData, [field.key]: newTimes.join(',') });
+                                }}
+                              />
+                            </div>
+                          ))
+                        }
+                      </div>
+                    </div>
+                  ) : field.isCompanyPicker ? (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                       <input 
                         className="input"

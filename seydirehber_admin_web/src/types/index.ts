@@ -16,6 +16,7 @@ export interface FieldConfig {
   isTime?: boolean;
   isPhone?: boolean;
   isCompanyPicker?: boolean;
+  isTimeList?: boolean;
   isBoolean?: boolean;
 }
 
@@ -70,8 +71,8 @@ export const COLLECTIONS: Record<string, { title: string; bucket: string | null;
     bucket: null,
     fields: [
       { key: 'guzergah', label: 'Güzergah', required: true },
-      { key: 'saatler', label: 'Sefer Saatleri (Seçmeli)', multiline: true },
-      { key: 'duraklar', label: 'Duraklar', multiline: true },
+      { key: 'saatler', label: 'Sefer Saatleri (Saat Ekle Butonu)', isTimeList: true, required: true },
+      { key: 'duraklar', label: 'Duraklar (Opsiyonel)', multiline: true },
     ],
   },
   gezilecek_yerler: {
