@@ -65,16 +65,21 @@ class _MainShellState extends ConsumerState<MainShell> with WidgetsBindingObserv
     final isGuest = ref.read(isGuestProvider);
 
     if (user != null && !isGuest && !_isNameDialogShowing) {
-      if (user.displayName == null || user.displayName!.isEmpty) {
+      if (user.displayName == null || user.displayName!.trim().isEmpty) {
         _isNameDialogShowing = true;
         showDialog(
           context: context,
           barrierDismissible: false,
-          builder: (context) => NameRequestDialog(
+          builder: (dialogContext) => NameRequestDialog(
             onSave: (fullName) async {
-              await ref.read(authNotifierProvider.notifier).updateDisplayName(fullName);
-              _isNameDialogShowing = false;
-              if (mounted) Navigator.pop(context);
+              try {
+                await ref.read(authNotifierProvider.notifier).updateDisplayName(fullName);
+              } finally {
+                _isNameDialogShowing = false;
+                if (mounted && Navigator.canPop(dialogContext)) {
+                  Navigator.of(dialogContext, rootNavigator: true).pop();
+                }
+              }
             },
           ),
         ).then((_) => _isNameDialogShowing = false);

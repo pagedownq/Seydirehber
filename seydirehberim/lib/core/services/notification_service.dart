@@ -63,9 +63,6 @@ class NotificationService {
       requestAlertPermission: false,
       requestBadgePermission: false,
       requestSoundPermission: false,
-      onDidReceiveLocalNotification: (id, title, body, payload) async {
-        // Handle older iOS foreground notification
-      },
     );
     const initializationSettings = InitializationSettings(
       android: initializationSettingsAndroid,
@@ -119,7 +116,6 @@ class NotificationService {
           id: notification.hashCode,
           title: notification.title,
           body: notification.body,
-          payload: screen,
           notificationDetails: NotificationDetails(
             android: android != null ? AndroidNotificationDetails(
               _channel.id,
@@ -133,6 +129,7 @@ class NotificationService {
               presentSound: true,
             ),
           ),
+          payload: screen,
         );
       }
     });
@@ -287,7 +284,8 @@ class NotificationService {
   }
 
   Future<void> showTestNotification({String? title, String? body, String? payload}) async {
-    final id = DateTime.now().millisecond + (title?.hashCode ?? 0) % 1000;
+    // Generate a strictly positive, unique small integer ID
+    final id = (DateTime.now().millisecondsSinceEpoch % 100000) + (title?.length ?? 0);
     
     const androidDetails = AndroidNotificationDetails(
       channelId,
@@ -308,10 +306,10 @@ class NotificationService {
     );
 
     await _localNotificationsPlugin.show(
-      id,
-      title ?? 'Test Bildirimi 🔔',
-      body ?? 'Bildirim sistemi başarıyla çalışıyor!',
-      notificationDetails,
+      id: id,
+      title: title ?? 'Test Bildirimi 🔔',
+      body: body ?? 'Bildirim sistemi başarıyla çalışıyor!',
+      notificationDetails: notificationDetails,
       payload: payload,
     );
   }

@@ -111,8 +111,11 @@ class _SupportScreenState extends ConsumerState<SupportScreen> {
           body: 'Yardım & Destek talebiniz gönderilmiştir. En kısa zamanda dönüş yapılacaktır. Teşekkürler!',
         );
 
+        // Small delay to ensure plugin can process the notification before we navigate
+        await Future.delayed(const Duration(milliseconds: 500));
+
         // Go to home
-        context.go('/');
+        if (mounted) context.go('/');
       }
     } catch (e) {
       if (mounted) {

@@ -160,16 +160,28 @@ class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
 
       // Apple'dan gelen isim soyisim bilgisini al (Sadece ilk girişte gelir)
       if (user != null && (user.displayName == null || user.displayName!.isEmpty)) {
-        // Not: Native provider ile isim bilgisi idToken içinden veya credential içinden otomatik çözülür.
-        // Ancak ek manuel güncelleme gerekirse Flutter tarafında AdditionalUserInfo üzerinden de bakılabilir.
+        final profile = userCredential.additionalUserInfo?.profile;
+        if (profile != null && profile.containsKey('name')) {
+          final nameObj = profile['name'] as Map<String, dynamic>?;
+          if (nameObj != null) {
+            final firstName = nameObj['firstName'] as String? ?? '';
+            final lastName = nameObj['lastName'] as String? ?? '';
+            final fullName = '$firstName $lastName'.trim();
+            
+            if (fullName.isNotEmpty) {
+              await user.updateDisplayName(fullName);
+              await user.reload();
+            }
+          }
+        }
       }
       
       // Hoşgeldin maili (Yeni kullanıcıysa)
       if (userCredential.additionalUserInfo?.isNewUser ?? false) {
-        _sendWelcomeEmail(userCredential.user);
+        _sendWelcomeEmail(_auth.currentUser);
       }
       
-      state = AsyncValue.data(userCredential.user);
+      state = AsyncValue.data(_auth.currentUser);
     } catch (e, st) {
       final errorStr = e.toString().toLowerCase();
       

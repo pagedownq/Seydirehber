@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -501,6 +502,59 @@ class SettingsScreen extends ConsumerWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
     );
+  }
+
+  Future<bool> _showPlatformConfirmDialog({
+    required BuildContext context,
+    required String title,
+    required String content,
+    String confirmText = 'Evet',
+    String cancelText = 'Vazgeç',
+    bool isDestructive = false,
+  }) async {
+    if (Platform.isIOS) {
+      return await showCupertinoDialog<bool>(
+            context: context,
+            builder: (context) => CupertinoAlertDialog(
+              title: Text(title),
+              content: Text(content),
+              actions: [
+                CupertinoDialogAction(
+                  child: Text(cancelText),
+                  onPressed: () => Navigator.pop(context, false),
+                ),
+                CupertinoDialogAction(
+                  isDestructiveAction: isDestructive,
+                  onPressed: () => Navigator.pop(context, true),
+                  child: Text(confirmText),
+                ),
+              ],
+            ),
+          ) ??
+          false;
+    }
+
+    return await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(title),
+            content: Text(content),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text(cancelText),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: isDestructive 
+                  ? TextButton.styleFrom(foregroundColor: AppColors.error)
+                  : null,
+                child: Text(confirmText),
+              ),
+            ],
+          ),
+        ) ??
+        false;
   }
 }
 

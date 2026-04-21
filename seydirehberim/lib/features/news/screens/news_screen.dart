@@ -79,35 +79,36 @@ class NewsScreen extends ConsumerWidget {
   void _showLegalDisclaimer(BuildContext context) {
     showDialog(
       context: context,
+      barrierDismissible: true,
       builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        elevation: 10,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        elevation: 8,
         backgroundColor: Colors.white,
-        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 32, vertical: 60),
         child: Container(
           constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.8,
-            maxWidth: 500,
+            maxHeight: MediaQuery.of(context).size.height * 0.7,
+            maxWidth: 400,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Header with Gradient/Style
+              // Header
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 24),
+                padding: const EdgeInsets.symmetric(vertical: 20),
                 decoration: const BoxDecoration(
                   color: AppColors.primarySurface,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
                 ),
                 child: const Column(
                   children: [
-                    Icon(Icons.gavel_rounded, size: 48, color: AppColors.primary),
-                    SizedBox(height: 12),
+                    Icon(Icons.gavel_rounded, size: 40, color: AppColors.primary),
+                    SizedBox(height: 8),
                     Text(
                       'Yasal Bilgilendirme',
                       style: TextStyle(
-                        fontSize: 20,
+                        fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: AppColors.primary,
                       ),
@@ -119,24 +120,24 @@ class NewsScreen extends ConsumerWidget {
               // Scrollable Content
               Flexible(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                   child: Column(
                     children: [
                        _buildLegalPoint(
                         Icons.rss_feed_rounded,
                         'Haberler, yayıncıların sunduğu RSS beslemeleriyle otomatik çekilmektedir.',
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 10),
                       _buildLegalPoint(
                         Icons.copyright_rounded,
                         'Tüm telif hakları ve sorumluluk haberin asıl sahibi olan kuruluşa aittir.',
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 10),
                       _buildLegalPoint(
                         Icons.link_rounded,
                         'Sadece kısa özet sunulmakta, içerik tamamı için orijinal siteye yönlendirilmektedir.',
                       ),
-                       const SizedBox(height: 12),
+                       const SizedBox(height: 10),
                       _buildLegalPoint(
                         Icons.contact_mail_rounded,
                         'İçerik kaldırma talepleri için: seydirehber@gmail.com',
@@ -148,7 +149,7 @@ class NewsScreen extends ConsumerWidget {
               
               // Footer Action
               Padding(
-                padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
                 child: SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -159,9 +160,9 @@ class NewsScreen extends ConsumerWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                       elevation: 0,
                     ),

@@ -1,0 +1,59 @@
+platform :ios, '13.0'
+
+# CocoaPods analytics sends network stats synchronous priority.
+# Disable this if it causes issues.
+ENV['COCOAPODS_DISABLE_STATS'] = '1'
+
+project 'Runner', {
+  'Debug' => :debug,
+  'Profile' => :release,
+  'Release' => :release,
+}
+
+def flutter_root
+  generated_xcode_build_settings_path = File.expand_path(File.join('..', 'Flutter', 'Generated.xcconfig'), __FILE__)
+  unless File.exist?(generated_xcode_build_settings_path)
+    raise "#{generated_xcode_build_settings_path} must exist. If you're running pod install manually, make sure flutter pub get has been run."
+  end
+
+  File.foreach(generated_xcode_build_settings_path) do |line|
+    matches = line.match(/\AFLUTTER_ROOT=(.*)\z/)
+    return matches[1].strip if matches
+  end
+  raise "FLUTTER_ROOT not found in #{generated_xcode_build_settings_path}. Try deleting Generated.xcconfig and rerunning flutter pub get."
+end
+
+require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelper'), flutter_root)
+
+target 'Runner' do
+  use_frameworks!
+  use_modular_headers!
+
+  flutter_install_all_ios_pods File.expand_path(File.join('..'), __FILE__)
+  
+  target 'RunnerTests' do
+    inherit! :search_paths
+  end
+end
+
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    flutter_additional_ios_build_settings(target)
+    
+    target.build_configurations.each do |config|
+      # iOS Target Versiyonu 13.0 Olarak Sabitleme
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
+      
+      # Permission Handler Filtreleme (App Store Redlerini Önlemek İçin)
+      # Sadece uygulamanın kullandığı izinleri aktif ediyoruz.
+      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= [
+        '$(inherited)',
+        'PERMISSION_LOCATION=1',
+        'PERMISSION_NOTIFICATIONS=1',
+        'PERMISSION_PHOTOS=1',
+        'PERMISSION_CAMERA=1',
+        'PERMISSION_MICROPHONE=1', # Video çekimi için gerekirse
+      ]
+    end
+  end
+end

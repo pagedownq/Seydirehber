@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
@@ -12,6 +13,7 @@ import '../../../core/constants/app_text_styles.dart';
 import '../../../core/services/haptic_service.dart';
 import '../providers/auth_provider.dart';
 import '../../../core/services/notification_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../settings/screens/policies_screen.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
@@ -581,16 +583,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   _buildAuthButtons(),
                 ],
               ],
-            )
-          else
-            const SizedBox(height: 60),
-          
-          // Final bottom spacer to account for the sticky indicator
-          SizedBox(height: MediaQuery.of(context).padding.bottom + 60),
-        ],
-      ),
-    );
-  }
+            ),
         ],
       ),
     );
@@ -626,15 +619,23 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 ],
               ),
               child: ElevatedButton.icon(
-                onPressed: authState.isLoading
-                    ? null
-                    : () async {
-                        HapticService.light(); 
-                        await authNotifier.signInWithApple();
-                        final prefs = await SharedPreferences.getInstance();
-                        await prefs.setBool('onboarding_completed', true);
-                        if (mounted) context.go('/');
-                      },
+                      onPressed: authState.isLoading
+                          ? null
+                          : () async {
+                              HapticService.light();
+                              await authNotifier.signInWithApple();
+                              final user = FirebaseAuth.instance.currentUser;
+                              
+                              if (user != null && (user.displayName == null || user.displayName!.isEmpty)) {
+                                if (mounted) {
+                                  await _showNameEntryDialog(context, authNotifier);
+                                }
+                              }
+                              
+                              final prefs = await SharedPreferences.getInstance();
+                              await prefs.setBool('onboarding_completed', true);
+                              if (mounted) context.go('/');
+                            },
                 icon: const Icon(
                   Icons.apple,
                   size: 26,
@@ -677,15 +678,23 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 ),
               ),
               child: ElevatedButton.icon(
-                onPressed: authState.isLoading
-                    ? null
-                    : () async {
-                        HapticService.light(); 
-                        await authNotifier.signInWithGoogle();
-                        final prefs = await SharedPreferences.getInstance();
-                        await prefs.setBool('onboarding_completed', true);
-                        if (mounted) context.go('/');
-                      },
+                      onPressed: authState.isLoading
+                          ? null
+                          : () async {
+                              HapticService.light();
+                              await authNotifier.signInWithGoogle();
+                              final user = FirebaseAuth.instance.currentUser;
+                              
+                              if (user != null && (user.displayName == null || user.displayName!.isEmpty)) {
+                                if (mounted) {
+                                  await _showNameEntryDialog(context, authNotifier);
+                                }
+                              }
+                              
+                              final prefs = await SharedPreferences.getInstance();
+                              await prefs.setBool('onboarding_completed', true);
+                              if (mounted) context.go('/');
+                            },
                 icon: Image.network(
                   'https://www.google.com/favicon.ico',
                   width: 22,
@@ -759,6 +768,88 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         ),
       ],
     );
+  }
+
+  Future<void> _showNameEntryDialog(BuildContext context, AuthNotifier authNotifier) async {
+    final TextEditingController nameController = TextEditingController();
+    final bool isIOS = Theme.of(context).platform == TargetPlatform.iOS;
+
+    await showAdaptiveDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return isIOS
+            ? CupertinoAlertDialog(
+                title: const Text('Profilini Tamamla'),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(height: 8),
+                    const Text('Uygulama içinde görünecek adınızı ve soyadınızı giriniz.'),
+                    const SizedBox(height: 16),
+                    CupertinoTextField(
+                      controller: nameController,
+                      placeholder: 'Ad Soyad',
+                      autofocus: true,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: CupertinoColors.systemGrey4),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      textCapitalization: TextCapitalization.words,
+                    ),
+                  ],
+                ),
+                actions: [
+                  CupertinoDialogAction(
+                    child: const Text('Kaydet'),
+                    onPressed: () {
+                      final name = nameController.text.trim();
+                      if (name.length >= 3) {
+                        Navigator.pop(context);
+                      }
+                    },
+                  ),
+                ],
+              )
+            : AlertDialog(
+                title: const Text('Profilini Tamamla'),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('Uygulama içinde görünecek adınızı ve soyadınızı giriniz.'),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: nameController,
+                      autofocus: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Ad Soyad',
+                        border: OutlineInputBorder(),
+                        hintText: 'Örn: Ahmet Yılmaz',
+                      ),
+                      textCapitalization: TextCapitalization.words,
+                    ),
+                  ],
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      final name = nameController.text.trim();
+                      if (name.length >= 3) {
+                        Navigator.pop(context);
+                      }
+                    },
+                    child: const Text('KAYDET'),
+                  ),
+                ],
+              );
+      },
+    );
+
+    final name = nameController.text.trim();
+    if (name.isNotEmpty) {
+      await authNotifier.updateDisplayName(name);
+    }
   }
 
   Widget _buildMockup(_MockupType type) {

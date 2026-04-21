@@ -104,5 +104,10 @@
 	</array>
 	<key>FirebaseAppDelegateProxyEnabled</key>
 	<true/>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>tel</string>
+		<string>mailto</string>
+	</array>
 </dict>
 </plist>
