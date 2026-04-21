@@ -130,100 +130,141 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           ),
         ),
         child: SafeArea(
-          bottom: false,
-          child: Stack(
+          child: Column(
             children: [
-              PageView.builder(
-                controller: _pageController,
-                itemCount: _pages.length,
-                onPageChanged: (index) {
-                  setState(() => _currentPage = index);
-                },
-                physics: _currentPage == 4 && !_privacyAccepted
-                    ? const NeverScrollableScrollPhysics()
-                    : null,
-                itemBuilder: (context, index) {
-                  final page = _pages[index];
-                  return _buildPage(page);
-                },
+              // 1. Top Content (Flexible PageView)
+              Expanded(
+                child: PageView.builder(
+                  controller: _pageController,
+                  itemCount: _pages.length,
+                  onPageChanged: (index) {
+                    setState(() => _currentPage = index);
+                  },
+                  physics: _currentPage == 4 && !_privacyAccepted
+                      ? const NeverScrollableScrollPhysics()
+                      : null,
+                  itemBuilder: (context, index) {
+                    final page = _pages[index];
+                    return _buildPage(page);
+                  },
+                ),
               ),
 
-              // Sticky Indicator/Button at bottom
-              Positioned(
-                left: 24,
-                right: 24,
-                bottom: MediaQuery.of(context).padding.bottom + 16,
+              // 2. Fixed Bottom Area (Controls & Buttons)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    // Dynamic Social / Nav Buttons based on page
+                    _buildBottomActions(),
+                    
+                    const SizedBox(height: 24),
+                    
+                    // Persistent Page Indicator
                     SmoothPageIndicator(
                       controller: _pageController,
                       count: _pages.length,
                       effect: ExpandingDotsEffect(
-                        dotHeight: 8,
-                        dotWidth: 8,
+                        dotHeight: 6,
+                        dotWidth: 6,
                         expansionFactor: 4,
                         spacing: 8,
                         activeDotColor: AppColors.primary,
                         dotColor: AppColors.primary.withOpacity(0.2),
                       ),
                     ),
-                    if (_currentPage < _pages.length - 1) ...[
-                      const SizedBox(height: 24),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                          child: Container(
-                            width: double.infinity,
-                            height: 56,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(20),
-                              color: AppColors.primary.withOpacity(0.2),
-                              border: Border.all(
-                                color: Colors.white.withOpacity(0.2),
-                                width: 1.5,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.primary.withOpacity(0.12),
-                                  blurRadius: 20,
-                                  offset: const Offset(0, 10),
-                                ),
-                              ],
-                            ),
-                            child: ElevatedButton(
-                              onPressed: () async {
-                                HapticService.light();
-                                _nextPage();
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.transparent,
-                                foregroundColor: AppColors.primary,
-                                elevation: 0,
-                                shadowColor: Colors.transparent,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                              ),
-                              child: Text(
-                                'Devam Et',
-                                style: TextStyle(
-                                  color: AppColors.primary,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
                   ],
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomActions() {
+    final page = _pages[_currentPage];
+    
+    // Auth Buttons Page (Last Page)
+    if (page.hasAuthButtons) {
+      return _buildAuthButtons();
+    }
+    
+    // Notification Page
+    if (page.hasNotificationButton) {
+      return Column(
+        children: [
+          _buildPrimaryButton(
+            onPressed: () async {
+              HapticService.light(); 
+              final granted = await NotificationService().requestPermission();
+              if (granted && mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Bildirimler başarıyla açıldı!'), backgroundColor: Colors.green),
+                );
+                _nextPage();
+              } else if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Bildirim izni verilmedi.'), backgroundColor: AppColors.error),
+                );
+              }
+            },
+            text: 'Bildirimleri Etkinleştir',
+            icon: Icons.notifications_active_outlined,
+          ),
+          TextButton(
+            onPressed: _nextPage,
+            child: Text('Daha Sonra', style: TextStyle(color: AppColors.primary.withOpacity(0.7))),
+          ),
+        ],
+      );
+    }
+
+    // Default "Devam Et" Button for other pages
+    return _buildPrimaryButton(
+      onPressed: _nextPage,
+      text: 'Devam Et',
+    );
+  }
+
+  Widget _buildPrimaryButton({required VoidCallback onPressed, required String text, IconData? icon}) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          width: double.infinity,
+          height: 56,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            color: AppColors.primary.withOpacity(0.2),
+            border: Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withOpacity(0.12),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: ElevatedButton(
+            onPressed: onPressed,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.transparent,
+              foregroundColor: AppColors.primary,
+              elevation: 0,
+              shadowColor: Colors.transparent,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (icon != null) ...[Icon(icon), const SizedBox(width: 8)],
+                Text(text, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+              ],
+            ),
           ),
         ),
       ),
@@ -406,184 +447,112 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           ),
           const Spacer(flex: 3),
           
-          // Additional components (Privacy / Auth / Notifications)
-          if (page.hasPrivacyCheckbox || page.hasAuthButtons || page.hasNotificationButton)
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (page.hasNotificationButton) ...[
-                  ClipRRect(
+          if (page.hasPrivacyCheckbox) ...[
+            const SizedBox(height: 32),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.7),
                     borderRadius: BorderRadius.circular(20),
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                      child: Container(
-                        width: double.infinity,
-                        height: 52,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          color: page.color.withOpacity(0.2),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.2),
-                            width: 1.5,
-                          ),
-                        ),
-                        child: ElevatedButton.icon(
-                          onPressed: () async {
-                            HapticService.light(); 
-                            final granted = await NotificationService().requestPermission();
-                            if (granted) {
-                              if (mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Bildirimler başarıyla açıldı!'),
-                                    backgroundColor: Colors.green,
-                                  ),
-                                );
-                                _nextPage();
-                              }
-                            } else {
-                              if (mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Bildirim izni verilmedi.'),
-                                    backgroundColor: AppColors.error,
-                                  ),
-                                );
-                              }
-                            }
-                          },
-                          icon: Icon(Icons.notifications_active_outlined, color: page.color),
-                          label: Text('Bildirimleri Etkinleştir', style: AppTextStyles.button.copyWith(color: page.color)),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.transparent,
-                            elevation: 0,
-                            shadowColor: Colors.transparent,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: AppColors.primary.withOpacity(0.2),
+                      width: 1.2,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.02),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: CheckboxListTile(
+                    value: _privacyAccepted,
+                    onChanged: (v) => setState(() => _privacyAccepted = v ?? false),
+                    title: Text.rich(
+                      TextSpan(
+                        children: [
+                          WidgetSpan(
+                            alignment: PlaceholderAlignment.middle,
+                            child: GestureDetector(
+                              onTap: () => _showPolicyDetail(
+                                context,
+                                'Gizlilik Politikası',
+                                PoliciesScreen.privacyPolicyContent,
+                              ),
+                              child: Text(
+                                'Gizlilik Politikası',
+                                style: AppTextStyles.bodySmall.copyWith(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.bold,
+                                  decoration: TextDecoration.underline,
+                                  fontSize: 11,
+                                ),
+                              ),
                             ),
                           ),
-                        ),
+                          const TextSpan(text: ', '),
+                          WidgetSpan(
+                            alignment: PlaceholderAlignment.middle,
+                            child: GestureDetector(
+                              onTap: () => _showPolicyDetail(
+                                context,
+                                'Kullanım Koşulları',
+                                PoliciesScreen.termsOfServiceContent,
+                              ),
+                              child: Text(
+                                'Kullanım Koşulları',
+                                style: AppTextStyles.bodySmall.copyWith(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.bold,
+                                  decoration: TextDecoration.underline,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const TextSpan(text: ' ve '),
+                          WidgetSpan(
+                            alignment: PlaceholderAlignment.middle,
+                            child: GestureDetector(
+                              onTap: () => _showPolicyDetail(
+                                context,
+                                'KVKK Aydınlatma Metni',
+                                PoliciesScreen.kvkkContent,
+                              ),
+                              child: Text(
+                                'KVKK Metni',
+                                style: AppTextStyles.bodySmall.copyWith(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.bold,
+                                  decoration: TextDecoration.underline,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ),
+                          ),
+                          TextSpan(
+                            text: '\'ni okudum ve kabul ediyorum',
+                            style: AppTextStyles.bodySmall.copyWith(fontSize: 11),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextButton(
-                    onPressed: _nextPage,
-                    child: Text(
-                      'Daha Sonra',
-                      style: TextStyle(color: page.color.withOpacity(0.7)),
+                    activeColor: AppColors.primary,
+                    controlAffinity: ListTileControlAffinity.leading,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
                     ),
                   ),
-                ],
-                if (page.hasPrivacyCheckbox) ...[
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.7),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: AppColors.primary.withOpacity(0.2),
-                            width: 1.2,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.02),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: CheckboxListTile(
-                          value: _privacyAccepted,
-                          onChanged: (v) => setState(() => _privacyAccepted = v ?? false),
-                          title: Text.rich(
-                            TextSpan(
-                              children: [
-                                WidgetSpan(
-                                  alignment: PlaceholderAlignment.middle,
-                                  child: GestureDetector(
-                                    onTap: () => _showPolicyDetail(
-                                      context,
-                                      'Gizlilik Politikası',
-                                      PoliciesScreen.privacyPolicyContent,
-                                    ),
-                                    child: Text(
-                                      'Gizlilik Politikası',
-                                      style: AppTextStyles.bodySmall.copyWith(
-                                        color: AppColors.primary,
-                                        fontWeight: FontWeight.bold,
-                                        decoration: TextDecoration.underline,
-                                        fontSize: 11,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                const TextSpan(text: ', '),
-                                WidgetSpan(
-                                  alignment: PlaceholderAlignment.middle,
-                                  child: GestureDetector(
-                                    onTap: () => _showPolicyDetail(
-                                      context,
-                                      'Kullanım Koşulları',
-                                      PoliciesScreen.termsOfServiceContent,
-                                    ),
-                                    child: Text(
-                                      'Kullanım Koşulları',
-                                      style: AppTextStyles.bodySmall.copyWith(
-                                        color: AppColors.primary,
-                                        fontWeight: FontWeight.bold,
-                                        decoration: TextDecoration.underline,
-                                        fontSize: 11,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                const TextSpan(text: ' ve '),
-                                WidgetSpan(
-                                  alignment: PlaceholderAlignment.middle,
-                                  child: GestureDetector(
-                                    onTap: () => _showPolicyDetail(
-                                      context,
-                                      'KVKK Aydınlatma Metni',
-                                      PoliciesScreen.kvkkContent,
-                                    ),
-                                    child: Text(
-                                      'KVKK Metni',
-                                      style: AppTextStyles.bodySmall.copyWith(
-                                        color: AppColors.primary,
-                                        fontWeight: FontWeight.bold,
-                                        decoration: TextDecoration.underline,
-                                        fontSize: 11,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                TextSpan(
-                                  text: '\'ni okudum ve kabul ediyorum',
-                                  style: AppTextStyles.bodySmall.copyWith(fontSize: 11),
-                                ),
-                              ],
-                            ),
-                          ),
-                          activeColor: AppColors.primary,
-                          controlAffinity: ListTileControlAffinity.leading,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-                if (page.hasAuthButtons) ...[
-                  _buildAuthButtons(),
-                ],
-              ],
+                ),
+              ),
             ),
+          ],
+          const SizedBox(height: 32),
         ],
       ),
     );

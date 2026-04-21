@@ -357,14 +357,19 @@ class _ServiceCard extends StatelessWidget {
                             ),
                             child: _buildIcon(imageSize ?? 28),
                           ),
-                          Text(
-                            title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: AppTextStyles.bodyMedium.copyWith(
-                              color: textColor,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13,
+                          const SizedBox(height: 4),
+                          Flexible(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.bottomLeft,
+                              child: Text(
+                                title,
+                                style: AppTextStyles.bodyMedium.copyWith(
+                                  color: textColor,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13,
+                                ),
+                              ),
                             ),
                           ),
                         ],
