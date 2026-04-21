@@ -124,34 +124,36 @@ class _MainShellState extends ConsumerState<MainShell> with WidgetsBindingObserv
             ),
           ],
         ),
-        child: NavigationBar(
-          selectedIndex: _currentIndex,
-          onDestinationSelected: (i) {
-            HapticService.selection();
-            setState(() => _currentIndex = i);
-          },
-          backgroundColor: AppColors.white,
-          indicatorColor: AppColors.primarySurface,
-          surfaceTintColor: Colors.transparent,
-          height: 65,
-          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.home_outlined),
-              selectedIcon: Icon(Icons.home, color: AppColors.primary),
-              label: 'Ana Sayfa',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.newspaper_outlined),
-              selectedIcon: Icon(Icons.newspaper, color: AppColors.primary),
-              label: 'Haberler',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.settings_outlined),
-              selectedIcon: Icon(Icons.settings, color: AppColors.primary),
-              label: 'Ayarlar',
-            ),
-          ],
+        child: SafeArea(
+          child: NavigationBar(
+            selectedIndex: _currentIndex,
+            onDestinationSelected: (i) {
+              HapticService.selection();
+              setState(() => _currentIndex = i);
+            },
+            backgroundColor: AppColors.white,
+            indicatorColor: AppColors.primarySurface,
+            surfaceTintColor: Colors.transparent,
+            height: 65,
+            labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+            destinations: const [
+              NavigationDestination(
+                icon: Icon(Icons.home_outlined),
+                selectedIcon: Icon(Icons.home, color: AppColors.primary),
+                label: 'Ana Sayfa',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.newspaper_outlined),
+                selectedIcon: Icon(Icons.newspaper, color: AppColors.primary),
+                label: 'Haberler',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.settings_outlined),
+                selectedIcon: Icon(Icons.settings, color: AppColors.primary),
+                label: 'Ayarlar',
+              ),
+            ],
+          ),
         ),
       ),
     );

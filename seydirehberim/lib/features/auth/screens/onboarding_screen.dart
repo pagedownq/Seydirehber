@@ -128,102 +128,98 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           ),
         ),
         child: SafeArea(
+          bottom: false,
           child: Stack(
             children: [
-              Column(
-                children: [
-                  Expanded(
-                    child: PageView.builder(
-                      controller: _pageController,
-                      itemCount: _pages.length,
-                      onPageChanged: (index) {
-                        setState(() => _currentPage = index);
-                      },
-                      physics: _currentPage == 4 && !_privacyAccepted
-                          ? const NeverScrollableScrollPhysics()
-                          : null,
-                      itemBuilder: (context, index) {
-                        final page = _pages[index];
-                        return _buildPage(page);
-                      },
-                    ),
-                  ),
+              PageView.builder(
+                controller: _pageController,
+                itemCount: _pages.length,
+                onPageChanged: (index) {
+                  setState(() => _currentPage = index);
+                },
+                physics: _currentPage == 4 && !_privacyAccepted
+                    ? const NeverScrollableScrollPhysics()
+                    : null,
+                itemBuilder: (context, index) {
+                  final page = _pages[index];
+                  return _buildPage(page);
+                },
+              ),
 
-                  // Indicator and Button
-                  Container(
-                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        SmoothPageIndicator(
-                          controller: _pageController,
-                          count: _pages.length,
-                          effect: ExpandingDotsEffect(
-                            dotHeight: 8,
-                            dotWidth: 8,
-                            expansionFactor: 4,
-                            spacing: 8,
-                            activeDotColor: AppColors.primary,
-                            dotColor: AppColors.primary.withOpacity(0.2),
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        if (_currentPage < _pages.length - 1)
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(20),
-                            child: BackdropFilter(
-                              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                              child: Container(
-                                width: double.infinity,
-                                height: 56,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(20),
-                                  color: AppColors.primary.withOpacity(0.2),
-                                  border: Border.all(
-                                    color: Colors.white.withOpacity(0.2),
-                                    width: 1.5,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: AppColors.primary.withOpacity(0.1),
-                                      blurRadius: 15,
-                                      offset: const Offset(0, 8),
-                                    ),
-                                  ],
+              // Sticky Indicator/Button at bottom
+              Positioned(
+                left: 24,
+                right: 24,
+                bottom: MediaQuery.of(context).padding.bottom + 16,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SmoothPageIndicator(
+                      controller: _pageController,
+                      count: _pages.length,
+                      effect: ExpandingDotsEffect(
+                        dotHeight: 8,
+                        dotWidth: 8,
+                        expansionFactor: 4,
+                        spacing: 8,
+                        activeDotColor: AppColors.primary,
+                        dotColor: AppColors.primary.withOpacity(0.2),
+                      ),
+                    ),
+                    if (_currentPage < _pages.length - 1) ...[
+                      const SizedBox(height: 24),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                          child: Container(
+                            width: double.infinity,
+                            height: 56,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              color: AppColors.primary.withOpacity(0.2),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.2),
+                                width: 1.5,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.primary.withOpacity(0.12),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 10),
                                 ),
-                                child: ElevatedButton(
-                                  onPressed: () async {
-                                    HapticService.vibrate();
-                                    _nextPage();
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.transparent,
-                                    foregroundColor: AppColors.primary,
-                                    elevation: 0,
-                                    shadowColor: Colors.transparent,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    'Devam Et',
-                                    style: TextStyle(
-                                      color: AppColors.primary,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      letterSpacing: 0.5,
-                                    ),
-                                  ),
+                              ],
+                            ),
+                            child: ElevatedButton(
+                              onPressed: () async {
+                                HapticService.vibrate();
+                                _nextPage();
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.transparent,
+                                foregroundColor: AppColors.primary,
+                                elevation: 0,
+                                shadowColor: Colors.transparent,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                              ),
+                              child: Text(
+                                'Devam Et',
+                                style: TextStyle(
+                                  color: AppColors.primary,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.5,
                                 ),
                               ),
                             ),
-                          )
-                        else
-                          const SizedBox(height: 8), // Minimal spacing instead of 56px placeholder
-                      ],
-                    ),
-                  ),
-                ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ),
             ],
           ),
@@ -476,7 +472,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       style: TextStyle(color: page.color.withOpacity(0.7)),
                     ),
                   ),
-                  const SizedBox(height: 12),
                 ],
                 if (page.hasPrivacyCheckbox) ...[
                   ClipRRect(
@@ -581,16 +576,21 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 24),
                 ],
                 if (page.hasAuthButtons) ...[
                   _buildAuthButtons(),
-                  const SizedBox(height: 24),
                 ],
               ],
             )
           else
             const SizedBox(height: 60),
+          
+          // Final bottom spacer to account for the sticky indicator
+          SizedBox(height: MediaQuery.of(context).padding.bottom + 60),
+        ],
+      ),
+    );
+  }
         ],
       ),
     );

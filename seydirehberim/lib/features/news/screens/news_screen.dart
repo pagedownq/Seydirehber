@@ -83,60 +83,66 @@ class NewsScreen extends ConsumerWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
         elevation: 10,
         backgroundColor: Colors.white,
-        child: SingleChildScrollView(
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+        child: Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.8,
+            maxWidth: 500,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               // Header with Gradient/Style
               Container(
+                width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 24),
                 decoration: const BoxDecoration(
                   color: AppColors.primarySurface,
                   borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
                 ),
-                child: const Center(
-                  child: Column(
-                    children: [
-                      Icon(Icons.gavel_rounded, size: 48, color: AppColors.primary),
-                      SizedBox(height: 12),
-                      Text(
-                        'Yasal Bilgilendirme',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
-                        ),
+                child: const Column(
+                  children: [
+                    Icon(Icons.gavel_rounded, size: 48, color: AppColors.primary),
+                    SizedBox(height: 12),
+                    Text(
+                      'Yasal Bilgilendirme',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
               
-              // Content Space
-              Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  children: [
-                     _buildLegalPoint(
-                      Icons.rss_feed_rounded,
-                      'Haberler, yayıncıların sunduğu RSS beslemeleriyle otomatik çekilmektedir.',
-                    ),
-                    const SizedBox(height: 12),
-                    _buildLegalPoint(
-                      Icons.copyright_rounded,
-                      'Tüm telif hakları ve sorumluluk haberin asıl sahibi olan kuruluşa aittir.',
-                    ),
-                    const SizedBox(height: 12),
-                    _buildLegalPoint(
-                      Icons.link_rounded,
-                      'Sadece kısa özet sunulmakta, içerik tamamı için orijinal siteye yönlendirilmektedir.',
-                    ),
-                     const SizedBox(height: 12),
-                    _buildLegalPoint(
-                      Icons.contact_mail_rounded,
-                      'İçerik kaldırma talepleri için: seydirehber@gmail.com',
-                    ),
-                  ],
+              // Scrollable Content
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    children: [
+                       _buildLegalPoint(
+                        Icons.rss_feed_rounded,
+                        'Haberler, yayıncıların sunduğu RSS beslemeleriyle otomatik çekilmektedir.',
+                      ),
+                      const SizedBox(height: 12),
+                      _buildLegalPoint(
+                        Icons.copyright_rounded,
+                        'Tüm telif hakları ve sorumluluk haberin asıl sahibi olan kuruluşa aittir.',
+                      ),
+                      const SizedBox(height: 12),
+                      _buildLegalPoint(
+                        Icons.link_rounded,
+                        'Sadece kısa özet sunulmakta, içerik tamamı için orijinal siteye yönlendirilmektedir.',
+                      ),
+                       const SizedBox(height: 12),
+                      _buildLegalPoint(
+                        Icons.contact_mail_rounded,
+                        'İçerik kaldırma talepleri için: seydirehber@gmail.com',
+                      ),
+                    ],
+                  ),
                 ),
               ),
               
@@ -146,7 +152,10 @@ class NewsScreen extends ConsumerWidget {
                 child: SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () {
+                      HapticService.selection();
+                      Navigator.pop(context);
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,

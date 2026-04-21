@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -231,28 +232,12 @@ class SettingsScreen extends ConsumerWidget {
                   onPressed: () async {
                     HapticService.vibrate();
 
-                    final confirmed = await showDialog<bool>(
+                    final confirmed = await _showPlatformConfirmDialog(
                       context: context,
-                      builder: (ctx) => AlertDialog(
-                        title: const Text('Çıkış Yap'),
-                        content: const Text('Çıkış yapmak istediğinize emin misiniz?'),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              HapticService.selection();
-                              Navigator.pop(ctx, false);
-                            },
-                            child: const Text('İptal'),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              HapticService.selection();
-                              Navigator.pop(ctx, true);
-                            },
-                            child: const Text('Çıkış Yap'),
-                          ),
-                        ],
-                      ),
+                      title: 'Çıkış Yap',
+                      content: 'Çıkış yapmak istediğinize emin misiniz?',
+                      confirmText: 'Çıkış Yap',
+                      isDestructive: true,
                     );
                     if (confirmed == true) {
                       await ref.read(authNotifierProvider.notifier).signOut();
@@ -272,30 +257,12 @@ class SettingsScreen extends ConsumerWidget {
                   onPressed: () async {
                     HapticService.vibrate();
 
-                    final confirmed = await showDialog<bool>(
+                    final confirmed = await _showPlatformConfirmDialog(
                       context: context,
-                      builder: (ctx) => AlertDialog(
-                        title: const Text('Hesabı Sil'),
-                        content: const Text(
-                            'Hesabınız kalıcı olarak silinecek. Bu işlem geri alınamaz.'),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              HapticService.selection();
-                              Navigator.pop(ctx, false);
-                            },
-                            child: const Text('İptal'),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              HapticService.selection();
-                              Navigator.pop(ctx, true);
-                            },
-                            style: TextButton.styleFrom(foregroundColor: AppColors.error),
-                            child: const Text('Sil'),
-                          ),
-                        ],
-                      ),
+                      title: 'Hesabı Sil',
+                      content: 'Hesabınız kalıcı olarak silinecek. Bu işlem geri alınamaz.',
+                      confirmText: 'Sil',
+                      isDestructive: true,
                     );
                     if (confirmed == true) {
                       await ref.read(authNotifierProvider.notifier).deleteAccount();
