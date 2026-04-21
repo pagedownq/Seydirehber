@@ -55,6 +55,15 @@ class NotificationService {
       await androidPlugin?.createNotificationChannel(_channel);
     }
 
+    // Request permissions for iOS
+    if (Platform.isIOS) {
+      await _firebaseMessaging.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+    }
+
     // Initialize local notifications
     const initializationSettingsAndroid =
         AndroidInitializationSettings('ic_stat_s');
@@ -95,7 +104,7 @@ class NotificationService {
       RemoteNotification? notification = message.notification;
       AndroidNotification? android = message.notification?.android;
 
-      if (notification != null && android != null) {
+      if (notification != null) {
         String? screen = message.data['screen'];
         
         _localNotificationsPlugin.show(
@@ -104,11 +113,16 @@ class NotificationService {
           body: notification.body,
           payload: screen,
           notificationDetails: NotificationDetails(
-            android: AndroidNotificationDetails(
+            android: android != null ? AndroidNotificationDetails(
               _channel.id,
               _channel.name,
               channelDescription: _channel.description,
               icon: android.smallIcon,
+            ) : null,
+            iOS: const DarwinNotificationDetails(
+              presentAlert: true,
+              presentBadge: true,
+              presentSound: true,
             ),
           ),
         );

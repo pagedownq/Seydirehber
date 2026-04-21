@@ -6,6 +6,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/widgets/shimmer_widget.dart';
 import '../../../core/services/local_cache_service.dart';
+import '../../../core/services/haptic_service.dart';
 import '../../home/providers/home_providers.dart';
 
 class OtobusScreen extends ConsumerWidget {
@@ -46,7 +47,7 @@ class OtobusScreen extends ConsumerWidget {
                 const Text('Veriler yüklenemedi'),
                 TextButton(
                   onPressed: () {
-                    HapticFeedback.selectionClick();
+                    HapticService.selection();
                     ref.refresh(otobusSaatleriProvider);
                   },
                   child: const Text('Tekrar Dene'),
@@ -153,7 +154,7 @@ class _BusScheduleItemState extends State<_BusScheduleItem> {
         children: [
           InkWell(
             onTap: () {
-              HapticFeedback.selectionClick();
+              HapticService.selection();
               setState(() => _isExpanded = !_isExpanded);
             },
             borderRadius: BorderRadius.circular(24),

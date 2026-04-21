@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:go_router/go_router.dart';
+import '../../../core/services/haptic_service.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../home/screens/home_screen.dart';
 import '../../news/screens/news_screen.dart';
@@ -9,16 +10,20 @@ import '../../settings/screens/settings_screen.dart';
 import '../../../core/services/update_service.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../core/services/daily_notification_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../auth/providers/auth_provider.dart';
+import '../../auth/widgets/name_request_dialog.dart';
 
-class MainShell extends StatefulWidget {
+class MainShell extends ConsumerStatefulWidget {
   const MainShell({super.key});
 
   @override
-  State<MainShell> createState() => _MainShellState();
+  ConsumerState<MainShell> createState() => _MainShellState();
 }
 
-class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
+class _MainShellState extends ConsumerState<MainShell> with WidgetsBindingObserver {
   int _currentIndex = 0;
+  bool _isNameDialogShowing = false;
 
   final List<Widget> _screens = const [
     HomeScreen(),
@@ -51,7 +56,30 @@ class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
     // Check for updates
     WidgetsBinding.instance.addPostFrameCallback((_) {
       UpdateService.checkForUpdate();
+      _checkMissingName();
     });
+  }
+
+  void _checkMissingName() {
+    final user = ref.read(authStateProvider).value;
+    final isGuest = ref.read(isGuestProvider);
+
+    if (user != null && !isGuest && !_isNameDialogShowing) {
+      if (user.displayName == null || user.displayName!.isEmpty) {
+        _isNameDialogShowing = true;
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => NameRequestDialog(
+            onSave: (fullName) async {
+              await ref.read(authNotifierProvider.notifier).updateDisplayName(fullName);
+              _isNameDialogShowing = false;
+              if (mounted) Navigator.pop(context);
+            },
+          ),
+        ).then((_) => _isNameDialogShowing = false);
+      }
+    }
   }
 
   @override
@@ -72,6 +100,14 @@ class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    // Listen for name changes (especially for Apple Sign In)
+    ref.listen(authStateProvider, (previous, next) {
+      if (next.value != null && (next.value?.displayName == null || next.value!.displayName!.isEmpty)) {
+        // Debounce or check if already showing
+        _checkMissingName();
+      }
+    });
+
     return Scaffold(
       body: IndexedStack(
         index: _currentIndex,
@@ -91,7 +127,7 @@ class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
         child: NavigationBar(
           selectedIndex: _currentIndex,
           onDestinationSelected: (i) {
-            HapticFeedback.selectionClick();
+            HapticService.selection();
             setState(() => _currentIndex = i);
           },
           backgroundColor: AppColors.white,

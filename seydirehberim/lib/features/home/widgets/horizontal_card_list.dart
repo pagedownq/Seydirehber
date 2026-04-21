@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../core/services/haptic_service.dart';
 import '../../../core/widgets/cached_image_widget.dart';
 import '../../../core/widgets/shimmer_widget.dart';
 
@@ -119,7 +120,7 @@ class HorizontalCardList extends ConsumerWidget {
     return RepaintBoundary(
       child: GestureDetector(
         onTap: () {
-          HapticFeedback.selectionClick();
+          HapticService.selection();
           onTap(id);
         },
         child: SizedBox(
@@ -197,7 +198,7 @@ class HorizontalCardList extends ConsumerWidget {
     return RepaintBoundary(
       child: GestureDetector(
         onTap: () {
-          HapticFeedback.selectionClick();
+          HapticService.selection();
           onTap(id);
         },
         child: Container(

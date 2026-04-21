@@ -8,6 +8,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/widgets/cached_image_widget.dart';
 import '../../core/widgets/shimmer_widget.dart';
 import '../../core/widgets/empty_state_widget.dart';
+import '../../core/services/haptic_service.dart';
 import '../services/local_cache_service.dart';
 import 'error_view.dart';
 
@@ -51,7 +52,7 @@ class GenericListScreen extends ConsumerWidget {
           icon: const Icon(Icons.arrow_back_rounded,
               color: Colors.white, size: 22),
           onPressed: () {
-            HapticFeedback.selectionClick();
+            HapticService.selection();
             context.pop();
           },
         ),
@@ -59,7 +60,7 @@ class GenericListScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.share_rounded, color: Colors.white, size: 22),
             onPressed: () {
-              HapticFeedback.selectionClick();
+              HapticService.selection();
               Share.share('Seydi Rehber - $title listesine göz at!');
             },
           ),
@@ -199,7 +200,7 @@ class GenericListScreen extends ConsumerWidget {
           padding: const EdgeInsets.only(bottom: 20),
           child: GestureDetector(
             onTap: () {
-              HapticFeedback.selectionClick();
+              HapticService.selection();
               context.push('/$routePrefix/$id');
             },
             child: Container(
@@ -429,7 +430,7 @@ class GenericListScreen extends ConsumerWidget {
   ) {
     return GestureDetector(
       onTap: () {
-        HapticFeedback.selectionClick();
+        HapticService.selection();
         context.push('/$routePrefix/$id');
       },
       child: Column(

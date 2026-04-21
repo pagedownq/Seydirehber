@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_text_styles.dart';
+import '../services/haptic_service.dart';
 
 class SeeAllButton extends StatelessWidget {
   final String title;
@@ -28,7 +29,7 @@ class SeeAllButton extends StatelessWidget {
         ),
         TextButton(
           onPressed: () {
-            HapticFeedback.selectionClick();
+            HapticService.selection();
             onTap();
           },
           style: TextButton.styleFrom(

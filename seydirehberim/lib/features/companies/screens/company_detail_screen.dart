@@ -8,6 +8,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../core/services/haptic_service.dart';
 import '../../../core/widgets/cached_image_widget.dart';
 import '../../../core/widgets/favorite_button.dart';
 import '../../../core/widgets/shimmer_widget.dart';
@@ -107,6 +108,7 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
           final adres = data['adres'] as String? ?? data['konum'] as String? ?? '';
           final website = data['website'] as String?;
           final instagram = data['instagram'] as String?;
+          final menuUrl = data['menu_url'] as String?;
 
           return Stack(
             children: [
@@ -132,7 +134,7 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
                       child: IconButton(
                         icon: const Icon(Icons.arrow_back, size: 20, color: Colors.white),
                         onPressed: () {
-                          HapticFeedback.selectionClick();
+                          HapticService.selection();
                           Navigator.pop(context);
                         },
                       ),
@@ -176,7 +178,7 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
                         child: IconButton(
                           icon: const Icon(Icons.share_outlined, size: 20),
                           onPressed: () {
-                            HapticFeedback.selectionClick();
+                            HapticService.selection();
                             Share.share('$name firmasını Seydi Rehber\'de keşfet!');
                           },
                         ),
@@ -239,6 +241,12 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
                                   height: 1.5,
                                 ),
                               ),
+                              const SizedBox(height: 20),
+                            ],
+
+                            // DIGITAL MENU CARD (New Extension)
+                            if (menuUrl != null && menuUrl.isNotEmpty) ...[
+                              _buildMenuActionCard(menuUrl),
                               const SizedBox(height: 40),
                             ],
 
@@ -304,7 +312,7 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
                                 width: double.infinity,
                                 child: ElevatedButton.icon(
                                   onPressed: () {
-                                    HapticFeedback.selectionClick();
+                                    HapticService.selection();
                                     _launchMap(konum);
                                   },
                                   icon: const Icon(Icons.near_me_rounded),
@@ -349,7 +357,7 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: InkWell(
         onTap: () {
-          HapticFeedback.selectionClick();
+          HapticService.selection();
           if (onTap != null) {
             onTap();
           }
@@ -399,7 +407,7 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
       padding: const EdgeInsets.only(bottom: 25),
       child: InkWell(
         onTap: () {
-          HapticFeedback.selectionClick();
+          HapticService.selection();
           if (onTap != null) {
             onTap!();
           }
@@ -450,7 +458,7 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
   Widget _buildSocialIcon(dynamic icon, VoidCallback onTap) {
     return InkWell(
       onTap: () {
-        HapticFeedback.selectionClick();
+        HapticService.selection();
         onTap();
       },
       borderRadius: BorderRadius.circular(20),
@@ -516,5 +524,70 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
+  }
+
+  Widget _buildMenuActionCard(String url) {
+    return InkWell(
+      onTap: () {
+        HapticService.medium();
+        _launchURL(url);
+      },
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFFFF8F00), Color(0xFFFFB300)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFFF8F00).withOpacity(0.3),
+              blurRadius: 15,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.restaurant_menu_rounded, color: Colors.white, size: 28),
+            ),
+            const SizedBox(width: 20),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'DİJİTAL MENÜ',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 16,
+                      letterSpacing: 1.1,
+                    ),
+                  ),
+                  Text(
+                    'Fiyatları ve ürünleri incele',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white, size: 18),
+          ],
+        ),
+      ),
+    );
   }
 }

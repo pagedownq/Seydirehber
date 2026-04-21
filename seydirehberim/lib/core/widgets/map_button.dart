@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_text_styles.dart';
+import '../services/haptic_service.dart';
 
 class MapButton extends StatelessWidget {
   final String locationUrl;
@@ -15,7 +16,7 @@ class MapButton extends StatelessWidget {
   });
 
   Future<void> _openMap() async {
-    HapticFeedback.vibrate();
+    HapticService.vibrate();
     String url = locationUrl;
     // If it's a plain address, create a Google Maps search URL
     if (!url.startsWith('http') && !url.startsWith('geo:')) {

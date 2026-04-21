@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 class NewsModel {
   final String title;
   final String link;
@@ -16,6 +18,21 @@ class NewsModel {
     required this.source,
     required this.date,
   });
+
+  String get formattedDate {
+    if (date == null) return pubDate;
+    try {
+      // "20 Nisan 2026, Pazartesi - 14:30" formatı için:
+      return DateFormat('d MMMM yyyy, EEEE - HH:mm', 'tr_TR').format(date!);
+    } catch (e) {
+      // Eğer tr_TR yüklü değilse fallback yapalım
+      try {
+        return DateFormat('d MMMM yyyy, EEEE - HH:mm').format(date!);
+      } catch (_) {
+        return pubDate;
+      }
+    }
+  }
 
   factory NewsModel.fromXmlMap(Map<String, dynamic> item, String sourceName) {
     // Helper to get value from common RSS/JSON variants
@@ -37,7 +54,7 @@ class NewsModel {
     String link = getValue(item['link']);
     String pubDate = getValue(item['pubDate']);
     
-    // Parse Date for sorting
+    // Parse Date for sorting and formatting
     DateTime? date;
     if (pubDate.isNotEmpty) {
       try {
@@ -45,14 +62,12 @@ class NewsModel {
         date = DateTime.tryParse(pubDate);
         
         if (date == null) {
-          // 2. Try RFC 822/2822 (e.g., Sun, 29 Mar 2026 19:12:19 +0000)
-          // Clean up string
+          // 2. Try RFC 822/2822 (e.g., Sun, 20 Apr 2026 19:12:19 +0000)
           var cleaned = pubDate;
           if (cleaned.contains(',')) {
             cleaned = cleaned.split(',')[1].trim();
           }
 
-          // Format: "29 Mar 2026 19:12:19 +0000"
           final parts = cleaned.split(RegExp(r'\s+'));
           if (parts.length >= 4) {
             final day = int.tryParse(parts[0]) ?? 1;
@@ -80,52 +95,60 @@ class NewsModel {
       }
     }
 
-    // Description / Content
-    String rawDesc = getValue(item['description'] ?? item['content:encoded'] ?? item['content\$encoded']);
+    // Description - Use only description as requested
+    String rawDesc = getValue(item['description']);
     
     // Image Extraction Strategy
     String img = '';
     
-    // Try media:content 
-    final mediaContent = item['media:content'] ?? item['media\$content'];
-    if (mediaContent != null) {
-      if (mediaContent is Map && mediaContent.containsKey('url')) {
-        img = mediaContent['url'].toString();
-      } else if (mediaContent is List && mediaContent.isNotEmpty) {
-        final first = mediaContent.first;
+    // 1. Try enclosure (Common in local news RSS)
+    if (item['enclosure'] != null) {
+      final enclosure = item['enclosure'];
+      if (enclosure is Map && enclosure.containsKey('url')) {
+        img = enclosure['url'].toString();
+      } else if (enclosure is List && enclosure.isNotEmpty) {
+        final first = enclosure.first;
         if (first is Map && first.containsKey('url')) {
           img = first['url'].toString();
         }
       }
     }
-
-    // Try enclosure
-    if (img.isEmpty && item['enclosure'] != null) {
-      final enclosure = item['enclosure'];
-      if (enclosure is Map && enclosure.containsKey('url')) {
-        img = enclosure['url'].toString();
-      }
-    }
-
-    // Try media:thumbnail
+    
+    // 2. Try media:content 
     if (img.isEmpty) {
-      final thumb = item['media:thumbnail'] ?? item['media\$thumbnail'];
-      if (thumb != null && thumb is Map && thumb.containsKey('url')) {
-        img = thumb['url'].toString();
+      final mediaContent = item['media:content'] ?? item['media\$content'];
+      if (mediaContent != null) {
+        if (mediaContent is Map && mediaContent.containsKey('url')) {
+          img = mediaContent['url'].toString();
+        } else if (mediaContent is List && mediaContent.isNotEmpty) {
+          final first = mediaContent.first;
+          if (first is Map && first.containsKey('url')) {
+            img = first['url'].toString();
+          }
+        }
       }
     }
 
-    // Fallback: Regex from description
+    // 3. Regex from description (Many local news sites put img inside description)
     if (img.isEmpty && rawDesc.isNotEmpty) {
-      final imgRegex = RegExp(r'<img[^>]+src="([^">]+)"');
+      final imgRegex = RegExp(r'<img[^>]+src=["'']([^"''>]+)["'']');
       final match = imgRegex.firstMatch(rawDesc);
       if (match != null) {
         img = match.group(1) ?? '';
       }
     }
 
+    // 4. Try image tag directly
+    if (img.isEmpty && item['image'] != null) {
+      final itemImg = item['image'];
+      if (itemImg is Map && itemImg.containsKey('url')) {
+        img = itemImg['url'].toString();
+      }
+    }
+
     // Clean description from HTML
     String cleanDesc = rawDesc.replaceAll(RegExp(r'<[^>]*>|&[^;]+;'), '').trim();
+
     if (cleanDesc.length > 200) {
       cleanDesc = '${cleanDesc.substring(0, 197)}...';
     }

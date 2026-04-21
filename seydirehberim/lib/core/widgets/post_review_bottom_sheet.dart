@@ -5,6 +5,7 @@ import '../constants/app_colors.dart';
 import '../models/review.dart';
 import '../services/review_service.dart';
 import '../utils/app_notification.dart';
+import '../services/haptic_service.dart';
 
 class PostReviewBottomSheet extends ConsumerStatefulWidget {
   final String targetId;
@@ -88,7 +89,7 @@ class _PostReviewBottomSheetState extends ConsumerState<PostReviewBottomSheet> {
                 ),
                 IconButton(
                   onPressed: () {
-                    HapticFeedback.selectionClick();
+                    HapticService.selection();
                     Navigator.pop(context);
                   },
                   icon: Container(
@@ -118,7 +119,7 @@ class _PostReviewBottomSheetState extends ConsumerState<PostReviewBottomSheet> {
                   final isSelected = index < _rating;
                   return GestureDetector(
                       onTap: () {
-                        HapticFeedback.selectionClick();
+                        HapticService.selection();
                         setState(() {
                           _rating = index + 1.0;
                         });
@@ -162,7 +163,7 @@ class _PostReviewBottomSheetState extends ConsumerState<PostReviewBottomSheet> {
             CheckboxListTile(
               value: _isOver18,
               onChanged: (value) {
-                HapticFeedback.selectionClick();
+                HapticService.selection();
                 setState(() => _isOver18 = value ?? false);
               },
               title: const Text(
@@ -189,7 +190,7 @@ class _PostReviewBottomSheetState extends ConsumerState<PostReviewBottomSheet> {
               height: 56,
               child: ElevatedButton(
                 onPressed: _isSubmitting || _rating == 0 || !_isOver18 ? null : () {
-                  HapticFeedback.vibrate();
+                  HapticService.vibrate();
                   _submitReview();
                 },
                 style: ElevatedButton.styleFrom(
@@ -255,7 +256,7 @@ class _PostReviewBottomSheetState extends ConsumerState<PostReviewBottomSheet> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    HapticFeedback.selectionClick();
+                    HapticService.selection();
                     Navigator.pop(context);
                   },
                   style: ElevatedButton.styleFrom(

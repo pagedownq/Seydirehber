@@ -4,6 +4,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/constants/app_assets.dart';
+import '../../../core/services/haptic_service.dart';
 import '../../../core/widgets/error_view.dart';
 import '../../../core/widgets/shimmer_widget.dart';
 
@@ -63,7 +64,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
           ErrorView(
             message: 'Hava durumu bilgilerini görüntülemek için lütfen internet bağlantınızı açın.',
             onRetry: () {
-              HapticFeedback.selectionClick();
+              HapticService.selection();
               setState(() {
                 _isLoading = true;
                 _hasError = false;

@@ -12,6 +12,7 @@ import '../../../core/widgets/favorite_button.dart';
 import '../../../core/utils/map_helper.dart';
 import 'package:latlong2/latlong.dart';
 import '../../../core/widgets/review_section.dart';
+import '../../../core/services/haptic_service.dart';
 import '../../../core/widgets/shimmer_widget.dart';
 
 class PlaceDetailScreen extends ConsumerWidget {
@@ -70,7 +71,7 @@ class PlaceDetailScreen extends ConsumerWidget {
                   child: IconButton(
                     icon: const Icon(Icons.arrow_back, color: Colors.white),
                     onPressed: () {
-                      HapticFeedback.selectionClick();
+                      HapticService.selection();
                       Navigator.pop(context);
                     },
                   ),
@@ -112,7 +113,7 @@ class PlaceDetailScreen extends ConsumerWidget {
                     child: IconButton(
                       icon: const Icon(Icons.share_outlined, color: Colors.white, size: 20),
                       onPressed: () {
-                        HapticFeedback.selectionClick();
+                        HapticService.selection();
                         Share.share('$name yerini Seydi Rehber\'de keşfet!');
                       },
                     ),
@@ -227,7 +228,7 @@ class PlaceDetailScreen extends ConsumerWidget {
                           width: double.infinity,
                           child: ElevatedButton.icon(
                             onPressed: () {
-                              HapticFeedback.selectionClick();
+                              HapticService.selection();
                               _launchURL(konum, context);
                             },
                             icon: const Icon(Icons.directions_rounded),

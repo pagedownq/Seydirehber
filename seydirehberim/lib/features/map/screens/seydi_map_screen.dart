@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -8,6 +9,7 @@ import 'package:go_router/go_router.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../core/services/haptic_service.dart';
 import '../../../core/utils/map_helper.dart';
 import '../../home/providers/home_providers.dart';
 import 'package:geolocator/geolocator.dart';
@@ -92,12 +94,14 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       if (mounted) {
-        // Trigger the NATIVE SYSTEM dialog (Google Play Services popup)
-        final location = loc.Location();
-        serviceEnabled = await location.requestService();
-        
-        if (!serviceEnabled) {
-          // User still refused to turn on GPS from the system popup
+        if (defaultTargetPlatform == TargetPlatform.android) {
+          // Trigger the NATIVE SYSTEM dialog (Google Play Services popup) - Android Only
+          final location = loc.Location();
+          serviceEnabled = await location.requestService();
+          if (!serviceEnabled) return;
+        } else if (defaultTargetPlatform == TargetPlatform.iOS) {
+          // iOS does not support requestService() native popup, show manual dialog
+          _showLocationServiceDialog();
           return;
         }
       } else {
@@ -172,7 +176,7 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
                   Expanded(
                     child: TextButton(
                       onPressed: () {
-                        HapticFeedback.selectionClick();
+                        HapticService.selection();
                         Navigator.pop(ctx);
                       },
                       child: const Text('Vazgeç', style: TextStyle(fontWeight: FontWeight.w600)),
@@ -182,7 +186,7 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () {
-                        HapticFeedback.vibrate();
+                        HapticService.vibrate();
                         Navigator.pop(ctx);
                         Geolocator.openAppSettings();
                       },
@@ -197,6 +201,66 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
                     ),
                   ),
                 ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showLocationServiceDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.warning.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.location_off_rounded, size: 32, color: AppColors.warning),
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'Konum Servisi Kapalı',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'Cihazınızın konum servisi kapalı görünüyor. Lütfen ayarlardan konum servisini açın.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: AppColors.textSecondary, height: 1.4),
+              ),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    HapticService.vibrate();
+                    Navigator.pop(ctx);
+                    Geolocator.openLocationSettings();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text('Ayarları Aç', style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Vazgeç', style: TextStyle(color: AppColors.textLight)),
               ),
             ],
           ),
@@ -237,7 +301,7 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
               child: const Icon(Icons.my_location, color: AppColors.primary, size: 20),
             ),
             onPressed: () {
-              HapticFeedback.vibrate();
+              HapticService.vibrate();
               if (_userLocation != null) {
                 _mapController.move(_userLocation!, 15.0);
               } else {
@@ -335,7 +399,7 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
             child: InkWell(
               onTap: () {
                 if (_selectedFilter != filter) {
-                  HapticFeedback.vibrate(); // Upgrade to vibrate to ensure it's felt
+                  HapticService.vibrate(); // Upgrade to vibrate to ensure it's felt
                   setState(() => _selectedFilter = filter);
                 }
               },
@@ -575,7 +639,7 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () {
-          HapticFeedback.vibrate();
+          HapticService.vibrate();
           if (data != null) {
             _showMarkerPreview(id, name, position, color, routePrefix, type, data);
           } else if (type == 'noter' || type == 'pazar') {
@@ -719,7 +783,7 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
                   Expanded(
                     child: ElevatedButton.icon(
                       onPressed: () {
-                        HapticFeedback.selectionClick();
+                        HapticService.selection();
                         Navigator.pop(context);
                         if (type == 'noter' || type == 'pazar') {
                            context.push(routePrefix);
@@ -745,7 +809,7 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
                     ),
                     child: IconButton(
                       onPressed: () {
-                        HapticFeedback.vibrate();
+                        HapticService.vibrate();
                         MapHelper.openOnMap(position.latitude, position.longitude);
                       },
                       icon: const Icon(Icons.navigation_rounded, color: AppColors.primary),

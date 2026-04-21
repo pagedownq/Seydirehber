@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../core/services/haptic_service.dart';
 import '../providers/home_providers.dart';
 import '../widgets/banner_slider.dart';
 import '../widgets/horizontal_card_list.dart';
@@ -47,7 +48,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               actions: [
                 IconButton(
                   onPressed: () {
-                    HapticFeedback.selectionClick();
+                    HapticService.selection();
                     context.push('/notifications');
                   },
                   icon: const Icon(Icons.notifications_outlined,
@@ -96,7 +97,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
               child: GestureDetector(
                 onTap: () {
-                  HapticFeedback.selectionClick();
+                  HapticService.selection();
                   context.push('/search');
                 },
                 child: Container(
@@ -326,7 +327,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }) {
     return InkWell(
       onTap: () {
-        HapticFeedback.selectionClick();
+        HapticService.selection();
         onTap();
       },
       borderRadius: BorderRadius.circular(20),
@@ -440,7 +441,7 @@ class _HomeSearchFieldState extends State<_HomeSearchField> {
             ? IconButton(
                 icon: const Icon(Icons.clear, size: 18),
                 onPressed: () {
-                  HapticFeedback.selectionClick();
+                  HapticService.selection();
                   _controller.clear();
                 },
               )

@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../services/haptic_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/favorites/providers/favorites_provider.dart';
 import '../utils/app_notification.dart';
@@ -66,7 +67,7 @@ class _FavoriteButtonState extends ConsumerState<FavoriteButton> with SingleTick
 
   void _onTap() async {
     // Haptic feedback
-    HapticFeedback.vibrate();
+    HapticService.vibrate();
     final isNowFavorited = !ref.read(favoritesProvider).any((e) => e.id == widget.id && e.type == widget.type);
     
     // Toggle favorite logic

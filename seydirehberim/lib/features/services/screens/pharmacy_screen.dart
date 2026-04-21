@@ -4,6 +4,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../core/services/haptic_service.dart';
 import '../../../core/widgets/error_view.dart';
 import '../../../core/widgets/shimmer_widget.dart';
 
@@ -82,7 +83,7 @@ class _PharmacyScreenState extends State<PharmacyScreen> {
           ErrorView(
             message: 'Nöbetçi eczaneleri görüntülemek için lütfen internet bağlantınızı açın.',
             onRetry: () {
-              HapticFeedback.selectionClick();
+              HapticService.selection();
               setState(() {
                 _isLoading = true;
                 _hasError = false;

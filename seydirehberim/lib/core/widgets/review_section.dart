@@ -8,6 +8,7 @@ import '../widgets/post_review_bottom_sheet.dart';
 import '../constants/app_text_styles.dart';
 import '../../features/auth/providers/auth_provider.dart';
 import 'shimmer_widget.dart';
+import '../services/haptic_service.dart';
 import 'empty_state_widget.dart';
 
 
@@ -45,7 +46,7 @@ class ReviewSection extends ConsumerWidget {
             ),
             ElevatedButton.icon(
               onPressed: () {
-                HapticFeedback.selectionClick();
+                HapticService.selection();
                 _showAddReview(context, ref);
               },
               icon: const Icon(Icons.edit_note_rounded, size: 20),
@@ -122,7 +123,7 @@ class ReviewSection extends ConsumerWidget {
           Center(
             child: TextButton(
               onPressed: () {
-                HapticFeedback.selectionClick();
+                HapticService.selection();
                 // Show all reviews screen
               },
               child: const Text('Tüm Yorumları Gör'),
@@ -276,7 +277,7 @@ class ReviewSection extends ConsumerWidget {
                 height: 56,
                 child: ElevatedButton(
                   onPressed: () {
-                    HapticFeedback.selectionClick();
+                    HapticService.selection();
                     Navigator.pop(context);
                   },
                   style: ElevatedButton.styleFrom(

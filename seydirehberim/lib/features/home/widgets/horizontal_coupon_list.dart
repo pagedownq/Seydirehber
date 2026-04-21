@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../core/services/haptic_service.dart';
 import '../../../core/widgets/shimmer_widget.dart';
 import '../providers/home_providers.dart';
 
@@ -122,7 +123,7 @@ class HorizontalCouponList extends ConsumerWidget {
           color: Colors.transparent,
           child: InkWell(
             onTap: () {
-              HapticFeedback.selectionClick();
+              HapticService.selection();
               onTap(id, data);
             },
             borderRadius: BorderRadius.circular(16),

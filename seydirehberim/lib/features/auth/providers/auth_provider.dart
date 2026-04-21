@@ -6,6 +6,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import 'package:crypto/crypto.dart';
+import 'dart:math';
+import 'dart:io';
 
 // Admin emails
 const List<String> adminEmails = [
@@ -16,7 +20,7 @@ const List<String> adminEmails = [
 
 // Auth state provider
 final authStateProvider = StreamProvider<User?>((ref) {
-  return FirebaseAuth.instance.authStateChanges();
+  return FirebaseAuth.instance.userChanges();
 });
 
 // Onboarding completed check
@@ -138,6 +142,121 @@ class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
       state = AsyncValue.data(userCredential.user);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
+    }
+  }
+
+  Future<void> signInWithApple() async {
+    try {
+      state = const AsyncValue.loading();
+
+      if (!kIsWeb && Platform.isAndroid) {
+        // Android'de "Başlangıç durumu eksik" hatasını önlemek için 
+        // Firebase'in yerleşik Provider akışını kullanıyoruz.
+        final appleProvider = AppleAuthProvider();
+        appleProvider.addScope('email');
+        appleProvider.addScope('name');
+        
+        final userCredential = await _auth.signInWithProvider(appleProvider);
+        
+        // Hoşgeldin maili (Yeni kullanıcıysa)
+        if (userCredential.additionalUserInfo?.isNewUser ?? false) {
+          _sendWelcomeEmail(userCredential.user);
+        }
+        
+        state = AsyncValue.data(userCredential.user);
+        return;
+      }
+
+      // iOS ve Diğer Platformlar için mevcut güvenli akış
+      final rawNonce = _generateNonce();
+      final nonce = _sha256ofString(rawNonce);
+
+      // Apple Sign In on Android requires WebAuthenticationOptions (Safe fallback)
+      WebAuthenticationOptions? webOptions;
+      if (!kIsWeb && Platform.isAndroid) {
+        webOptions = WebAuthenticationOptions(
+          clientId: 'com.mgverse.seydirehberim.sid',
+          redirectUri: Uri.parse(
+            'https://seydirehber1.firebaseapp.com/__/auth/handler',
+          ),
+        );
+      }
+
+      final appleCredential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+        nonce: nonce,
+        webAuthenticationOptions: webOptions,
+      );
+
+      final OAuthCredential credential = OAuthProvider('apple.com').credential(
+        idToken: appleCredential.identityToken,
+        rawNonce: rawNonce,
+      );
+
+      final userCredential = await _auth.signInWithCredential(credential);
+      final user = userCredential.user;
+
+      // Apple'dan gelen isim soyisim bilgisini al (Sadece ilk girişte gelir)
+      if (user != null && (user.displayName == null || user.displayName!.isEmpty)) {
+        final String? name = appleCredential.givenName;
+        final String? surname = appleCredential.familyName;
+        
+        if (name != null && name.isNotEmpty) {
+          final String fullName = surname != null && surname.isNotEmpty 
+              ? '$name $surname' 
+              : name;
+          await user.updateDisplayName(fullName);
+          await user.reload();
+        }
+      }
+
+      // Send welcome email if new user
+      if (userCredential.additionalUserInfo?.isNewUser ?? false) {
+        _sendWelcomeEmail(userCredential.user);
+      }
+
+      state = AsyncValue.data(_auth.currentUser);
+    } catch (e, st) {
+      final errorStr = e.toString().toLowerCase();
+      
+      // Kullanıcı işlemi iptal ettiyse hata gösterme
+      if (errorStr.contains('canceled') || 
+          errorStr.contains('cancelled') || 
+          errorStr.contains('user-cancelled') ||
+          errorStr.contains('error 1001')) {
+        state = AsyncValue.data(_auth.currentUser);
+        return;
+      }
+      
+      state = AsyncValue.error(e, st);
+    }
+  }
+
+  String _generateNonce([int length = 32]) {
+    const charset = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz.-_';
+    final random = Random.secure();
+    return List.generate(length, (_) => charset[random.nextInt(charset.length)]).join();
+  }
+
+  String _sha256ofString(String input) {
+    final bytes = utf8.encode(input);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
+  }
+
+  Future<void> updateDisplayName(String fullName) async {
+    try {
+      final user = _auth.currentUser;
+      if (user != null) {
+        await user.updateDisplayName(fullName);
+        await user.reload();
+        state = AsyncValue.data(_auth.currentUser);
+      }
+    } catch (e) {
+      debugPrint('Ad güncelleme hatası: $e');
     }
   }
 

@@ -6,8 +6,6 @@ import '../models/news_model.dart';
 
 final newsProvider = FutureProvider<List<NewsModel>>((ref) async {
   final Map<String, String> sources = {
-    'Toroslar Gazetesi': 'https://www.toroslargazetesi.com.tr/rss.xml',
-    'Seydişehir Gündem': 'https://www.seydisehirgundem.com/rss.xml',
     'Seydişehir\'in Sesi': 'https://www.seydisehirinsesi.com.tr/rss.xml',
   };
 
@@ -16,9 +14,17 @@ final newsProvider = FutureProvider<List<NewsModel>>((ref) async {
   final results = await Future.wait(
     sources.entries.map((entry) async {
       try {
-        final response = await http.get(Uri.parse(entry.value)).timeout(const Duration(seconds: 10));
+        final response = await http.get(
+          Uri.parse(entry.value),
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'application/xml, text/xml, */*',
+          },
+        ).timeout(const Duration(seconds: 15));
+
         if (response.statusCode == 200) {
-          final xml = utf8.decode(response.bodyBytes);
+          // allowMalformed: true helps with Turkish characters in legacy feeds
+          final xml = utf8.decode(response.bodyBytes, allowMalformed: true);
           final myTransformer = Xml2Json();
           myTransformer.parse(xml);
           
@@ -34,6 +40,8 @@ final newsProvider = FutureProvider<List<NewsModel>>((ref) async {
             sourceNews = [NewsModel.fromXmlMap(items, entry.key)];
           }
           return sourceNews;
+        } else {
+          print('RSS Fetch Error (${entry.key}): Status ${response.statusCode}');
         }
       } catch (e) {
         print('Error fetching RSS from ${entry.key}: $e');
@@ -47,7 +55,7 @@ final newsProvider = FutureProvider<List<NewsModel>>((ref) async {
   }
 
   if (allNews.isEmpty) {
-    throw Exception('Haberler yüklenemedi. Lütfen internet bağlantınızı kontrol edin.');
+    throw Exception('Şu an haberlere ulaşılamıyor. Lütfen daha sonra tekrar deneyin.');
   }
 
   // Sort by date (newest first)

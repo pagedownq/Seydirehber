@@ -9,6 +9,7 @@ import 'package:lottie/lottie.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../core/services/haptic_service.dart';
 import '../providers/auth_provider.dart';
 import '../../settings/screens/policies_screen.dart';
 
@@ -90,7 +91,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   void _nextPage() {
-    HapticFeedback.vibrate(); // Daha güçlü ve standart titreşim
+    HapticService.vibrate(); // Daha güçlü ve standart titreşim
     if (_currentPage == 4 && !_privacyAccepted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -191,19 +192,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                                 ),
                                 child: ElevatedButton(
                                   onPressed: () async {
-                                    // 1. Konsola yazdır (Kodu kontrol etmek için)
-                                    debugPrint('[HAPTIC] Devam Et butona basıldı, titreşim isteniyor...');
-                                    
-                                    // 2. Farklı haptic kanallarını dene
-                                    try {
-                                      await HapticFeedback.vibrate();
-                                      await Future.delayed(const Duration(milliseconds: 10));
-                                      await HapticFeedback.selectionClick();
-                                    } catch (e) {
-                                      debugPrint('[HAPTIC] Hata: $e');
-                                    }
-
-                                    // 3. Mevcut fonksiyonu çalıştır
+                                    HapticService.vibrate();
                                     _nextPage();
                                   },
                                   style: ElevatedButton.styleFrom(
@@ -612,6 +601,54 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
     return Column(
       children: [
+        // Apple Sign In
+        ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(
+              width: double.infinity,
+              height: 52,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                color: Colors.black.withOpacity(0.08),
+                border: Border.all(
+                  color: Colors.black.withOpacity(0.2),
+                  width: 1.5,
+                ),
+              ),
+              child: ElevatedButton.icon(
+                onPressed: authState.isLoading
+                    ? null
+                    : () async {
+                        HapticService.vibrate(); 
+                        await authNotifier.signInWithApple();
+                        final prefs = await SharedPreferences.getInstance();
+                        await prefs.setBool('onboarding_completed', true);
+                        if (mounted) context.go('/');
+                      },
+                icon: const Icon(
+                  Icons.apple,
+                  size: 28,
+                  color: Colors.black,
+                ),
+                label: Text(
+                  authState.isLoading ? 'Giriş yapılıyor...' : 'Apple ile Giriş Yap',
+                  style: AppTextStyles.button.copyWith(color: Colors.black87),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  shadowColor: Colors.transparent,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
         // Google Sign In
         ClipRRect(
           borderRadius: BorderRadius.circular(20),
@@ -632,7 +669,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 onPressed: authState.isLoading
                     ? null
                     : () async {
-                        HapticFeedback.vibrate(); 
+                        HapticService.vibrate(); 
                         await authNotifier.signInWithGoogle();
                         final prefs = await SharedPreferences.getInstance();
                         await prefs.setBool('onboarding_completed', true);
@@ -682,7 +719,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 onPressed: authState.isLoading
                     ? null
                     : () async {
-                        HapticFeedback.lightImpact(); // Add haptic feedback
+                        HapticService.selection(); // Add haptic feedback
                         await authNotifier.continueAsGuest();
                         final prefs = await SharedPreferences.getInstance();
                         await prefs.setBool('onboarding_completed', true);

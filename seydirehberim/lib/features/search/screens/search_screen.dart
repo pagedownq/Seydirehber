@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../core/services/haptic_service.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../../core/providers/app_info_provider.dart';
 import '../../../core/widgets/empty_state_widget.dart';
@@ -67,7 +68,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           icon: const Icon(Icons.arrow_back_ios_new,
               color: AppColors.textPrimary, size: 20),
           onPressed: () {
-            HapticFeedback.selectionClick();
+            HapticService.selection();
             context.pop();
           },
         ),
@@ -92,14 +93,14 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             IconButton(
               icon: const Icon(Icons.clear, color: AppColors.textLight, size: 20),
                onPressed: () {
-                 HapticFeedback.selectionClick();
+                 HapticService.selection();
                  _searchController.clear();
                  ref.read(searchQueryProvider.notifier).state = '';
                },
             ),
           TextButton(
             onPressed: () {
-              HapticFeedback.selectionClick();
+              HapticService.selection();
               context.pop();
             },
             child: const Text(
@@ -154,7 +155,7 @@ class _SearchHistoryList extends ConsumerWidget {
               ),
               TextButton(
                  onPressed: () {
-                   HapticFeedback.selectionClick();
+                   HapticService.selection();
                    ref.read(searchHistoryProvider.notifier).clearHistory();
                  },
                 child: const Text('Temizle', style: TextStyle(color: AppColors.error)),
@@ -175,12 +176,12 @@ class _SearchHistoryList extends ConsumerWidget {
                 trailing: IconButton(
                   icon: const Icon(Icons.close, size: 18, color: AppColors.textLight),
                    onPressed: () {
-                     HapticFeedback.selectionClick();
+                     HapticService.selection();
                      ref.read(searchHistoryProvider.notifier).removeSearchTerm(term);
                    },
                 ),
                  onTap: () {
-                   HapticFeedback.selectionClick();
+                   HapticService.selection();
                    onHistoryTap(term);
                  },
               );
@@ -249,7 +250,7 @@ class _SearchResultsList extends ConsumerWidget {
                 title: Text(s['title'] as String),
                 subtitle: const Text('Uygulama içi kısayol'),
                  onTap: () {
-                   HapticFeedback.selectionClick();
+                   HapticService.selection();
                    ref.read(searchHistoryProvider.notifier).addSearchTerm(normalizedQuery);
                    context.push(s['route'] as String);
                  },
@@ -392,7 +393,7 @@ class _SearchCollectionSection extends ConsumerWidget {
                   ],
                 ),
                  onTap: () {
-                   HapticFeedback.selectionClick();
+                   HapticService.selection();
                    ref.read(searchHistoryProvider.notifier).addSearchTerm(query);
                    context.push('$routePrefix/${doc.id}', extra: data);
                  },

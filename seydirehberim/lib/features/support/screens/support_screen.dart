@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../../core/services/haptic_service.dart';
 import '../../../core/services/notification_service.dart';
 
 class SupportScreen extends ConsumerStatefulWidget {
@@ -210,7 +211,7 @@ class _SupportScreenState extends ConsumerState<SupportScreen> {
                   child: Text(cat),
                 )).toList(),
                 onChanged: (val) {
-                  HapticFeedback.selectionClick();
+                  HapticService.selection();
                   if (val != null) setState(() => _selectedCategory = val);
                 },
                 decoration: const InputDecoration(
@@ -239,7 +240,7 @@ class _SupportScreenState extends ConsumerState<SupportScreen> {
                 height: 54,
                 child: ElevatedButton(
                   onPressed: _isSending ? null : () {
-                    HapticFeedback.selectionClick();
+                    HapticService.selection();
                     _submitForm();
                   },
                   child: _isSending 

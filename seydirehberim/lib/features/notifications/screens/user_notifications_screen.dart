@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/services/notification_service.dart';
+import '../../../core/services/haptic_service.dart';
 
 class UserNotificationsScreen extends StatefulWidget {
   const UserNotificationsScreen({super.key});
@@ -109,7 +110,7 @@ class _UserNotificationsScreenState extends State<UserNotificationsScreen> {
                       ),
                       child: ListTile(
                         onTap: () {
-                          HapticFeedback.selectionClick();
+                          HapticService.selection();
                         },
                         contentPadding: const EdgeInsets.all(16),
                         leading: Container(

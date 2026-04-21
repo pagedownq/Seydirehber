@@ -27,6 +27,5 @@ class AppAssets {
       'https://weather-screen.web-apps-prod.wo-cloud.com/v2/screen/?locale=tr-TR&name=Seydi%C5%9Fehir&geoObjectKey=11636345&airPressureUnit=hpa&temperatureUnit=celsius&windUnit=kmh&systemOfMeasurement=metric&timeFormat=HH%3Amm';
   static const String pharmacyUrl =
       'https://enyakineczane.com.tr/iframe/?city=42&district=1617&zoom=1';
-  static const String toroslarGazetesiRss =
-      'https://www.toroslargazetesi.com.tr/rss';
 }
+

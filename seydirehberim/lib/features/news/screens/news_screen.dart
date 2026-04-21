@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../core/services/haptic_service.dart';
 import '../../../core/widgets/cached_image_widget.dart';
 import '../../../core/widgets/error_view.dart';
 import '../providers/news_provider.dart';
@@ -24,15 +23,24 @@ class NewsScreen extends ConsumerWidget {
         title: Text('Haberler', style: AppTextStyles.appBarTitle),
         backgroundColor: AppColors.white,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.info_outline_rounded,
+                color: AppColors.textSecondary),
+            onPressed: () => _showLegalDisclaimer(context),
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: newsAsync.when(
         data: (newsList) {
           if (newsList.isEmpty) {
             return ErrorView(
               title: 'Haber Bulunamadı',
-              message: 'Şu an görüntülenecek bir haber bulunamadı veya internet bağlantınızda bir sorun var.',
+              message:
+                  'Şu an görüntülenecek bir haber bulunamadı veya internet bağlantınızda bir sorun var.',
               onRetry: () {
-                HapticFeedback.selectionClick();
+                HapticService.selection();
                 ref.refresh(newsProvider);
               },
             );
@@ -57,12 +65,133 @@ class NewsScreen extends ConsumerWidget {
           itemBuilder: (_, __) => NewsCardShimmer(),
         ),
         error: (e, stack) => ErrorView(
-          message: 'Haberler yüklenirken bir hata oluştu. Lütfen internet bağlantınızı kontrol edip tekrar deneyin.',
+          message:
+              'Haberler yüklenirken bir hata oluştu. Lütfen internet bağlantınızı kontrol edip tekrar deneyin.',
           onRetry: () {
-            HapticFeedback.selectionClick();
+            HapticService.selection();
             ref.refresh(newsProvider);
           },
         ),
+      ),
+    );
+  }
+
+  void _showLegalDisclaimer(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        elevation: 10,
+        backgroundColor: Colors.white,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Header with Gradient/Style
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              decoration: const BoxDecoration(
+                color: AppColors.primarySurface,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+              ),
+              child: const Center(
+                child: Column(
+                  children: [
+                    Icon(Icons.gavel_rounded, size: 48, color: AppColors.primary),
+                    SizedBox(height: 12),
+                    Text(
+                      'Yasal Bilgilendirme',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            
+            // Content Space
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                children: [
+                   _buildLegalPoint(
+                    Icons.rss_feed_rounded,
+                    'Haberler, yayıncıların sunduğu RSS beslemeleriyle otomatik çekilmektedir.',
+                  ),
+                  const SizedBox(height: 16),
+                  _buildLegalPoint(
+                    Icons.copyright_rounded,
+                    'Tüm telif hakları ve sorumluluk haberin asıl sahibi olan kuruluşa aittir.',
+                  ),
+                  const SizedBox(height: 16),
+                  _buildLegalPoint(
+                    Icons.link_rounded,
+                    'Sadece kısa özet sunulmakta, içerik tamamı için orijinal siteye yönlendirilmektedir.',
+                  ),
+                   const SizedBox(height: 16),
+                  _buildLegalPoint(
+                    Icons.contact_mail_rounded,
+                    'İçerik kaldırma talepleri için: seydirehber@gmail.com',
+                  ),
+                ],
+              ),
+            ),
+            
+            // Footer Action
+            Padding(
+              padding: const EdgeInsets.only(bottom: 24, left: 24, right: 24),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: const Text(
+                    'Anladım ve Kabul Ediyorum',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLegalPoint(IconData icon, String text) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.primary.withOpacity(0.05)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 20, color: AppColors.primary),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(
+                fontSize: 13,
+                height: 1.5,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -89,7 +218,7 @@ class _NewsCard extends StatelessWidget {
       ),
       child: InkWell(
         onTap: () async {
-          HapticFeedback.selectionClick();
+          HapticService.selection();
           if (news.link.isEmpty) return;
           final url = Uri.parse(news.link);
           try {
@@ -110,7 +239,8 @@ class _NewsCard extends StatelessWidget {
             Stack(
               children: [
                 ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(20)),
                   child: news.imageUrl.isNotEmpty
                       ? CachedImageWidget(
                           imageUrl: news.imageUrl,
@@ -130,7 +260,8 @@ class _NewsCard extends StatelessWidget {
                   top: 12,
                   right: 12,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: AppColors.primary.withOpacity(0.9),
                       borderRadius: BorderRadius.circular(8),
@@ -146,7 +277,6 @@ class _NewsCard extends StatelessWidget {
                 ),
               ],
             ),
-
             Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
@@ -174,29 +304,48 @@ class _NewsCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        children: [
-                          const Icon(Icons.access_time_rounded,
-                              size: 14, color: AppColors.textLight),
-                          const SizedBox(width: 4),
-                          Text(
-                            news.pubDate.split('+').first.trim(),
-                            style: const TextStyle(
-                                fontSize: 11, color: AppColors.textLight),
-                          ),
-                        ],
-                      ),
-                      const Text(
-                        'Haberin Devamı →',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      const Icon(Icons.access_time_rounded,
+                          size: 14, color: AppColors.textLight),
+                      const SizedBox(width: 6),
+                      Text(
+                        news.formattedDate,
+                        style: const TextStyle(
+                            fontSize: 12, color: AppColors.textLight),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 14),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: AppColors.primary.withOpacity(0.2),
+                        width: 1,
+                      ),
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Haberi Kaynağında Oku',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(width: 8),
+                        Icon(
+                          Icons.arrow_forward_rounded,
+                          size: 16,
+                          color: AppColors.primary,
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -207,4 +356,3 @@ class _NewsCard extends StatelessWidget {
     );
   }
 }
-

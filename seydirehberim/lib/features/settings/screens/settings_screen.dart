@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -13,6 +14,7 @@ import '../../../core/providers/app_info_provider.dart';
 import '../../../core/services/block_service.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../core/services/daily_notification_service.dart';
+import '../../../core/services/haptic_service.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -87,6 +89,10 @@ class SettingsScreen extends ConsumerWidget {
           const _DailyNotificationToggleItem(),
           const SizedBox(height: 8),
 
+          // Haptic Feedback Toggle
+          const _HapticToggleItem(),
+          const SizedBox(height: 8),
+
           // Favorites
           _buildSettingsItem(
             icon: Icons.favorite_border,
@@ -112,7 +118,9 @@ class SettingsScreen extends ConsumerWidget {
           _buildSettingsItem(
             icon: Icons.star_outline,
             title: 'Uygulamayı Değerlendir',
-            subtitle: 'Play Store\'da puanlayın',
+            subtitle: (defaultTargetPlatform == TargetPlatform.iOS) 
+                ? 'App Store\'da puanlayın' 
+                : 'Play Store\'da puanlayın',
             iconColor: AppColors.warning,
             onTap: () async {
               final InAppReview inAppReview = InAppReview.instance;
@@ -221,7 +229,7 @@ class SettingsScreen extends ConsumerWidget {
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () async {
-                    HapticFeedback.vibrate();
+                    HapticService.vibrate();
 
                     final confirmed = await showDialog<bool>(
                       context: context,
@@ -231,14 +239,14 @@ class SettingsScreen extends ConsumerWidget {
                         actions: [
                           TextButton(
                             onPressed: () {
-                              HapticFeedback.selectionClick();
+                              HapticService.selection();
                               Navigator.pop(ctx, false);
                             },
                             child: const Text('İptal'),
                           ),
                           TextButton(
                             onPressed: () {
-                              HapticFeedback.selectionClick();
+                              HapticService.selection();
                               Navigator.pop(ctx, true);
                             },
                             child: const Text('Çıkış Yap'),
@@ -262,7 +270,7 @@ class SettingsScreen extends ConsumerWidget {
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () async {
-                    HapticFeedback.vibrate();
+                    HapticService.vibrate();
 
                     final confirmed = await showDialog<bool>(
                       context: context,
@@ -273,14 +281,14 @@ class SettingsScreen extends ConsumerWidget {
                         actions: [
                           TextButton(
                             onPressed: () {
-                              HapticFeedback.selectionClick();
+                              HapticService.selection();
                               Navigator.pop(ctx, false);
                             },
                             child: const Text('İptal'),
                           ),
                           TextButton(
                             onPressed: () {
-                              HapticFeedback.selectionClick();
+                              HapticService.selection();
                               Navigator.pop(ctx, true);
                             },
                             style: TextButton.styleFrom(foregroundColor: AppColors.error),
@@ -337,6 +345,24 @@ class SettingsScreen extends ConsumerWidget {
             style: AppTextStyles.bodySmall,
           ),
           const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () async {
+                HapticFeedback.vibrate();
+                await ref.read(authNotifierProvider.notifier).signInWithApple();
+              },
+              icon: const Icon(Icons.apple, size: 22, color: Colors.black),
+              label: const Text('Apple ile Giriş Yap', style: TextStyle(color: Colors.black)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
+                elevation: 0,
+                side: BorderSide(color: Colors.black.withOpacity(0.1)),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
@@ -436,7 +462,7 @@ class SettingsScreen extends ConsumerWidget {
                           subtitle: Text('UID: ${user.uid.substring(0, 8)}...', style: AppTextStyles.caption),
                           trailing: TextButton(
                             onPressed: () async {
-                              HapticFeedback.selectionClick();
+                              HapticService.selection();
                               await BlockService.unblockUser(user.uid);
                               setModalState(() {});
                               if (context.mounted) {
@@ -474,7 +500,7 @@ class SettingsScreen extends ConsumerWidget {
       borderRadius: BorderRadius.circular(14),
       child: ListTile(
         onTap: () {
-          HapticFeedback.selectionClick();
+          HapticService.selection();
           onTap();
         },
         leading: Container(
@@ -546,7 +572,7 @@ class _NotificationToggleItemState extends State<_NotificationToggleItem> {
         ),
         value: _notificationsEnabled!,
         onChanged: (value) async {
-          HapticFeedback.selectionClick();
+          HapticService.selection();
           setState(() {
             _notificationsEnabled = value;
           });
@@ -613,11 +639,82 @@ class _DailyNotificationToggleItemState extends State<_DailyNotificationToggleIt
         ),
         value: _dailyEnabled!,
         onChanged: (value) async {
-          HapticFeedback.selectionClick();
+          HapticService.selection();
           setState(() {
             _dailyEnabled = value;
           });
           await DailyNotificationService().setDailyNotificationsEnabled(value);
+        },
+      ),
+    );
+  }
+}
+
+class _HapticToggleItem extends StatefulWidget {
+  const _HapticToggleItem();
+
+  @override
+  State<_HapticToggleItem> createState() => _HapticToggleItemState();
+}
+
+class _HapticToggleItemState extends State<_HapticToggleItem> {
+  bool? _hapticsEnabled;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadState();
+  }
+
+  Future<void> _loadState() async {
+    // Getter is enough since main.dart initializes it
+    setState(() {
+      _hapticsEnabled = HapticService.hapticsEnabled;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_hapticsEnabled == null) {
+      return const SizedBox(height: 60);
+    }
+
+    return Material(
+      color: AppColors.white,
+      borderRadius: BorderRadius.circular(14),
+      child: SwitchListTile(
+        activeColor: AppColors.primary,
+        title: Text(
+          'Titreşimleri Kapat',
+          style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600),
+        ),
+        subtitle: Text(
+          _hapticsEnabled! ? 'Baskı titreşimleri açık' : 'Titreşimler kapatıldı',
+          style: AppTextStyles.caption,
+        ),
+        secondary: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.orange.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: const Icon(Icons.vibration, color: Colors.orange, size: 22),
+        ),
+        value: !_hapticsEnabled!, // Switch ON means "Kapat" is active
+        onChanged: (value) async {
+          // If value is true, we ARE closing vibrations, so new state is false.
+          final newHapticState = !value;
+          
+          setState(() {
+            _hapticsEnabled = newHapticState;
+          });
+          
+          await HapticService.setEnabled(newHapticState);
+          
+          // Only vibrate as feedback if we just TURNED IT ON
+          if (newHapticState) {
+            HapticService.medium();
+          }
         },
       ),
     );

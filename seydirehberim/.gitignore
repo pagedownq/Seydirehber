@@ -44,9 +44,11 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-# Security / Environment
-.env
-*.json
+# Security / Environment (Un-ignored as per user request)
+# .env, .jks and config files will be included in the repository
+!*.jks
+!*.keystore
+!*.p8
 !google-services.json
-!firebase.json
-!firestore.*.json
+!GoogleService-Info.plist
+!.env
