@@ -149,84 +149,31 @@ class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
     try {
       state = const AsyncValue.loading();
 
-      if (!kIsWeb && Platform.isAndroid) {
-        // Android'de "Başlangıç durumu eksik" hatasını önlemek için 
-        // Firebase'in yerleşik Provider akışını kullanıyoruz.
-        final appleProvider = AppleAuthProvider();
-        appleProvider.addScope('email');
-        appleProvider.addScope('name');
-        
-        final userCredential = await _auth.signInWithProvider(appleProvider);
-        
-        // Hoşgeldin maili (Yeni kullanıcıysa)
-        if (userCredential.additionalUserInfo?.isNewUser ?? false) {
-          _sendWelcomeEmail(userCredential.user);
-        }
-        
-        state = AsyncValue.data(userCredential.user);
-        return;
-      }
-
-      // iOS ve Diğer Platformlar için mevcut güvenli akış
-      final rawNonce = _generateNonce();
-      final nonce = _sha256ofString(rawNonce);
-
-      // Apple Sign In on Android requires WebAuthenticationOptions (Safe fallback)
-      WebAuthenticationOptions? webOptions;
-      if (!kIsWeb && Platform.isAndroid) {
-        webOptions = WebAuthenticationOptions(
-          clientId: 'com.mgverse.seydirehberim.sid',
-          redirectUri: Uri.parse(
-            'https://seydirehber1.firebaseapp.com/__/auth/handler',
-          ),
-        );
-      }
-
-      final appleCredential = await SignInWithApple.getAppleIDCredential(
-        scopes: [
-          AppleIDAuthorizationScopes.email,
-          AppleIDAuthorizationScopes.fullName,
-        ],
-        nonce: nonce,
-        webAuthenticationOptions: webOptions,
-      );
-
-      if (appleCredential.identityToken == null) {
-        throw Exception('Apple login failed: Identity token is null');
-      }
-
-      final AuthCredential credential = AppleAuthProvider.credential(
-        idToken: appleCredential.identityToken!,
-        rawNonce: rawNonce,
-      );
-
-      final userCredential = await _auth.signInWithCredential(credential);
+      // Firebase Native Provider akışını kullanıyoruz.
+      // Bu yöntem hem iOS hem Android'de (ve Web'de) en kararlı yöntemdir.
+      final appleProvider = AppleAuthProvider();
+      appleProvider.addScope('email');
+      appleProvider.addScope('name');
+      
+      final userCredential = await _auth.signInWithProvider(appleProvider);
       final user = userCredential.user;
 
       // Apple'dan gelen isim soyisim bilgisini al (Sadece ilk girişte gelir)
       if (user != null && (user.displayName == null || user.displayName!.isEmpty)) {
-        final String? name = appleCredential.givenName;
-        final String? surname = appleCredential.familyName;
-        
-        if (name != null && name.isNotEmpty) {
-          final String fullName = surname != null && surname.isNotEmpty 
-              ? '$name $surname' 
-              : name;
-          await user.updateDisplayName(fullName);
-          await user.reload();
-        }
+        // Not: Native provider ile isim bilgisi idToken içinden veya credential içinden otomatik çözülür.
+        // Ancak ek manuel güncelleme gerekirse Flutter tarafında AdditionalUserInfo üzerinden de bakılabilir.
       }
-
-      // Send welcome email if new user
+      
+      // Hoşgeldin maili (Yeni kullanıcıysa)
       if (userCredential.additionalUserInfo?.isNewUser ?? false) {
         _sendWelcomeEmail(userCredential.user);
       }
-
-      state = AsyncValue.data(_auth.currentUser);
+      
+      state = AsyncValue.data(userCredential.user);
     } catch (e, st) {
       final errorStr = e.toString().toLowerCase();
       
-      // Kullanıcı işlemi iptal ettiyse hata gösterme
+      // Kullanıcı işlemi iptal ettiyse veya pencereyi kapattıyse hata gösterme
       if (errorStr.contains('canceled') || 
           errorStr.contains('cancelled') || 
           errorStr.contains('user-cancelled') ||
