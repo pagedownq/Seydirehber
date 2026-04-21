@@ -11,6 +11,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/services/haptic_service.dart';
 import '../providers/auth_provider.dart';
+import '../../../core/services/notification_service.dart';
 import '../../settings/screens/policies_screen.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
@@ -150,7 +151,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
                   // Indicator and Button
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -166,7 +167,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                             dotColor: AppColors.primary.withOpacity(0.2),
                           ),
                         ),
-                        const SizedBox(height: 32),
+                        const SizedBox(height: 24),
                         if (_currentPage < _pages.length - 1)
                           ClipRRect(
                             borderRadius: BorderRadius.circular(20),
@@ -218,7 +219,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                             ),
                           )
                         else
-                          const SizedBox(height: 56), // Placeholder
+                          const SizedBox(height: 8), // Minimal spacing instead of 56px placeholder
                       ],
                     ),
                   ),
@@ -430,9 +431,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         ),
                         child: ElevatedButton.icon(
                           onPressed: () async {
-                            HapticFeedback.vibrate(); // Garantili titreşim
-                            final status = await Permission.notification.request();
-                            if (status.isGranted) {
+                            HapticFeedback.vibrate(); 
+                            final granted = await NotificationService().requestPermission();
+                            if (granted) {
                               if (mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
@@ -658,7 +659,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             ),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         // Google Sign In
         ClipRRect(
           borderRadius: BorderRadius.circular(20),
@@ -711,7 +712,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             ),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         // Guest button
         ClipRRect(
           borderRadius: BorderRadius.circular(20),

@@ -191,8 +191,12 @@ class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
         webAuthenticationOptions: webOptions,
       );
 
-      final OAuthCredential credential = OAuthProvider('apple.com').credential(
-        idToken: appleCredential.identityToken,
+      if (appleCredential.identityToken == null) {
+        throw Exception('Apple login failed: Identity token is null');
+      }
+
+      final AuthCredential credential = AppleAuthProvider.credential(
+        idToken: appleCredential.identityToken!,
         rawNonce: rawNonce,
       );
 

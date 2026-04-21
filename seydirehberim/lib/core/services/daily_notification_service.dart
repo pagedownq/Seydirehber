@@ -49,9 +49,9 @@ class DailyNotificationService {
         AndroidInitializationSettings('ic_stat_s');
     const DarwinInitializationSettings initializationSettingsDarwin =
         DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
+      requestAlertPermission: false,
+      requestBadgePermission: false,
+      requestSoundPermission: false,
     );
     const InitializationSettings initializationSettings = InitializationSettings(
       android: initializationSettingsAndroid,

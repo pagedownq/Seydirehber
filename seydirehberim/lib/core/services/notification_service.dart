@@ -55,31 +55,13 @@ class NotificationService {
       await androidPlugin?.createNotificationChannel(_channel);
     }
 
-    // Request permissions for iOS
-    if (Platform.isIOS) {
-      // FCM Permissions
-      await _firebaseMessaging.requestPermission(
-        alert: true,
-        badge: true,
-        sound: true,
-        provisional: false,
-      );
-
-      // Foreground presentation options for iOS
-      await _firebaseMessaging.setForegroundNotificationPresentationOptions(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
-    }
-
-    // Initialize local notifications
+    // 2. Initialize local notifications
     const initializationSettingsAndroid =
         AndroidInitializationSettings('ic_stat_s');
     const initializationSettingsIOS = DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
+      requestAlertPermission: false,
+      requestBadgePermission: false,
+      requestSoundPermission: false,
       onDidReceiveLocalNotification: (id, title, body, payload) async {
         // Handle older iOS foreground notification
       },
@@ -101,6 +83,15 @@ class NotificationService {
         }
       },
     );
+
+    // Set foreground presentation options (always do this on init, it doesn't prompt)
+    if (Platform.isIOS) {
+      await _firebaseMessaging.setForegroundNotificationPresentationOptions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+    }
 
     // 2. Handle deep link when app is terminated
     RemoteMessage? initialMessage = await _firebaseMessaging.getInitialMessage();
@@ -315,6 +306,54 @@ class NotificationService {
       body: body ?? 'Bildirim sistemi başarıyla çalışıyor!',
       notificationDetails: notificationDetails,
     );
+  }
+
+  /// Explicitly request permissions for iOS and Android 13+
+  /// This should be called from UI (Onboarding, Settings, etc.)
+  Future<bool> requestPermission() async {
+    bool granted = false;
+
+    if (Platform.isIOS) {
+      // 1. Request FCM Permission (iOS native prompt)
+      final settings = await _firebaseMessaging.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+        provisional: false,
+      );
+      granted = settings.authorizationStatus == AuthorizationStatus.authorized || 
+                settings.authorizationStatus == AuthorizationStatus.provisional;
+
+      // 2. Request Local Notification Permission (iOS native prompt)
+      final iosPlugin = _localNotificationsPlugin
+          .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>();
+      if (iosPlugin != null) {
+        final localGranted = await iosPlugin.requestPermissions(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
+        granted = granted && (localGranted ?? false);
+      }
+    } else if (Platform.isAndroid) {
+      // Android 13+ notification permission
+      final status = await Permission.notification.request();
+      granted = status.isGranted;
+    }
+
+    // If granted, ensure token is recorded/subscriptions are handled
+    if (granted) {
+      final token = await _firebaseMessaging.getToken();
+      if (token != null) {
+        final isEnabled = await isNotificationsEnabled();
+        await _saveTokenToFirestore(token, isEnabled: isEnabled);
+        if (isEnabled) {
+          await _firebaseMessaging.subscribeToTopic('all');
+        }
+      }
+    }
+
+    return granted;
   }
 }
 
