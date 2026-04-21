@@ -92,7 +92,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   void _nextPage() {
-    HapticService.vibrate(); // Daha güçlü ve standart titreşim
+    HapticService.light(); // Daha hafif ve premium hissettiren titreşim
     if (_currentPage == 4 && !_privacyAccepted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -192,7 +192,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                             ),
                             child: ElevatedButton(
                               onPressed: () async {
-                                HapticService.vibrate();
+                                HapticService.light();
                                 _nextPage();
                               },
                               style: ElevatedButton.styleFrom(
@@ -427,7 +427,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         ),
                         child: ElevatedButton.icon(
                           onPressed: () async {
-                            HapticFeedback.vibrate(); 
+                            HapticService.light(); 
                             final granted = await NotificationService().requestPermission();
                             if (granted) {
                               if (mounted) {
@@ -629,7 +629,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 onPressed: authState.isLoading
                     ? null
                     : () async {
-                        HapticService.vibrate(); 
+                        HapticService.light(); 
                         await authNotifier.signInWithApple();
                         final prefs = await SharedPreferences.getInstance();
                         await prefs.setBool('onboarding_completed', true);
@@ -680,7 +680,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 onPressed: authState.isLoading
                     ? null
                     : () async {
-                        HapticService.vibrate(); 
+                        HapticService.light(); 
                         await authNotifier.signInWithGoogle();
                         final prefs = await SharedPreferences.getInstance();
                         await prefs.setBool('onboarding_completed', true);
