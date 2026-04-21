@@ -151,38 +151,48 @@ class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
 
       // Firebase Native Provider akışını kullanıyoruz.
       // Bu yöntem hem iOS hem Android'de (ve Web'de) en kararlı yöntemdir.
+      LogService().log('Apple Sign-In süreci başlatıldı', type: LogType.info);
       final appleProvider = AppleAuthProvider();
       appleProvider.addScope('email');
       appleProvider.addScope('name');
       
-      final userCredential = await _auth.signInWithProvider(appleProvider);
-      final user = userCredential.user;
+      final UserCredential userCredential = await _auth.signInWithProvider(appleProvider);
+      final User? user = userCredential.user;
 
-      // Apple'dan gelen isim soyisim bilgisini al (Sadece ilk girişte gelir)
-      if (user != null && (user.displayName == null || user.displayName!.isEmpty)) {
-        final profile = userCredential.additionalUserInfo?.profile;
-        if (profile != null && profile.containsKey('name')) {
-          final nameObj = profile['name'] as Map<String, dynamic>?;
+      if (user != null) {
+        LogService().log('Apple Sign-In başarılı: ${user.uid}', type: LogType.success);
+        
+        // İlk girişte isim bilgisini yakalamaya çalış
+        final appleProfile = userCredential.additionalUserInfo?.profile;
+        if (appleProfile != null) {
+          LogService().log('Apple Profil verisi alındı, isim kontrol ediliyor...', type: LogType.info);
+          
+          final nameObj = appleProfile['name'] as Map<String, dynamic>?;
           if (nameObj != null) {
             final firstName = nameObj['firstName'] as String? ?? '';
             final lastName = nameObj['lastName'] as String? ?? '';
             final fullName = '$firstName $lastName'.trim();
             
-            if (fullName.isNotEmpty) {
+            if (fullName.isNotEmpty && (user.displayName == null || user.displayName!.isEmpty)) {
               await user.updateDisplayName(fullName);
               await user.reload();
+              LogService().log('Kullanıcı adı kaydedildi: $fullName', type: LogType.success);
             }
           }
+        } else {
+          LogService().log('Apple Profil verisi bu seferlik boş (Muhtemelen ilk giriş değil)', type: LogType.warning);
         }
+        
+        // Hoşgeldin maili (Yeni kullanıcıysa)
+        if (userCredential.additionalUserInfo?.isNewUser ?? false) {
+          _sendWelcomeEmail(_auth.currentUser);
+        }
+        
+        state = AsyncValue.data(_auth.currentUser);
       }
+    } catch (e, stack) {
+      LogService().log('Apple Sign-In Hatası', type: LogType.error, error: e);
       
-      // Hoşgeldin maili (Yeni kullanıcıysa)
-      if (userCredential.additionalUserInfo?.isNewUser ?? false) {
-        _sendWelcomeEmail(_auth.currentUser);
-      }
-      
-      state = AsyncValue.data(_auth.currentUser);
-    } catch (e, st) {
       final errorStr = e.toString().toLowerCase();
       
       // Kullanıcı işlemi iptal ettiyse veya pencereyi kapattıyse hata gösterme
@@ -194,7 +204,7 @@ class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
         return;
       }
       
-      state = AsyncValue.error(e, st);
+      state = AsyncValue.error(e, stack);
     }
   }
 
