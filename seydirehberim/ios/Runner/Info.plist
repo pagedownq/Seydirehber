@@ -64,6 +64,8 @@
 			</array>
 		</dict>
 	</array>
+	<key>GIDClientID</key>
+	<string>619370654049-3jvqrifbkqq4hupujbu4plpjvjbu0mpg.apps.googleusercontent.com</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Size en yakın eczane, etkinlik ve mekanları harita üzerinde göstermek ve mesafenizi hesaplamak için konumunuza ihtiyaç duyuyoruz.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
