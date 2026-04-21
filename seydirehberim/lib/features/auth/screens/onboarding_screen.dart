@@ -608,14 +608,21 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
             child: Container(
               width: double.infinity,
-              height: 52,
+              height: 54,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
-                color: Colors.black.withOpacity(0.08),
+                color: AppColors.white.withOpacity(0.9),
                 border: Border.all(
-                  color: Colors.black.withOpacity(0.2),
+                  color: AppColors.primary.withOpacity(0.15),
                   width: 1.5,
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: ElevatedButton.icon(
                 onPressed: authState.isLoading
@@ -629,12 +636,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       },
                 icon: const Icon(
                   Icons.apple,
-                  size: 28,
+                  size: 26,
                   color: Colors.black,
                 ),
                 label: Text(
                   authState.isLoading ? 'Giriş yapılıyor...' : 'Apple ile Giriş Yap',
-                  style: AppTextStyles.button.copyWith(color: Colors.black87),
+                  style: AppTextStyles.button.copyWith(
+                    color: Colors.black.withOpacity(0.85),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.transparent,
@@ -648,7 +658,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             ),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         // Google Sign In
         ClipRRect(
           borderRadius: BorderRadius.circular(20),
@@ -656,12 +666,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
             child: Container(
               width: double.infinity,
-              height: 52,
+              height: 54,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
-                color: AppColors.primary.withOpacity(0.2),
+                color: AppColors.primary.withOpacity(0.1),
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.2),
+                  color: AppColors.primary.withOpacity(0.2),
                   width: 1.5,
                 ),
               ),
@@ -677,14 +687,17 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       },
                 icon: Image.network(
                   'https://www.google.com/favicon.ico',
-                  width: 24,
-                  height: 24,
+                  width: 22,
+                  height: 22,
                   errorBuilder: (_, __, ___) =>
-                      const Icon(Icons.login, color: Colors.white),
+                      const Icon(Icons.login, color: AppColors.primary),
                 ),
                 label: Text(
                   authState.isLoading ? 'Giriş yapılıyor...' : 'Google ile Giriş Yap',
-                  style: AppTextStyles.button.copyWith(color: AppColors.primary),
+                  style: AppTextStyles.button.copyWith(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.transparent,
@@ -706,12 +719,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
             child: Container(
               width: double.infinity,
-              height: 52,
+              height: 54,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
-                color: AppColors.primary.withOpacity(0.12),
+                color: AppColors.primary.withOpacity(0.05),
                 border: Border.all(
-                  color: AppColors.primary.withOpacity(0.2),
+                  color: AppColors.primary.withOpacity(0.1),
                   width: 1.5,
                 ),
               ),
@@ -719,7 +732,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 onPressed: authState.isLoading
                     ? null
                     : () async {
-                        HapticService.selection(); // Add haptic feedback
+                        HapticService.selection();
                         await authNotifier.continueAsGuest();
                         final prefs = await SharedPreferences.getInstance();
                         await prefs.setBool('onboarding_completed', true);
@@ -734,7 +747,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 ),
                 child: Text(
                   'Misafir Olarak Devam Et',
-                  style: AppTextStyles.button.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold),
+                  style: AppTextStyles.button.copyWith(
+                    color: AppColors.primary.withOpacity(0.8),
+                    fontWeight: FontWeight.bold
+                  ),
                 ),
               ),
             ),

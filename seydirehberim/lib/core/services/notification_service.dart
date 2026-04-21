@@ -57,7 +57,16 @@ class NotificationService {
 
     // Request permissions for iOS
     if (Platform.isIOS) {
+      // FCM Permissions
       await _firebaseMessaging.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+        provisional: false,
+      );
+
+      // Foreground presentation options for iOS
+      await _firebaseMessaging.setForegroundNotificationPresentationOptions(
         alert: true,
         badge: true,
         sound: true,
@@ -67,7 +76,14 @@ class NotificationService {
     // Initialize local notifications
     const initializationSettingsAndroid =
         AndroidInitializationSettings('ic_stat_s');
-    const initializationSettingsIOS = DarwinInitializationSettings();
+    const initializationSettingsIOS = DarwinInitializationSettings(
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+      onDidReceiveLocalNotification: (id, title, body, payload) async {
+        // Handle older iOS foreground notification
+      },
+    );
     const initializationSettings = InitializationSettings(
       android: initializationSettingsAndroid,
       iOS: initializationSettingsIOS,
@@ -130,6 +146,15 @@ class NotificationService {
     });
 
     // Get FCM token
+    if (Platform.isIOS) {
+      // Give APNs time to register and produce a token for FCM to use
+      String? apnsToken = await _firebaseMessaging.getAPNSToken();
+      if (apnsToken == null) {
+        debugPrint('APNs token is not ready, waiting...');
+        await Future.delayed(const Duration(seconds: 2));
+      }
+    }
+
     String? token = await _firebaseMessaging.getToken();
     if (token != null) {
       final isEnabled = await isNotificationsEnabled();

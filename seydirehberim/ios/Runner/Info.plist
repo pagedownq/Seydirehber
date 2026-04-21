@@ -70,6 +70,13 @@
 	<string>Size en yakın eczane, etkinlik ve mekanları harita üzerinde göstermek ve mesafenizi hesaplamak için konumunuza ihtiyaç duyuyoruz.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Uygulama açıkken veya arka planda size en yakın eczane ve duyuruları bildirmek için konumunuza ihtiyaç duyuyoruz.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Size en yakın yerleri arka planda da takip edebilmek ve önemli bilgilendirmeler yapabilmek için konumunuza ihtiyaç duyuyoruz.</string>
+	<key>NSLocationTemporaryUsageDescriptionDictionary</key>
+	<dict>
+		<key>FullAccuracy</key>
+		<string>Harita üzerinde tam konumunuzu ve size en yakın noktaları hatasız gösterebilmek için yüksek hassasiyetli konuma ihtiyaç duyuyoruz.</string>
+	</dict>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Profil resmi güncellemek veya içeriklere fotoğraf eklemek için galerinize erişim izni gerekebilir.</string>
 	<key>NSCameraUsageDescription</key>
@@ -92,7 +99,10 @@
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
+		<string>location</string>
 		<string>remote-notification</string>
 	</array>
+	<key>FirebaseAppDelegateProxyEnabled</key>
+	<true/>
 </dict>
 </plist>

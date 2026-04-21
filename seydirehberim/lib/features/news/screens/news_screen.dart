@@ -83,86 +83,88 @@ class NewsScreen extends ConsumerWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
         elevation: 10,
         backgroundColor: Colors.white,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Header with Gradient/Style
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 24),
-              decoration: const BoxDecoration(
-                color: AppColors.primarySurface,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Header with Gradient/Style
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 24),
+                decoration: const BoxDecoration(
+                  color: AppColors.primarySurface,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+                ),
+                child: const Center(
+                  child: Column(
+                    children: [
+                      Icon(Icons.gavel_rounded, size: 48, color: AppColors.primary),
+                      SizedBox(height: 12),
+                      Text(
+                        'Yasal Bilgilendirme',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              child: const Center(
+              
+              // Content Space
+              Padding(
+                padding: const EdgeInsets.all(24),
                 child: Column(
                   children: [
-                    Icon(Icons.gavel_rounded, size: 48, color: AppColors.primary),
-                    SizedBox(height: 12),
-                    Text(
-                      'Yasal Bilgilendirme',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
-                      ),
+                     _buildLegalPoint(
+                      Icons.rss_feed_rounded,
+                      'Haberler, yayıncıların sunduğu RSS beslemeleriyle otomatik çekilmektedir.',
+                    ),
+                    const SizedBox(height: 12),
+                    _buildLegalPoint(
+                      Icons.copyright_rounded,
+                      'Tüm telif hakları ve sorumluluk haberin asıl sahibi olan kuruluşa aittir.',
+                    ),
+                    const SizedBox(height: 12),
+                    _buildLegalPoint(
+                      Icons.link_rounded,
+                      'Sadece kısa özet sunulmakta, içerik tamamı için orijinal siteye yönlendirilmektedir.',
+                    ),
+                     const SizedBox(height: 12),
+                    _buildLegalPoint(
+                      Icons.contact_mail_rounded,
+                      'İçerik kaldırma talepleri için: seydirehber@gmail.com',
                     ),
                   ],
                 ),
               ),
-            ),
-            
-            // Content Space
-            Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                children: [
-                   _buildLegalPoint(
-                    Icons.rss_feed_rounded,
-                    'Haberler, yayıncıların sunduğu RSS beslemeleriyle otomatik çekilmektedir.',
-                  ),
-                  const SizedBox(height: 16),
-                  _buildLegalPoint(
-                    Icons.copyright_rounded,
-                    'Tüm telif hakları ve sorumluluk haberin asıl sahibi olan kuruluşa aittir.',
-                  ),
-                  const SizedBox(height: 16),
-                  _buildLegalPoint(
-                    Icons.link_rounded,
-                    'Sadece kısa özet sunulmakta, içerik tamamı için orijinal siteye yönlendirilmektedir.',
-                  ),
-                   const SizedBox(height: 16),
-                  _buildLegalPoint(
-                    Icons.contact_mail_rounded,
-                    'İçerik kaldırma talepleri için: seydirehber@gmail.com',
-                  ),
-                ],
-              ),
-            ),
-            
-            // Footer Action
-            Padding(
-              padding: const EdgeInsets.only(bottom: 24, left: 24, right: 24),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+              
+              // Footer Action
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      elevation: 0,
                     ),
-                    elevation: 0,
-                  ),
-                  child: const Text(
-                    'Anladım ve Kabul Ediyorum',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    child: const Text(
+                      'Anladım ve Kabul Ediyorum',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

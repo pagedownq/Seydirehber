@@ -347,31 +347,48 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: 14),
           SizedBox(
             width: double.infinity,
+            height: 52,
             child: ElevatedButton.icon(
               onPressed: () async {
                 HapticFeedback.vibrate();
                 await ref.read(authNotifierProvider.notifier).signInWithApple();
               },
-              icon: const Icon(Icons.apple, size: 22, color: Colors.black),
-              label: const Text('Apple ile Giriş Yap', style: TextStyle(color: Colors.black)),
+              icon: const Icon(Icons.apple, size: 24, color: Colors.black),
+              label: const Text('Apple ile Giriş Yap', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
                 foregroundColor: Colors.black,
                 elevation: 0,
-                side: BorderSide(color: Colors.black.withOpacity(0.1)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: BorderSide(color: Colors.black.withOpacity(0.1)),
+                ),
               ),
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
+            height: 52,
             child: ElevatedButton.icon(
               onPressed: () async {
                 HapticFeedback.vibrate();
                 await ref.read(authNotifierProvider.notifier).signInWithGoogle();
               },
-              icon: const Icon(Icons.login, size: 18),
-              label: const Text('Google ile Giriş Yap'),
+              icon: Image.network(
+                'https://www.google.com/favicon.ico',
+                width: 20,
+                height: 20,
+              ),
+              label: const Text('Google ile Giriş Yap', style: TextStyle(fontWeight: FontWeight.bold)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
             ),
           ),
         ],
