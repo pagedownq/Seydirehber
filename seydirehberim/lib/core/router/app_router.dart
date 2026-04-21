@@ -29,7 +29,6 @@ import '../../features/coupons/screens/coupons_screen.dart';
 import '../../features/coupons/screens/coupon_detail_screen.dart';
 import '../../features/map/screens/seydi_map_screen.dart';
 import '../../features/notifications/screens/user_notifications_screen.dart';
-import '../../features/settings/screens/log_viewer_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -244,12 +243,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/seydi-map',
         builder: (context, state) => const SeydiMapScreen(),
-      ),
-
-      // Log Viewer
-      GoRoute(
-        path: '/logs',
-        builder: (context, state) => const LogViewerScreen(),
       ),
     ],
   );

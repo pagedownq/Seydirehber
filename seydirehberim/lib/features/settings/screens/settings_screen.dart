@@ -116,16 +116,6 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
 
-          // Log Viewer
-          _buildSettingsItem(
-            icon: Icons.bug_report_outlined,
-            title: 'Sistem Logları',
-            subtitle: 'Hata ve işlem kayıtları',
-            iconColor: Colors.deepPurple,
-            onTap: () => context.push('/logs'),
-          ),
-          const SizedBox(height: 8),
-
           // Rate App
           _buildSettingsItem(
             icon: Icons.star_outline,
