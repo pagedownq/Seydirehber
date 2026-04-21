@@ -4,6 +4,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest_all.dart' as tz_data;
+import 'notification_service.dart';
 
 class DailyNotificationService {
   static final DailyNotificationService _instance =
@@ -19,7 +20,6 @@ class DailyNotificationService {
   static const int _afternoonId = 9002;
   static const int _eveningId = 9003;
 
-  final FlutterLocalNotificationsPlugin _localNotif = FlutterLocalNotificationsPlugin();
 
   static const List<_NotifTemplate> _morningMessages = [
     _NotifTemplate(title: 'Günaydın! ', body: 'Bugünün hava durumuna göz attın mı? Hemen kontrol et!', route: '/weather'),
@@ -37,6 +37,8 @@ class DailyNotificationService {
     _NotifTemplate(title: 'Unutma! 💊', body: 'Bugünün nöbetçi eczanesini kontrol ettin mi?', route: '/pharmacy'),
   ];
 
+  FlutterLocalNotificationsPlugin get _localNotif => NotificationService().localNotificationsPlugin;
+
   Future<void> initialize() async {
     tz_data.initializeTimeZones();
     try {
@@ -45,29 +47,7 @@ class DailyNotificationService {
       debugPrint('Timezone setup error: $e');
     }
 
-    const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('ic_stat_s');
-    const DarwinInitializationSettings initializationSettingsDarwin =
-        DarwinInitializationSettings(
-      requestAlertPermission: false,
-      requestBadgePermission: false,
-      requestSoundPermission: false,
-    );
-    const InitializationSettings initializationSettings = InitializationSettings(
-      android: initializationSettingsAndroid,
-      iOS: initializationSettingsDarwin,
-    );
-
-    // Eklentiyi başlat
-    await _localNotif.initialize(
-      settings: initializationSettings,
-    );
-
-    // Android 12+ Hassas Alarm ve Bildirim İzinleri (Sadece kurulumu yap, izin isteme)
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      // Kurulum ve kanallar burada hazırlanabilir ancak request... metodlarını sildik
-    }
-
+    // Plugin is already initialized in NotificationService
     await scheduleDailyNotifications();
   }
 

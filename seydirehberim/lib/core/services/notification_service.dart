@@ -32,6 +32,7 @@ class NotificationService {
   }
 
   NavigateToCallback? get navigateTo => _navigateTo;
+  FlutterLocalNotificationsPlugin get localNotificationsPlugin => _localNotificationsPlugin;
 
   static const String channelId = 'seydirehberim_notifications';
 
@@ -285,7 +286,9 @@ class NotificationService {
     }
   }
 
-  Future<void> showTestNotification({String? title, String? body}) async {
+  Future<void> showTestNotification({String? title, String? body, String? payload}) async {
+    final id = DateTime.now().millisecond + (title?.hashCode ?? 0) % 1000;
+    
     const androidDetails = AndroidNotificationDetails(
       channelId,
       'Seydi Rehber Bildirimleri',
@@ -297,14 +300,19 @@ class NotificationService {
     );
     const notificationDetails = NotificationDetails(
       android: androidDetails,
-      iOS: DarwinNotificationDetails(),
+      iOS: DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      ),
     );
 
     await _localNotificationsPlugin.show(
-      id: 0,
-      title: title ?? 'Test Bildirimi 🔔',
-      body: body ?? 'Bildirim sistemi başarıyla çalışıyor!',
-      notificationDetails: notificationDetails,
+      id,
+      title ?? 'Test Bildirimi 🔔',
+      body ?? 'Bildirim sistemi başarıyla çalışıyor!',
+      notificationDetails,
+      payload: payload,
     );
   }
 
