@@ -137,10 +137,22 @@ class NotificationService {
     // Get FCM token
     if (Platform.isIOS) {
       // Give APNs time to register and produce a token for FCM to use
-      String? apnsToken = await _firebaseMessaging.getAPNSToken();
-      if (apnsToken == null) {
-        debugPrint('APNs token is not ready, waiting...');
-        await Future.delayed(const Duration(seconds: 2));
+      // This is critical for iOS push notifications to work
+      String? apnsToken;
+      int retryCount = 0;
+      while (apnsToken == null && retryCount < 3) {
+        apnsToken = await _firebaseMessaging.getAPNSToken();
+        if (apnsToken == null) {
+          debugPrint('APNs token is not ready, waiting (Attempt ${retryCount + 1})...');
+          await Future.delayed(const Duration(seconds: 2));
+          retryCount++;
+        }
+      }
+      
+      if (apnsToken != null) {
+        debugPrint('APNs Token acquired successfully: $apnsToken');
+      } else {
+        debugPrint('CRITICAL: APNs token could not be acquired after multiple attempts.');
       }
     }
 
@@ -321,25 +333,24 @@ class NotificationService {
 
     if (Platform.isIOS) {
       // 1. Request FCM Permission (iOS native prompt)
+      // On iOS, this handles the single system permission prompt for both FCM and Local Notifications
       final settings = await _firebaseMessaging.requestPermission(
         alert: true,
         badge: true,
         sound: true,
         provisional: false,
       );
+      
       granted = settings.authorizationStatus == AuthorizationStatus.authorized || 
                 settings.authorizationStatus == AuthorizationStatus.provisional;
 
-      // 2. Request Local Notification Permission (iOS native prompt)
-      final iosPlugin = _localNotificationsPlugin
-          .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>();
-      if (iosPlugin != null) {
-        final localGranted = await iosPlugin.requestPermissions(
-          alert: true,
-          badge: true,
-          sound: true,
-        );
-        granted = granted && (localGranted ?? false);
+      // 2. Ensure APNs token is fetched after permission is granted
+      if (granted) {
+        debugPrint('Notification permission granted on iOS. Fetching APNs token...');
+        final apnsToken = await _firebaseMessaging.getAPNSToken();
+        if (apnsToken != null) {
+          debugPrint('APNs Token acquired after permission: $apnsToken');
+        }
       }
     } else if (Platform.isAndroid) {
       // Android 13+ notification permission

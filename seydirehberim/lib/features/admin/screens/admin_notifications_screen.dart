@@ -87,10 +87,20 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen> {
                 'click_action': 'FLUTTER_NOTIFICATION_CLICK',
               },
             },
+            'apns': {
+              'payload': {
+                'aps': {
+                  'sound': 'default',
+                  'badge': 1,
+                  'content-available': 1,
+                },
+              },
+            },
             'data': {
               'click_action': 'FLUTTER_NOTIFICATION_CLICK',
               'id': '1',
               'status': 'done',
+              'screen': 'notifications',
             },
           },
         }),
