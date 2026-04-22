@@ -77,7 +77,7 @@
 	<key>NSLocationTemporaryUsageDescriptionDictionary</key>
 	<dict>
 		<key>FullAccuracy</key>
-		<string>Harita üzerinde tam konumunuzu ve size en yakın noktaları hatasız gösterebilmek için yüksek hassasiyetli konuma ihtiyaç duyuyoruz.</string>
+		<string>Uygulamanın harita üzerinde tam konumunuzu gösterebilmesi için hassas konum erişimi gereklidir.</string>
 	</dict>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Profil resmi güncellemek veya içeriklere fotoğraf eklemek için galerinize erişim izni gerekebilir.</string>

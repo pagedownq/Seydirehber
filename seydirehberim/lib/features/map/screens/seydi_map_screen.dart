@@ -122,7 +122,7 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
     // 3. İzinler alındı, konumu al ve takibi başlat
     try {
       Position position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(accuracy: LocationAccuracy.medium),
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
       );
       if (mounted) {
         setState(() {

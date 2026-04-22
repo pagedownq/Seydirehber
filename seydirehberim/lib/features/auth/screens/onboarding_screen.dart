@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:lottie/lottie.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/services/haptic_service.dart';
@@ -40,10 +41,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     _OnboardingPageData(
       icon: Icons.map_rounded,
       lottiePath: 'assets/animations/location.json',
-      title: 'Seydi Harita',
+      title: 'Konum İzni',
       description:
           'Tamamen yenilenen haritamızla şehri keşfet. Önemli konumlar ve ulaşım her an parmaklarının ucunda!',
       color: AppColors.primary,
+      hasLocationButton: true,
     ),
     _OnboardingPageData(
       icon: Icons.grid_view_rounded,
@@ -227,6 +229,60 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             },
             text: 'Bildirimleri Etkinleştir',
             icon: Icons.notifications_active_outlined,
+          ),
+          TextButton(
+            onPressed: _nextPage,
+            child: Text('Daha Sonra', style: TextStyle(color: AppColors.primary.withOpacity(0.7))),
+          ),
+        ],
+      );
+    }
+
+    // Location Page
+    if (page.hasLocationButton) {
+      return Column(
+        children: [
+          _buildPrimaryButton(
+            onPressed: () async {
+              HapticService.medium();
+              // Daha garanti yöntem: Geolocator ile izin isteme
+              final locationPermission = await Geolocator.requestPermission();
+              
+              if (locationPermission == LocationPermission.always || 
+                  locationPermission == LocationPermission.whileInUse) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Konum izni başarıyla alındı!'), 
+                      backgroundColor: Colors.green,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                  _nextPage();
+                }
+              } else if (locationPermission == LocationPermission.deniedForever) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Konum izni kalıcı olarak reddedildi. Lütfen ayarlardan manuel açın.'), 
+                      backgroundColor: Colors.orange,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                  openAppSettings();
+                }
+              } else if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Konum izni verilmedi.'), 
+                    backgroundColor: AppColors.error,
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
+            },
+            text: 'Konum İznini Etkinleştir',
+            icon: Icons.location_on_outlined,
           ),
           TextButton(
             onPressed: _nextPage,
@@ -1175,6 +1231,7 @@ class _OnboardingPageData {
   final bool hasPrivacyCheckbox;
   final bool hasAuthButtons;
   final bool hasNotificationButton;
+  final bool hasLocationButton;
   final _MockupType? mockupType;
 
   _OnboardingPageData({
@@ -1187,6 +1244,7 @@ class _OnboardingPageData {
     this.hasPrivacyCheckbox = false,
     this.hasAuthButtons = false,
     this.hasNotificationButton = false,
+    this.hasLocationButton = false,
     this.mockupType,
   });
 }

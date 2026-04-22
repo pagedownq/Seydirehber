@@ -223,9 +223,12 @@ class _CouponDetailScreenState extends ConsumerState<CouponDetailScreen> {
                     Row(
                       children: [
                         Expanded(
-                          child: TextButton(
+                          child: ElevatedButton(
                             onPressed: () => Navigator.pop(context, false),
-                            style: TextButton.styleFrom(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.grey[100],
+                              foregroundColor: AppColors.textPrimary,
+                              elevation: 0,
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
@@ -234,7 +237,6 @@ class _CouponDetailScreenState extends ConsumerState<CouponDetailScreen> {
                             child: const Text(
                               'Vazgeç',
                               style: TextStyle(
-                                color: AppColors.textLight,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
                               ),

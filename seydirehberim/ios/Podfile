@@ -1,4 +1,4 @@
-platform :ios, '14.0'
+platform :ios, '15.0'
 
 # CocoaPods analytics sends network stats synchronous priority.
 # Disable this if it causes issues.
@@ -41,19 +41,27 @@ post_install do |installer|
     flutter_additional_ios_build_settings(target)
     
     target.build_configurations.each do |config|
-      # iOS Target Versiyonu 14.0 Olarak Sabitleme
-      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
+      # iOS Target Versiyonu 15.0 Olarak Sabitleme
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
       
       # Permission Handler Filtreleme (App Store Redlerini Önlemek İçin)
       # Sadece uygulamanın kullandığı izinleri aktif ediyoruz.
-      # Mevcut tanımları alıp üzerine ekleme yapıyoruz.
-      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= ['$(inherited)']
-      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] << 'PERMISSION_LOCATION=1'
-      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] << 'PERMISSION_LOCATION_ALWAYS=1'
-      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] << 'PERMISSION_NOTIFICATIONS=1'
-      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] << 'PERMISSION_PHOTOS=1'
-      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] << 'PERMISSION_CAMERA=1'
-      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] << 'PERMISSION_MICROPHONE=1'
+      definitions = config.build_settings['GCC_PREPROCESSOR_DEFINITIONS']
+      if definitions.is_a? String
+        definitions = [definitions]
+      end
+      definitions ||= ['$(inherited)']
+      
+      # Gerekli İzin Bayrakları
+      definitions << 'PERMISSION_LOCATION=1'
+      definitions << 'PERMISSION_LOCATION_ALWAYS=1'
+      definitions << 'PERMISSION_LOCATION_WHEN_IN_USE=1'
+      definitions << 'PERMISSION_NOTIFICATIONS=1'
+      definitions << 'PERMISSION_PHOTOS=1'
+      definitions << 'PERMISSION_CAMERA=1'
+      definitions << 'PERMISSION_MICROPHONE=1'
+      
+      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] = definitions
     end
   end
 end
