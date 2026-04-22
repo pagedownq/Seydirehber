@@ -66,6 +66,24 @@ class _AdminSupportScreenState extends State<AdminSupportScreen> {
                 'click_action': 'FLUTTER_NOTIFICATION_CLICK',
               },
             },
+            'apns': {
+              'headers': {
+                'apns-priority': '10',
+                'apns-push-type': 'alert',
+              },
+              'payload': {
+                'aps': {
+                  'alert': {
+                    'title': title,
+                    'body': body,
+                  },
+                  'sound': 'default',
+                  'badge': 1,
+                  'content-available': 1,
+                  'mutable-content': 1,
+                },
+              },
+            },
             'data': {
               'click_action': 'FLUTTER_NOTIFICATION_CLICK',
               'status': 'done',

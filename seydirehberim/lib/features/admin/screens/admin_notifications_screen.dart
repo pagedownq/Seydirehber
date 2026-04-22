@@ -88,11 +88,20 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen> {
               },
             },
             'apns': {
+              'headers': {
+                'apns-priority': '10',
+                'apns-push-type': 'alert',
+              },
               'payload': {
                 'aps': {
+                  'alert': {
+                    'title': baslik,
+                    'body': icerik,
+                  },
                   'sound': 'default',
                   'badge': 1,
                   'content-available': 1,
+                  'mutable-content': 1,
                 },
               },
             },

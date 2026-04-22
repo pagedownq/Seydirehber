@@ -67,11 +67,13 @@
 	<key>GIDClientID</key>
 	<string>619370654049-3jvqrifbkqq4hupujbu4plpjvjbu0mpg.apps.googleusercontent.com</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Size en yakın eczane, etkinlik ve mekanları harita üzerinde göstermek ve mesafenizi hesaplamak için konumunuza ihtiyaç duyuyoruz.</string>
+	<string>Harita üzerinde konumunuzu görmek ve size en yakın noktaları bulmak için konum izni gereklidir.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Uygulama açıkken veya arka planda size en yakın eczane ve duyuruları bildirmek için konumunuza ihtiyaç duyuyoruz.</string>
+	<string>Uygulama arka planda iken bile size en yakın duyuruları bildirmek için konum izni gereklidir.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>Size en yakın yerleri arka planda da takip edebilmek ve önemli bilgilendirmeler yapabilmek için konumunuza ihtiyaç duyuyoruz.</string>
+	<string>Size en yakın yerleri arka planda da takip edebilmek için konumunuza ihtiyaç duyuyoruz.</string>
+	<key>NSLocationUsageDescription</key>
+	<string>Harita ve konum tabanlı servisler için konumunuza ihtiyaç duyuyoruz.</string>
 	<key>NSLocationTemporaryUsageDescriptionDictionary</key>
 	<dict>
 		<key>FullAccuracy</key>

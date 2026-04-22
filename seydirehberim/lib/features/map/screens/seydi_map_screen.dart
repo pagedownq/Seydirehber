@@ -14,6 +14,8 @@ import '../../../core/utils/map_helper.dart';
 import '../../home/providers/home_providers.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:location/location.dart' as loc;
+import 'package:permission_handler/permission_handler.dart';
+import '../../../core/services/log_service.dart';
 import 'dart:async';
 
 class SeydiMapScreen extends ConsumerStatefulWidget {
@@ -75,23 +77,29 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
   }
 
   Future<void> _checkPermissionAndGetLocation() async {
-    LocationPermission permission;
-
-    // 1. Check/Request Permission FIRST (so user sees the prompt regardless of service status)
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) return;
+    // 1. Check/Request Permission via permission_handler (more reliable for iOS Settings visibility)
+    var status = await Permission.location.status;
+    LogService().info('Location permission check: ${status.name}');
+    
+    if (status.isDenied) {
+      LogService().info('Requesting location permission...');
+      status = await Permission.location.request();
+      LogService().info('Location permission request result: ${status.name}');
     }
 
-    if (permission == LocationPermission.deniedForever) {
-      // Permission is permanently denied, show a help dialog
+    if (status.isPermanentlyDenied) {
+      LogService().warning('Location permission permanently denied. Showing dialog.');
       if (mounted) _showPermissionDeniedDialog();
       return;
     }
 
-    // 2. Check Service
+    if (!status.isGranted) {
+      return;
+    }
+
+    // 2. Check Service status via Geolocator
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    LogService().info('Location service status: $serviceEnabled');
     if (!serviceEnabled) {
       if (mounted) {
         if (defaultTargetPlatform == TargetPlatform.android) {

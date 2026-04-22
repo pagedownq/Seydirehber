@@ -8,6 +8,8 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'daily_notification_service.dart';
 
+import '../services/log_service.dart';
+
 typedef NavigateToCallback = void Function(String route);
 
 class NotificationService {
@@ -94,11 +96,15 @@ class NotificationService {
     // 2. Handle deep link when app is terminated
     RemoteMessage? initialMessage = await _firebaseMessaging.getInitialMessage();
     if (initialMessage != null) {
+      LogService().notification('App opened from terminated state via message: ${initialMessage.notification?.title}');
       _handleMessage(initialMessage);
     }
 
     // 3. Handle deep link when app is in background/background
-    FirebaseMessaging.onMessageOpenedApp.listen(_handleMessage);
+    FirebaseMessaging.onMessageOpenedApp.listen((message) {
+      LogService().notification('App opened from background via message: ${message.notification?.title}');
+      _handleMessage(message);
+    });
 
 
     // Handle background messages
@@ -106,6 +112,7 @@ class NotificationService {
 
     // Listen to foreground messages
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      LogService().notification('Foreground message received: ${message.notification?.title}');
       RemoteNotification? notification = message.notification;
       AndroidNotification? android = message.notification?.android;
 
@@ -150,14 +157,15 @@ class NotificationService {
       }
       
       if (apnsToken != null) {
-        debugPrint('APNs Token acquired successfully: $apnsToken');
+        LogService().success('APNs Token acquired successfully: $apnsToken');
       } else {
-        debugPrint('CRITICAL: APNs token could not be acquired after multiple attempts.');
+        LogService().error('CRITICAL: APNs token could not be acquired after multiple attempts.');
       }
     }
 
     String? token = await _firebaseMessaging.getToken();
     if (token != null) {
+      LogService().success('FCM Token acquired: $token');
       final isEnabled = await isNotificationsEnabled();
       await _saveTokenToFirestore(token, isEnabled: isEnabled);
       

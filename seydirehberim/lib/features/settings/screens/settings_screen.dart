@@ -8,6 +8,9 @@ import 'package:go_router/go_router.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:geolocator/geolocator.dart';
+import 'log_viewer_screen.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/utils/app_notification.dart';
@@ -174,6 +177,34 @@ class SettingsScreen extends ConsumerWidget {
               onTap: () {},
             ),
           ),
+
+          const SizedBox(height: 24),
+          const Divider(),
+          const SizedBox(height: 16),
+          
+          Text('Teknik Bilgiler', style: AppTextStyles.heading3.copyWith(fontSize: 16)),
+          const SizedBox(height: 12),
+
+          // FCM Token Display
+          const _FCMTokenItem(),
+          const SizedBox(height: 8),
+
+          // Log Viewer
+          _buildSettingsItem(
+            icon: Icons.terminal_rounded,
+            title: 'Sistem Logları',
+            subtitle: 'Hata ve işlem geçmişini görüntüle',
+            iconColor: Colors.deepPurple,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const LogViewerScreen()),
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          // Location Permission Status
+          const _LocationStatusItem(),
+          const SizedBox(height: 32),
         ],
       ),
     );
@@ -758,3 +789,114 @@ class _HapticToggleItemState extends State<_HapticToggleItem> {
     );
   }
 }
+
+class _FCMTokenItem extends StatefulWidget {
+  const _FCMTokenItem();
+
+  @override
+  State<_FCMTokenItem> createState() => _FCMTokenItemState();
+}
+
+class _FCMTokenItemState extends State<_FCMTokenItem> {
+  String? _token;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadToken();
+  }
+
+  Future<void> _loadToken() async {
+    final token = await FirebaseMessaging.instance.getToken();
+    if (mounted) setState(() => _token = token);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.white,
+      borderRadius: BorderRadius.circular(14),
+      child: ListTile(
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.blue.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: const Icon(Icons.key_rounded, color: Colors.blue, size: 22),
+        ),
+        title: const Text('FCM Token', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+        subtitle: Text(
+          _token ?? 'Yükleniyor...',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: AppTextStyles.caption,
+        ),
+        trailing: const Icon(Icons.copy_rounded, size: 18),
+        onTap: () {
+          if (_token != null) {
+            Clipboard.setData(ClipboardData(text: _token!));
+            AppNotification.success(context, 'Token kopyalandı');
+          }
+        },
+      ),
+    );
+  }
+}
+
+class _LocationStatusItem extends StatefulWidget {
+  const _LocationStatusItem();
+
+  @override
+  State<_LocationStatusItem> createState() => _LocationStatusItemState();
+}
+
+class _LocationStatusItemState extends State<_LocationStatusItem> {
+  LocationPermission? _permission;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkPermission();
+  }
+
+  Future<void> _checkPermission() async {
+    final p = await Geolocator.checkPermission();
+    if (mounted) setState(() => _permission = p);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final status = _permission?.name ?? 'Kontrol ediliyor...';
+    final isGranted = _permission == LocationPermission.always || _permission == LocationPermission.whileInUse;
+
+    return Material(
+      color: AppColors.white,
+      borderRadius: BorderRadius.circular(14),
+      child: ListTile(
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: (isGranted ? Colors.green : Colors.orange).withOpacity(0.1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(
+            isGranted ? Icons.location_on_rounded : Icons.location_off_rounded,
+            color: isGranted ? Colors.green : Colors.orange,
+            size: 22,
+          ),
+        ),
+        title: const Text('Konum İzni', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+        subtitle: Text('Durum: $status', style: AppTextStyles.caption),
+        trailing: TextButton(
+          onPressed: () async {
+            await Geolocator.openAppSettings();
+            _checkPermission();
+          },
+          child: const Text('Ayarlara Git', style: TextStyle(fontWeight: FontWeight.bold)),
+        ),
+      ),
+    );
+  }
+}
+
