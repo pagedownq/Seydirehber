@@ -14,7 +14,7 @@ import '../../../core/utils/map_helper.dart';
 import '../../home/providers/home_providers.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:location/location.dart' as loc;
-import 'package:permission_handler/permission_handler.dart';
+import 'package:permission_handler/permission_handler.dart' hide ServiceStatus;
 import '../../../core/services/log_service.dart';
 import 'dart:async';
 
