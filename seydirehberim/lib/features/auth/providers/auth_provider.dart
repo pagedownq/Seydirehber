@@ -234,6 +234,19 @@ class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
     }
   }
 
+  Future<void> signInWithEmail(String email, String password) async {
+    try {
+      state = const AsyncValue.loading();
+      final userCredential = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      state = AsyncValue.data(userCredential.user);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+
   Future<void> continueAsGuest() async {
     // Guest: no Firebase auth, user stays null
     final prefs = await SharedPreferences.getInstance();

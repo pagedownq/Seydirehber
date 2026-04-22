@@ -77,74 +77,78 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
   }
 
   Future<void> _checkPermissionAndGetLocation() async {
-    // 1. Check/Request Permission via permission_handler (more reliable for iOS Settings visibility)
-    var status = await Permission.location.status;
-    LogService().info('Location permission check: ${status.name}');
-    
-    if (status.isDenied) {
-      LogService().info('Requesting location permission...');
-      status = await Permission.location.request();
-      LogService().info('Location permission request result: ${status.name}');
-    }
+    bool serviceEnabled;
+    LocationPermission permission;
 
-    if (status.isPermanentlyDenied) {
-      LogService().warning('Location permission permanently denied. Showing dialog.');
-      if (mounted) _showPermissionDeniedDialog();
-      return;
-    }
-
-    if (!status.isGranted) {
-      return;
-    }
-
-    // 2. Check Service status via Geolocator
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    // 1. Cihazın konum servisi açık mı? (GPS anahtarı)
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
     LogService().info('Location service status: $serviceEnabled');
+    
     if (!serviceEnabled) {
       if (mounted) {
         if (defaultTargetPlatform == TargetPlatform.android) {
-          // Trigger the NATIVE SYSTEM dialog (Google Play Services popup) - Android Only
+          // Android'de Google Play Servisleri diyaloğunu tetikle
           final location = loc.Location();
           serviceEnabled = await location.requestService();
           if (!serviceEnabled) return;
-        } else if (defaultTargetPlatform == TargetPlatform.iOS) {
-          // iOS does not support requestService() native popup, show manual dialog
+        } else {
           _showLocationServiceDialog();
           return;
         }
-      } else {
+      }
+    }
+
+    // 2. Uygulama izin durumunu kontrol et
+    permission = await Geolocator.checkPermission();
+    LogService().info('Location permission status: $permission');
+
+    if (permission == LocationPermission.denied) {
+      LogService().info('Requesting location permission...');
+      permission = await Geolocator.requestPermission();
+      LogService().info('Location permission request result: $permission');
+      
+      if (permission == LocationPermission.denied) {
+        // Kullanıcı reddetti
         return;
       }
     }
 
-    // Get initial position if we don't have it
-    if (_userLocation == null) {
-      try {
-        Position position = await Geolocator.getCurrentPosition(
-          locationSettings: const LocationSettings(accuracy: LocationAccuracy.medium),
-        );
-        if (mounted) {
-          setState(() {
-            _userLocation = LatLng(position.latitude, position.longitude);
-          });
-        }
-      } catch (_) {}
+    if (permission == LocationPermission.deniedForever) {
+      LogService().warning('Location permissions are permanently denied.');
+      if (mounted) _showPermissionDeniedDialog();
+      return;
     }
 
-    // Listen for updates if not already listening
+    // 3. İzinler alındı, konumu al ve takibi başlat
+    try {
+      Position position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.medium),
+      );
+      if (mounted) {
+        setState(() {
+          _userLocation = LatLng(position.latitude, position.longitude);
+        });
+      }
+    } catch (e) {
+      LogService().error('Error getting initial position: $e');
+    }
+
     if (_locationSubscription == null) {
       _locationSubscription = Geolocator.getPositionStream(
         locationSettings: const LocationSettings(
           accuracy: LocationAccuracy.high,
           distanceFilter: 10,
         ),
-      ).listen((Position position) {
-        if (mounted) {
-          setState(() {
-            _userLocation = LatLng(position.latitude, position.longitude);
-          });
-        }
-      });
+      ).listen(
+        (Position position) {
+          if (mounted) {
+            setState(() {
+              _userLocation = LatLng(position.latitude, position.longitude);
+            });
+          }
+        },
+        onError: (e) => LogService().error('Location stream error: $e'),
+      );
     }
   }
 

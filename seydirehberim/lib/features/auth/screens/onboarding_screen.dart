@@ -597,72 +597,74 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     return Column(
       children: [
         // Apple Sign In
-        ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(
-              width: double.infinity,
-              height: isSmallScreen ? 48 : 54,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                color: AppColors.white.withOpacity(0.9),
-                border: Border.all(
-                  color: AppColors.primary.withOpacity(0.15),
-                  width: 1.5,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
+        if (Theme.of(context).platform == TargetPlatform.iOS) ...[
+          ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(
+                width: double.infinity,
+                height: isSmallScreen ? 48 : 54,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  color: AppColors.white.withOpacity(0.9),
+                  border: Border.all(
+                    color: AppColors.primary.withOpacity(0.15),
+                    width: 1.5,
                   ),
-                ],
-              ),
-              child: ElevatedButton.icon(
-                      onPressed: authState.isLoading
-                          ? null
-                          : () async {
-                              HapticService.light();
-                              await authNotifier.signInWithApple();
-                              final user = FirebaseAuth.instance.currentUser;
-                              
-                              if (user != null && (user.displayName == null || user.displayName!.isEmpty)) {
-                                if (mounted) {
-                                  await _showNameEntryDialog(context, authNotifier);
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: ElevatedButton.icon(
+                        onPressed: authState.isLoading
+                            ? null
+                            : () async {
+                                HapticService.light();
+                                await authNotifier.signInWithApple();
+                                final user = FirebaseAuth.instance.currentUser;
+                                
+                                if (user != null && (user.displayName == null || user.displayName!.isEmpty)) {
+                                  if (mounted) {
+                                    await _showNameEntryDialog(context, authNotifier);
+                                  }
                                 }
-                              }
-                              
-                              final prefs = await SharedPreferences.getInstance();
-                              await prefs.setBool('onboarding_completed', true);
-                              if (mounted) context.go('/');
-                            },
-                icon: Icon(
-                  Icons.apple,
-                  size: isSmallScreen ? 22 : 26,
-                  color: Colors.black,
-                ),
-                label: Text(
-                  authState.isLoading ? 'Giriş yapılıyor...' : 'Apple ile Giriş Yap',
-                  style: AppTextStyles.button.copyWith(
-                    color: Colors.black.withOpacity(0.85),
-                    fontWeight: FontWeight.bold,
-                    fontSize: isSmallScreen ? 14 : 16,
+                                
+                                final prefs = await SharedPreferences.getInstance();
+                                await prefs.setBool('onboarding_completed', true);
+                                if (mounted) context.go('/');
+                              },
+                  icon: Icon(
+                    Icons.apple,
+                    size: isSmallScreen ? 22 : 26,
+                    color: Colors.black,
                   ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.transparent,
-                  elevation: 0,
-                  shadowColor: Colors.transparent,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
+                  label: Text(
+                    authState.isLoading ? 'Giriş yapılıyor...' : 'Apple ile Giriş Yap',
+                    style: AppTextStyles.button.copyWith(
+                      color: Colors.black.withOpacity(0.85),
+                      fontWeight: FontWeight.bold,
+                      fontSize: isSmallScreen ? 14 : 16,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    elevation: 0,
+                    shadowColor: Colors.transparent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
-        SizedBox(height: isSmallScreen ? 8 : 12),
+          SizedBox(height: isSmallScreen ? 8 : 12),
+        ],
         // Google Sign In
         ClipRRect(
           borderRadius: BorderRadius.circular(20),
@@ -767,6 +769,17 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   ),
                 ),
               ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextButton(
+          onPressed: () => _showEmailLoginDialog(context, authNotifier),
+          child: Text(
+            'E-posta ile Giriş',
+            style: AppTextStyles.bodySmall.copyWith(
+              color: AppColors.textSecondary.withOpacity(0.5),
+              fontSize: 12,
             ),
           ),
         ),
@@ -1007,6 +1020,98 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  void _showEmailLoginDialog(BuildContext context, AuthNotifier authNotifier) {
+    final emailController = TextEditingController();
+    final passwordController = TextEditingController();
+    final isIOS = Theme.of(context).platform == TargetPlatform.iOS;
+
+    showAdaptiveDialog(
+      context: context,
+      builder: (context) => isIOS
+          ? CupertinoAlertDialog(
+              title: const Text('E-posta ile Giriş'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(height: 16),
+                  CupertinoTextField(
+                    controller: emailController,
+                    placeholder: 'E-posta',
+                    keyboardType: TextInputType.emailAddress,
+                    padding: const EdgeInsets.all(12),
+                  ),
+                  const SizedBox(height: 8),
+                  CupertinoTextField(
+                    controller: passwordController,
+                    placeholder: 'Şifre',
+                    obscureText: true,
+                    padding: const EdgeInsets.all(12),
+                  ),
+                ],
+              ),
+              actions: [
+                CupertinoDialogAction(
+                  child: const Text('İptal'),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                CupertinoDialogAction(
+                  isDefaultAction: true,
+                  child: const Text('Giriş Yap'),
+                  onPressed: () async {
+                    final email = emailController.text.trim();
+                    final password = passwordController.text.trim();
+                    if (email.isNotEmpty && password.isNotEmpty) {
+                      Navigator.pop(context);
+                      await authNotifier.signInWithEmail(email, password);
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.setBool('onboarding_completed', true);
+                      if (mounted) context.go('/');
+                    }
+                  },
+                ),
+              ],
+            )
+          : AlertDialog(
+              title: const Text('E-posta ile Giriş'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: emailController,
+                    decoration: const InputDecoration(labelText: 'E-posta'),
+                    keyboardType: TextInputType.emailAddress,
+                  ),
+                  TextField(
+                    controller: passwordController,
+                    decoration: const InputDecoration(labelText: 'Şifre'),
+                    obscureText: true,
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('İPTAL'),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    final email = emailController.text.trim();
+                    final password = passwordController.text.trim();
+                    if (email.isNotEmpty && password.isNotEmpty) {
+                      Navigator.pop(context);
+                      await authNotifier.signInWithEmail(email, password);
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.setBool('onboarding_completed', true);
+                      if (mounted) context.go('/');
+                    }
+                  },
+                  child: const Text('GİRİŞ YAP'),
+                ),
+              ],
+            ),
     );
   }
 }

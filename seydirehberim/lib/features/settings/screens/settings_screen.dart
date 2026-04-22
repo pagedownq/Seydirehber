@@ -344,28 +344,30 @@ class SettingsScreen extends ConsumerWidget {
             style: AppTextStyles.bodySmall,
           ),
           const SizedBox(height: 14),
-          SizedBox(
-            width: double.infinity,
-            height: 52,
-            child: ElevatedButton.icon(
-              onPressed: () async {
-                HapticFeedback.vibrate();
-                await ref.read(authNotifierProvider.notifier).signInWithApple();
-              },
-              icon: const Icon(Icons.apple, size: 24, color: Colors.black),
-              label: const Text('Apple ile Giriş Yap', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  side: BorderSide(color: Colors.black.withOpacity(0.1)),
+          if (Theme.of(context).platform == TargetPlatform.iOS) ...[
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton.icon(
+                onPressed: () async {
+                  HapticFeedback.vibrate();
+                  await ref.read(authNotifierProvider.notifier).signInWithApple();
+                },
+                icon: const Icon(Icons.apple, size: 24, color: Colors.black),
+                label: const Text('Apple ile Giriş Yap', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.black,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: BorderSide(color: Colors.black.withOpacity(0.1)),
+                  ),
                 ),
               ),
             ),
-          ),
-          const SizedBox(height: 12),
+            const SizedBox(height: 12),
+          ],
           SizedBox(
             width: double.infinity,
             height: 52,
@@ -390,8 +392,108 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ),
           ),
+          const SizedBox(height: 12),
+          Center(
+            child: TextButton(
+              onPressed: () => _showEmailLoginDialog(context, ref),
+              child: Text(
+                'E-posta ile Giriş',
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: AppColors.textSecondary.withOpacity(0.5),
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ),
         ],
       ),
+    );
+  }
+
+  void _showEmailLoginDialog(BuildContext context, WidgetRef ref) {
+    final emailController = TextEditingController();
+    final passwordController = TextEditingController();
+    final isIOS = Theme.of(context).platform == TargetPlatform.iOS;
+    final authNotifier = ref.read(authNotifierProvider.notifier);
+
+    showAdaptiveDialog(
+      context: context,
+      builder: (context) => isIOS
+          ? CupertinoAlertDialog(
+              title: const Text('E-posta ile Giriş'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(height: 16),
+                  CupertinoTextField(
+                    controller: emailController,
+                    placeholder: 'E-posta',
+                    keyboardType: TextInputType.emailAddress,
+                    padding: const EdgeInsets.all(12),
+                  ),
+                  const SizedBox(height: 8),
+                  CupertinoTextField(
+                    controller: passwordController,
+                    placeholder: 'Şifre',
+                    obscureText: true,
+                    padding: const EdgeInsets.all(12),
+                  ),
+                ],
+              ),
+              actions: [
+                CupertinoDialogAction(
+                  child: const Text('İptal'),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                CupertinoDialogAction(
+                  isDefaultAction: true,
+                  child: const Text('Giriş Yap'),
+                  onPressed: () async {
+                    final email = emailController.text.trim();
+                    final password = passwordController.text.trim();
+                    if (email.isNotEmpty && password.isNotEmpty) {
+                      Navigator.pop(context);
+                      await authNotifier.signInWithEmail(email, password);
+                    }
+                  },
+                ),
+              ],
+            )
+          : AlertDialog(
+              title: const Text('E-posta ile Giriş'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: emailController,
+                    decoration: const InputDecoration(labelText: 'E-posta'),
+                    keyboardType: TextInputType.emailAddress,
+                  ),
+                  TextField(
+                    controller: passwordController,
+                    decoration: const InputDecoration(labelText: 'Şifre'),
+                    obscureText: true,
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('İPTAL'),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    final email = emailController.text.trim();
+                    final password = passwordController.text.trim();
+                    if (email.isNotEmpty && password.isNotEmpty) {
+                      Navigator.pop(context);
+                      await authNotifier.signInWithEmail(email, password);
+                    }
+                  },
+                  child: const Text('GİRİŞ YAP'),
+                ),
+              ],
+            ),
     );
   }
 
@@ -888,13 +990,21 @@ class _LocationStatusItemState extends State<_LocationStatusItem> {
         ),
         title: const Text('Konum İzni', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
         subtitle: Text('Durum: $status', style: AppTextStyles.caption),
-        trailing: TextButton(
-          onPressed: () async {
-            await Geolocator.openAppSettings();
-            _checkPermission();
-          },
-          child: const Text('Ayarlara Git', style: TextStyle(fontWeight: FontWeight.bold)),
-        ),
+        trailing: !isGranted 
+          ? TextButton(
+              onPressed: () async {
+                final p = await Geolocator.requestPermission();
+                if (mounted) setState(() => _permission = p);
+              },
+              child: const Text('İzin İste', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)),
+            )
+          : TextButton(
+              onPressed: () async {
+                await Geolocator.openAppSettings();
+                _checkPermission();
+              },
+              child: const Text('Ayarlara Git', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
       ),
     );
   }

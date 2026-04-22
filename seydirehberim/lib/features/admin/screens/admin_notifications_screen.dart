@@ -94,10 +94,6 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen> {
               },
               'payload': {
                 'aps': {
-                  'alert': {
-                    'title': baslik,
-                    'body': icerik,
-                  },
                   'sound': 'default',
                   'badge': 1,
                   'content-available': 1,
