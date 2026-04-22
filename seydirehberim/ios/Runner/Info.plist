@@ -68,10 +68,6 @@
 	<string>619370654049-3jvqrifbkqq4hupujbu4plpjvjbu0mpg.apps.googleusercontent.com</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Harita üzerinde konumunuzu görmek ve size en yakın noktaları bulmak için konum izni gereklidir.</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Uygulama arka planda iken bile size en yakın duyuruları bildirmek için konum izni gereklidir.</string>
-	<key>NSLocationAlwaysUsageDescription</key>
-	<string>Size en yakın yerleri arka planda da takip edebilmek için konumunuza ihtiyaç duyuyoruz.</string>
 	<key>NSLocationUsageDescription</key>
 	<string>Harita ve konum tabanlı servisler için konumunuza ihtiyaç duyuyoruz.</string>
 	<key>NSLocationTemporaryUsageDescriptionDictionary</key>
@@ -82,7 +78,7 @@
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Profil resmi güncellemek veya içeriklere fotoğraf eklemek için galerinize erişim izni gerekebilir.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>Profil resmi çekmek veya içeriklere fotoğraf eklemek için kameranıza erişim gerekebilir.</string>
+	<string>İçeriklere fotoğraf eklemek veya profil resmi çekmek için kameranıza erişim izni gerekebilir.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Video çekimi yaparken sesinizi kaydetmek için mikrofon erişimi gerekebilir.</string>
 	<key>UISupportedInterfaceOrientations</key>
@@ -101,7 +97,6 @@
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
-		<string>location</string>
 		<string>remote-notification</string>
 	</array>
 	<key>FirebaseAppDelegateProxyEnabled</key>
