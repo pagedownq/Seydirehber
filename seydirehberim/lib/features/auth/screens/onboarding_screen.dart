@@ -246,10 +246,30 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             onPressed: () async {
               HapticService.medium();
               
-              // Önce mevcut durumu kontrol et
-              LocationPermission permission = await Geolocator.checkPermission();
+              // 1. Önce Telefonun Genel GPS'i Açık mı Kontrol Et
+              bool isServiceEnabled = await Geolocator.isLocationServiceEnabled();
+              if (!isServiceEnabled) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Text('Telefonunuzun konum servisleri kapalı. Lütfen ayarlardan açın.'),
+                      backgroundColor: Colors.redAccent,
+                      behavior: SnackBarBehavior.floating,
+                      action: SnackBarAction(
+                        label: 'AÇ',
+                        textColor: Colors.white,
+                        onPressed: () => Geolocator.openLocationSettings(),
+                      ),
+                    ),
+                  );
+                }
+                return;
+              }
+
+              // 2. Mevcut Uygulama İzin Durumunu Kontrol Et
+              var status = await Permission.location.status;
               
-              if (permission == LocationPermission.deniedForever) {
+              if (status.isPermanentlyDenied) {
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
@@ -267,11 +287,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 return;
               }
 
-              // İzin iste
-              final locationPermission = await Geolocator.requestPermission();
+              // İzin iste (PermissionHandler ile)
+              final result = await Permission.location.request();
               
-              if (locationPermission == LocationPermission.always || 
-                  locationPermission == LocationPermission.whileInUse) {
+              if (result.isGranted) {
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
@@ -282,7 +301,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   );
                   _nextPage();
                 }
-              } else if (locationPermission == LocationPermission.deniedForever) {
+              } else if (result.isPermanentlyDenied) {
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(

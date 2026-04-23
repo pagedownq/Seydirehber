@@ -99,21 +99,21 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
     }
 
     // 2. Uygulama izin durumunu kontrol et
-    permission = await Geolocator.checkPermission();
-    LogService().info('Location permission status: $permission');
+    var status = await Permission.location.status;
+    LogService().info('Location permission status: $status');
 
-    if (permission == LocationPermission.denied) {
+    if (status.isDenied) {
       LogService().info('Requesting location permission...');
-      permission = await Geolocator.requestPermission();
-      LogService().info('Location permission request result: $permission');
+      status = await Permission.location.request();
+      LogService().info('Location permission request result: $status');
       
-      if (permission == LocationPermission.denied) {
+      if (status.isDenied) {
         // Kullanıcı reddetti
         return;
       }
     }
 
-    if (permission == LocationPermission.deniedForever) {
+    if (status.isPermanentlyDenied) {
       LogService().warning('Location permissions are permanently denied.');
       if (mounted) _showPermissionDeniedDialog();
       return;
@@ -200,7 +200,7 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
                       onPressed: () {
                         HapticService.vibrate();
                         Navigator.pop(ctx);
-                        Geolocator.openAppSettings();
+                        openAppSettings();
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
