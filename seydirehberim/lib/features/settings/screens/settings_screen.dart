@@ -127,10 +127,13 @@ class SettingsScreen extends ConsumerWidget {
                 ? 'App Store\'da puanlayın' 
                 : 'Play Store\'da puanlayın',
             iconColor: AppColors.warning,
-            onTap: () async {
-              final InAppReview inAppReview = InAppReview.instance;
-              // Uygulama mağazası sayfasını direkt açar
-              await inAppReview.openStoreListing();
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Bu özellik uygulama yayınlandıktan sonra aktif olacaktır.'),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
             },
           ),
           _buildSettingsItem(
