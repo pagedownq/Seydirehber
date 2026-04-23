@@ -119,23 +119,18 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
 
-          // Rate App
-          _buildSettingsItem(
-            icon: Icons.star_outline,
-            title: 'Uygulamayı Değerlendir',
-            subtitle: (defaultTargetPlatform == TargetPlatform.iOS) 
-                ? 'App Store\'da puanlayın' 
-                : 'Play Store\'da puanlayın',
-            iconColor: AppColors.warning,
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Bu özellik uygulama yayınlandıktan sonra aktif olacaktır.'),
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-            },
-          ),
+          // Rate App - Hidden on iOS until published to avoid errors
+          if (defaultTargetPlatform != TargetPlatform.iOS)
+            _buildSettingsItem(
+              icon: Icons.star_outline,
+              title: 'Uygulamayı Değerlendir',
+              subtitle: 'Play Store\'da puanlayın',
+              iconColor: AppColors.warning,
+              onTap: () async {
+                final InAppReview inAppReview = InAppReview.instance;
+                await inAppReview.openStoreListing();
+              },
+            ),
           _buildSettingsItem(
             icon: Icons.person_remove_outlined,
             title: 'Engellenen Kullanıcılar',
