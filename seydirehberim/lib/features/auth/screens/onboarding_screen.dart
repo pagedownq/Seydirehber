@@ -252,11 +252,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: const Text('Telefonunuzun konum servisleri kapalı. Lütfen ayarlardan açın.'),
+                      content: const Text('Telefonunuzun GPS\'i kapalı. Ayarlar > Gizlilik ve Güvenlik > Konum Servisleri yolundan aktif edebilirsiniz.'),
                       backgroundColor: Colors.redAccent,
+                      duration: const Duration(seconds: 5),
                       behavior: SnackBarBehavior.floating,
                       action: SnackBarAction(
-                        label: 'AÇ',
+                        label: 'AYARLARA GİT',
                         textColor: Colors.white,
                         onPressed: () => Geolocator.openLocationSettings(),
                       ),

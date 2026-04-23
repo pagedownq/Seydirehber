@@ -247,7 +247,7 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
               ),
               const SizedBox(height: 12),
               const Text(
-                'Cihazınızın konum servisi kapalı görünüyor. Lütfen ayarlardan konum servisini açın.',
+                'Cihazınızın konum servisi (GPS) kapalı. Lütfen Ayarlar > Gizlilik ve Güvenlik > Konum Servisleri adımlarını izleyerek aktif hale getirin.',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: AppColors.textSecondary, height: 1.4),
               ),
