@@ -245,7 +245,29 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           _buildPrimaryButton(
             onPressed: () async {
               HapticService.medium();
-              // Daha garanti yöntem: Geolocator ile izin isteme
+              
+              // Önce mevcut durumu kontrol et
+              LocationPermission permission = await Geolocator.checkPermission();
+              
+              if (permission == LocationPermission.deniedForever) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Konum izni kalıcı olarak reddedildi. Lütfen ayarlardan manuel açın.'), 
+                      backgroundColor: Colors.orange,
+                      behavior: SnackBarBehavior.floating,
+                      action: SnackBarAction(
+                        label: 'AYARLAR',
+                        textColor: Colors.white,
+                        onPressed: () => Geolocator.openAppSettings(),
+                      ),
+                    ),
+                  );
+                }
+                return;
+              }
+
+              // İzin iste
               final locationPermission = await Geolocator.requestPermission();
               
               if (locationPermission == LocationPermission.always || 
@@ -264,12 +286,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('Konum izni kalıcı olarak reddedildi. Lütfen ayarlardan manuel açın.'), 
+                      content: Text('Konum izni reddedildi. Özellikleri kullanmak için ayarlardan açabilirsiniz.'), 
                       backgroundColor: Colors.orange,
                       behavior: SnackBarBehavior.floating,
+                      action: SnackBarAction(
+                        label: 'AYARLAR',
+                        textColor: Colors.white,
+                        onPressed: () => Geolocator.openAppSettings(),
+                      ),
                     ),
                   );
-                  openAppSettings();
                 }
               } else if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(

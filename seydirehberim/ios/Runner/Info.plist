@@ -68,6 +68,10 @@
 	<string>619370654049-3jvqrifbkqq4hupujbu4plpjvjbu0mpg.apps.googleusercontent.com</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Harita üzerinde konumunuzu görmek ve size en yakın noktaları bulmak için konum izni gereklidir.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Size en yakın noktaları bulmak ve uygulama açıkken veya arka planda bildirim alırken konum tabanlı servisleri kullanabilmek için izninize ihtiyaç duyuyoruz.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Size en yakın noktaları bulmak ve her zaman en iyi deneyimi sunmak için konumunuza ihtiyaç duyuyoruz.</string>
 	<key>NSLocationUsageDescription</key>
 	<string>Harita ve konum tabanlı servisler için konumunuza ihtiyaç duyuyoruz.</string>
 	<key>NSLocationTemporaryUsageDescriptionDictionary</key>
