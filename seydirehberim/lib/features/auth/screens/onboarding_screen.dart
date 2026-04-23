@@ -259,7 +259,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       action: SnackBarAction(
                         label: 'AYARLAR',
                         textColor: Colors.white,
-                        onPressed: () => Geolocator.openAppSettings(),
+                        onPressed: () => openAppSettings(),
                       ),
                     ),
                   );
@@ -292,7 +292,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       action: SnackBarAction(
                         label: 'AYARLAR',
                         textColor: Colors.white,
-                        onPressed: () => Geolocator.openAppSettings(),
+                        onPressed: () => openAppSettings(),
                       ),
                     ),
                   );
