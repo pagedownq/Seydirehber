@@ -4,7 +4,6 @@ import '../../../core/services/haptic_service.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
-import '../../../core/services/analytics_service.dart';
 
 class ServiceGrid extends StatelessWidget {
   const ServiceGrid({super.key});
@@ -272,10 +271,6 @@ class _ServiceCard extends StatelessWidget {
       child: InkWell(
         onTap: () {
           HapticService.selection();
-          AnalyticsService().logButtonClick(
-            buttonName: 'service_${title.toLowerCase().replaceAll(' ', '_')}',
-            screenName: 'ServiceGrid',
-          );
           onTap();
         },
         borderRadius: BorderRadius.circular(16),
