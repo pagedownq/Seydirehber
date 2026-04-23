@@ -285,8 +285,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               } else if (locationPermission == LocationPermission.deniedForever) {
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Konum izni reddedildi. Özellikleri kullanmak için ayarlardan açabilirsiniz.'), 
+                    SnackBar(
+                      content: const Text('Konum izni reddedildi. Özellikleri kullanmak için ayarlardan açabilirsiniz.'), 
                       backgroundColor: Colors.orange,
                       behavior: SnackBarBehavior.floating,
                       action: SnackBarAction(
@@ -299,8 +299,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 }
               } else if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Konum izni verilmedi.'), 
+                  SnackBar(
+                    content: const Text('Konum izni verilmedi.'), 
                     backgroundColor: AppColors.error,
                     behavior: SnackBarBehavior.floating,
                   ),
