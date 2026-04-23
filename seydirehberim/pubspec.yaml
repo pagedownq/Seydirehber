@@ -1,7 +1,7 @@
 name: seydirehberim
 description: "Seydi Rehber - Seydişehir Rehber Uygulaması"
 publish_to: 'none'
-version: 1.0.0+11
+version: 1.0.0+12
 
 environment:
   sdk: ^3.10.8
@@ -65,6 +65,7 @@ dependencies:
   location: ^6.0.2
   timezone: ^0.11.0
   lottie: ^3.1.2
+  firebase_analytics: ^11.6.0
 
   
 

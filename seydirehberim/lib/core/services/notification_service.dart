@@ -113,6 +113,13 @@ class NotificationService {
     // Listen to foreground messages
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       LogService().notification('Foreground message received: ${message.notification?.title}');
+      
+      // On iOS, if we have a notification block, setForegroundNotificationPresentationOptions
+      // already handles showing the alert. Showing it again via local notifications causes duplicates.
+      if (Platform.isIOS && message.notification != null) {
+        return;
+      }
+
       RemoteNotification? notification = message.notification;
       AndroidNotification? android = message.notification?.android;
 

@@ -119,20 +119,31 @@ class ReviewService {
   }
 
   Future<void> reportReview(Review review) async {
+    if (review.id.isEmpty) {
+      throw 'ERROR_INVALID_REVIEW_ID';
+    }
+
     final user = _auth.currentUser;
     final reporterId = user?.uid ?? 'guest';
 
     // Misafir değilse mükerrer kontrolü yap
     if (reporterId != 'guest') {
-      final existing = await _firestore
-          .collection('sikayetler')
-          .where('reviewId', isEqualTo: review.id)
-          .where('reporterId', isEqualTo: reporterId)
-          .limit(1)
-          .get();
+      try {
+        final existing = await _firestore
+            .collection('sikayetler')
+            .where('reviewId', isEqualTo: review.id)
+            .where('reporterId', isEqualTo: reporterId)
+            .limit(1)
+            .get();
 
-      if (existing.docs.isNotEmpty) {
-        throw 'ALREADY_REPORTED';
+        if (existing.docs.isNotEmpty) {
+          throw 'ALREADY_REPORTED';
+        }
+      } catch (e) {
+        // Eğer zaten raporlandı hatasıysa fırlat, değilse (örn: yetki hatası) devam et
+        if (e == 'ALREADY_REPORTED') rethrow;
+        // ignore: avoid_print
+        print('Şikayet kontrolünde hata (devam ediliyor): $e');
       }
     }
 

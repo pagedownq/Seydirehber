@@ -13,6 +13,7 @@ import '../../../core/services/daily_notification_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../auth/widgets/name_request_dialog.dart';
+import '../../../core/services/analytics_service.dart';
 
 class MainShell extends ConsumerStatefulWidget {
   const MainShell({super.key});
@@ -132,10 +133,17 @@ class _MainShellState extends ConsumerState<MainShell> with WidgetsBindingObserv
         child: SafeArea(
           child: NavigationBar(
             selectedIndex: _currentIndex,
-            onDestinationSelected: (i) {
-              HapticService.selection();
-              setState(() => _currentIndex = i);
-            },
+              onDestinationSelected: (i) {
+                HapticService.selection();
+                
+                final tabNames = ['Ana Sayfa', 'Haberler', 'Ayarlar'];
+                AnalyticsService().logButtonClick(
+                  buttonName: 'nav_tab_${tabNames[i].toLowerCase()}',
+                  screenName: 'MainShell',
+                );
+
+                setState(() => _currentIndex = i);
+              },
             backgroundColor: AppColors.white,
             indicatorColor: AppColors.primarySurface,
             surfaceTintColor: Colors.transparent,

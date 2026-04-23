@@ -12,6 +12,7 @@ import '../widgets/horizontal_card_list.dart';
 import '../widgets/service_grid.dart';
 import '../widgets/horizontal_coupon_list.dart';
 import '../../../core/widgets/see_all_button.dart';
+import '../../../core/services/analytics_service.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -49,6 +50,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 IconButton(
                   onPressed: () {
                     HapticService.selection();
+                    AnalyticsService().logButtonClick(buttonName: 'notifications', screenName: 'HomeScreen');
                     context.push('/notifications');
                   },
                   icon: const Icon(Icons.notifications_outlined,
@@ -69,7 +71,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       title: 'Hava Durumu',
                       icon: Icons.cloud_outlined,
                       gradient: AppColors.weatherGradient,
-                      onTap: () => context.push('/weather'),
+                      onTap: () {
+                        AnalyticsService().logButtonClick(buttonName: 'weather_widget', screenName: 'HomeScreen');
+                        context.push('/weather');
+                      },
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -80,6 +85,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       isBlack: true,
                       onTap: () {
 
+                        AnalyticsService().logButtonClick(buttonName: 'share_app', screenName: 'HomeScreen');
                         Share.share(
                           'Seydi Rehber uygulamasını indir ve Seydişehir hakkında her şeyi öğren! 📱',
                         );
@@ -96,10 +102,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
               child: GestureDetector(
-                onTap: () {
-                  HapticService.selection();
-                  context.push('/search');
-                },
+                  onTap: () {
+                    HapticService.selection();
+                    AnalyticsService().logButtonClick(buttonName: 'home_search_bar', screenName: 'HomeScreen');
+                    context.push('/search');
+                  },
                 child: Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -147,7 +154,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: SeeAllButton(
                     title: 'Etkinlikler',
-                    onTap: () => context.push('/events'),
+                    onTap: () {
+                      AnalyticsService().logButtonClick(buttonName: 'see_all_events', screenName: 'HomeScreen');
+                      context.push('/events');
+                    },
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -174,7 +184,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: SeeAllButton(
                     title: 'Fırsat Kuponları',
-                    onTap: () => context.push('/coupons'),
+                    onTap: () {
+                      AnalyticsService().logButtonClick(buttonName: 'see_all_coupons', screenName: 'HomeScreen');
+                      context.push('/coupons');
+                    },
                   ),
                 ),
                 const SizedBox(height: 8),

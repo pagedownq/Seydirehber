@@ -13,7 +13,6 @@ import 'core/services/daily_notification_service.dart';
 import 'core/services/haptic_service.dart';
 import 'core/services/log_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:geolocator/geolocator.dart';
 import 'firebase_options.dart';
 
 void main() {
