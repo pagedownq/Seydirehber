@@ -81,24 +81,34 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
 
   Widget _buildDocList(List<DocumentSnapshot> docs) {
           // Apply local sorting matching web admin logic
-          if (widget.collection == 'firmalar' || widget.collection == 'gezilecek_yerler') {
+          if (widget.collection == 'firmalar' || widget.collection == 'gezilecek_yerler' || widget.collection == 'otobus_saatleri') {
             docs.sort((a, b) {
               final aData = a.data() as Map<String, dynamic>;
               final bData = b.data() as Map<String, dynamic>;
-              final aOrder = aData['order'] is num ? aData['order'] : 999999;
-              final bOrder = bData['order'] is num ? bData['order'] : 999999;
-              if (aOrder != bOrder) return (aOrder as num).compareTo(bOrder as num);
-              return (aData['ad'] ?? '').toString().toLowerCase().compareTo((bData['ad'] ?? '').toString().toLowerCase());
+              final aOrderVal = aData['order'];
+              final bOrderVal = bData['order'];
+              final num aOrder = num.tryParse(aOrderVal?.toString() ?? '') ?? 999999;
+              final num bOrder = num.tryParse(bOrderVal?.toString() ?? '') ?? 999999;
+              
+              if (aOrder != bOrder) return aOrder.compareTo(bOrder);
+              
+              final String aName = (aData['ad'] ?? aData['guzergah'] ?? '').toString().toLowerCase();
+              final String bName = (bData['ad'] ?? bData['guzergah'] ?? '').toString().toLowerCase();
+              return aName.compareTo(bName);
             });
           } else if (widget.collection == 'banners') {
             docs.sort((a, b) {
-              final aOrder = (a.data() as Map<String, dynamic>)['order'] is num ? (a.data() as Map<String, dynamic>)['order'] : 999999;
-              final bOrder = (b.data() as Map<String, dynamic>)['order'] is num ? (b.data() as Map<String, dynamic>)['order'] : 999999;
-              return (aOrder as num).compareTo(bOrder as num);
+              final aData = a.data() as Map<String, dynamic>;
+              final bData = b.data() as Map<String, dynamic>;
+              final aOrderVal = aData['order'];
+              final bOrderVal = bData['order'];
+              final num aOrder = num.tryParse(aOrderVal?.toString() ?? '') ?? 999999;
+              final num bOrder = num.tryParse(bOrderVal?.toString() ?? '') ?? 999999;
+              return aOrder.compareTo(bOrder);
             });
           }
 
-          final isReorderable = widget.collection == 'firmalar' || widget.collection == 'banners' || widget.collection == 'gezilecek_yerler';
+          final isReorderable = widget.collection == 'firmalar' || widget.collection == 'banners' || widget.collection == 'gezilecek_yerler' || widget.collection == 'otobus_saatleri';
 
           if (isReorderable) {
             return ReorderableListView.builder(
@@ -176,7 +186,7 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
     final imageUrl =
         data['image_url'] as String? ?? data['gorsel'] as String? ?? '';
 
-    final isReorderable = widget.collection == 'firmalar' || widget.collection == 'banners' || widget.collection == 'gezilecek_yerler';
+    final isReorderable = widget.collection == 'firmalar' || widget.collection == 'banners' || widget.collection == 'gezilecek_yerler' || widget.collection == 'otobus_saatleri';
 
     return Container(
       key: key,
@@ -300,6 +310,59 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
             color: isActive ? Colors.green[700] : Colors.red,
           ),
         );
+      case 'otobus_saatleri':
+        final hergun = data['saatler_hergun'] as String? ?? '';
+        final haftaici = data['saatler_haftaici'] as String? ?? '';
+        final cumartesi = data['saatler_cumartesi'] as String? ?? '';
+        final pazar = data['saatler_pazar'] as String? ?? '';
+
+        Widget buildGroup(String label, String times, Color color) {
+          if (times.isEmpty) return const SizedBox.shrink();
+          final list = times.split(',').where((e) => e.isNotEmpty).toList()..sort();
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 8, bottom: 4),
+                child: Text(label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: color)),
+              ),
+              Wrap(
+                spacing: 4,
+                runSpacing: 4,
+                children: list.map((t) => Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: color.withOpacity(0.3)),
+                  ),
+                  child: Text(t, style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.w600)),
+                )).toList(),
+              ),
+            ],
+          );
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (hergun.isNotEmpty)
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(top: 8),
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.blue.withOpacity(0.2)),
+                ),
+                child: buildGroup('HER GÜN', hergun, Colors.blue[800]!),
+              ),
+            buildGroup('HAFTA İÇİ', haftaici, Colors.grey[700]!),
+            buildGroup('CUMARTESİ', cumartesi, Colors.orange[800]!),
+            buildGroup('PAZAR', pazar, Colors.red[800]!),
+          ],
+        );
       default:
         return null;
     }
@@ -344,8 +407,12 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
       case 'otobus_saatleri':
         return [
           _FieldConfig('guzergah', 'Güzergah', required: true),
-          _FieldConfig('saatler', 'Sefer Saatleri (Saat Ekle Butonu)', isTimeList: true),
+          _FieldConfig('saatler_hergun', 'Her Gün Sefer Saatleri (Ortak)', isTimeList: true),
+          _FieldConfig('saatler_haftaici', 'Hafta İçi (Pzt-Cum)', isTimeList: true),
+          _FieldConfig('saatler_cumartesi', 'Cumartesi', isTimeList: true),
+          _FieldConfig('saatler_pazar', 'Pazar', isTimeList: true),
           _FieldConfig('duraklar', 'Duraklar (Opsiyonel)', multiline: true),
+          _FieldConfig('order', 'Sıra', isNumber: true),
         ];
       case 'gezilecek_yerler':
         return [
@@ -544,7 +611,7 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
                           dense: true,
                         ),
                         if (field.isTimeList)
-                          _buildTimeListPicker(controllers[field.key]!, setModalState),
+                          _buildTimeListPicker(field, controllers, setModalState),
                         if (!field.isTimeList && (!isExpiryField || !isUnlimited))
                         if (!field.isBoolean)
                         Padding(
@@ -732,7 +799,7 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
                                         FieldValue.serverTimestamp();
                                     
                                     // Automatic order assignment for reorderable collections
-                                    if (widget.collection == 'firmalar' || widget.collection == 'banners' || widget.collection == 'gezilecek_yerler') {
+                                    if (widget.collection == 'firmalar' || widget.collection == 'banners' || widget.collection == 'gezilecek_yerler' || widget.collection == 'otobus_saatleri') {
                                       final query = await FirebaseFirestore.instance
                                           .collection(widget.collection)
                                           .orderBy('order', descending: true)
@@ -1001,52 +1068,147 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
     );
   }
 
-  Widget _buildTimeListPicker(TextEditingController controller, StateSetter setModalState) {
-    final times = controller.text.split(',').where((e) => e.trim().isNotEmpty).toList();
+  Widget _buildTimeListPicker(
+      _FieldConfig field,
+      Map<String, TextEditingController> allControllers,
+      StateSetter setModalState) {
+    final controller = allControllers[field.key]!;
+    final times =
+        controller.text.split(',').where((e) => e.trim().isNotEmpty).toList();
     times.sort();
+
+    final inputController = TextEditingController();
+    final focusNode = FocusNode();
+
+    void addTime(String val) {
+      if (val.isEmpty) return;
+      
+      // Basic validation and formatting (e.g. 8.30 -> 08:30)
+      String formatted = val.replaceAll('.', ':').trim();
+      if (formatted.contains(':')) {
+        final parts = formatted.split(':');
+        final h = parts[0].padLeft(2, '0');
+        final m = parts.length > 1 ? parts[1].padLeft(2, '0') : '00';
+        formatted = "$h:$m";
+      } else if (formatted.length <= 2) {
+        formatted = "${formatted.padLeft(2, '0')}:00";
+      }
+
+      if (!times.contains(formatted)) {
+        setModalState(() {
+          times.add(formatted);
+          times.sort();
+          controller.text = times.join(',');
+        });
+      }
+      inputController.clear();
+      focusNode.requestFocus();
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Sefer Saatleri', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
+        Row(
           children: [
-            ...times.map((time) => Chip(
-              label: Text(time, style: const TextStyle(fontSize: 12)),
-              backgroundColor: AppColors.primarySurface,
-              deleteIcon: const Icon(Icons.close, size: 14),
-              onDeleted: () {
-                setModalState(() {
-                  times.remove(time);
-                  controller.text = times.join(',');
-                });
-              },
-            )),
-            ActionChip(
-              avatar: const Icon(Icons.add, size: 16, color: Colors.white),
-              label: const Text('Saat Ekle'),
-              backgroundColor: AppColors.primary,
-              onPressed: () async {
-                final selectedTime = await showTimePicker(
-                  context: context,
-                  initialTime: TimeOfDay.now(),
-                );
-                if (selectedTime != null) {
-                  setModalState(() {
-                    final newTime = "${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}";
-                    if (!times.contains(newTime)) {
-                      times.add(newTime);
-                      times.sort();
-                      controller.text = times.join(',');
-                    }
-                  });
-                }
-              },
+            Expanded(
+              child: Text(field.label,
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
             ),
+            if (field.key == 'saatler_hergun')
+              TextButton.icon(
+                onPressed: () {
+                  setModalState(() {
+                    allControllers['saatler_haftaici']?.text = controller.text;
+                    allControllers['saatler_cumartesi']?.text = controller.text;
+                    allControllers['saatler_pazar']?.text = controller.text;
+                  });
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Tüm günlere kopyalandı')),
+                  );
+                },
+                icon: const Icon(Icons.copy_all, size: 16),
+                label: const Text('Tüm Günlere Kopyala', style: TextStyle(fontSize: 12)),
+                style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
+              ),
           ],
+        ),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.grey[50],
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey[300]!),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (times.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Text('Henüz saat eklenmedi',
+                      style: TextStyle(fontSize: 12, color: Colors.grey)),
+                )
+              else
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: times
+                      .map((time) => Chip(
+                            label: Text(time,
+                                style: const TextStyle(
+                                    fontSize: 11, fontWeight: FontWeight.w600)),
+                            backgroundColor: AppColors.white,
+                            padding: EdgeInsets.zero,
+                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            deleteIcon: const Icon(Icons.close, size: 12),
+                            onDeleted: () {
+                              setModalState(() {
+                                times.remove(time);
+                                controller.text = times.join(',');
+                              });
+                            },
+                          ))
+                      .toList(),
+                ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: inputController,
+                      focusNode: focusNode,
+                      decoration: InputDecoration(
+                        hintText: 'Saat gir (Örn: 08:30 veya 08)',
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 12),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8)),
+                      ),
+                      keyboardType: TextInputType.datetime,
+                      onSubmitted: (val) => addTime(val),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton.filled(
+                    onPressed: () => addTime(inputController.text),
+                    icon: const Icon(Icons.add),
+                    style: IconButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
+                    ),
+                  ),
+                ],
+              ),
+              const Padding(
+                padding: EdgeInsets.only(top: 4, left: 4),
+                child: Text('Enter tuşu ile hızlıca ekleyebilirsiniz',
+                    style: TextStyle(fontSize: 10, color: Colors.grey)),
+              ),
+            ],
+          ),
         ),
         const SizedBox(height: 16),
       ],

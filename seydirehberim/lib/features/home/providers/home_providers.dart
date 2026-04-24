@@ -78,10 +78,10 @@ final allPlacesProvider = StreamProvider<FirestoreDocs>((ref) {
     docs.sort((a, b) {
       final aData = a.data();
       final bData = b.data();
-      final dynamic aOrderVal = aData['order'];
-      final dynamic bOrderVal = bData['order'];
-      final num aOrder = (aOrderVal is num) ? aOrderVal : 999999;
-      final num bOrder = (bOrderVal is num) ? bOrderVal : 999999;
+      final aOrderVal = aData['order'];
+      final bOrderVal = bData['order'];
+      final num aOrder = num.tryParse(aOrderVal?.toString() ?? '') ?? 999999;
+      final num bOrder = num.tryParse(bOrderVal?.toString() ?? '') ?? 999999;
       
       final int orderComparison = aOrder.compareTo(bOrder);
       if (orderComparison != 0) return orderComparison;
@@ -130,10 +130,10 @@ final alphabeticalCompaniesProvider = StreamProvider<FirestoreDocs>((ref) {
     docs.sort((a, b) {
       final aData = a.data();
       final bData = b.data();
-      final dynamic aOrderVal = aData['order'];
-      final dynamic bOrderVal = bData['order'];
-      final num aOrder = (aOrderVal is num) ? aOrderVal : 999999;
-      final num bOrder = (bOrderVal is num) ? bOrderVal : 999999;
+      final aOrderVal = aData['order'];
+      final bOrderVal = bData['order'];
+      final num aOrder = num.tryParse(aOrderVal?.toString() ?? '') ?? 999999;
+      final num bOrder = num.tryParse(bOrderVal?.toString() ?? '') ?? 999999;
       
       final int orderComparison = aOrder.compareTo(bOrder);
       if (orderComparison != 0) return orderComparison;
@@ -201,7 +201,25 @@ final otobusSaatleriProvider = StreamProvider<FirestoreDocs>((ref) {
       .watch(firestoreProvider)
       .collection('otobus_saatleri')
       .snapshots()
-      .map((s) => s.docs);
+      .map((snapshot) {
+    final docs = snapshot.docs.toList();
+    docs.sort((a, b) {
+      final aData = a.data();
+      final bData = b.data();
+      final aOrderVal = aData['order'];
+      final bOrderVal = bData['order'];
+      final num aOrder = num.tryParse(aOrderVal?.toString() ?? '') ?? 999999;
+      final num bOrder = num.tryParse(bOrderVal?.toString() ?? '') ?? 999999;
+      
+      final int orderComparison = aOrder.compareTo(bOrder);
+      if (orderComparison != 0) return orderComparison;
+      
+      final String aName = (aData['guzergah'] ?? '').toString().toLowerCase();
+      final String bName = (bData['guzergah'] ?? '').toString().toLowerCase();
+      return aName.compareTo(bName);
+    });
+    return docs;
+  });
 });
 
 // Banners from Supabase (stored as Firestore docs pointing to Supabase URLs)
@@ -213,10 +231,10 @@ final bannersProvider = StreamProvider<FirestoreDocs>((ref) {
     .map((snapshot) {
       final docs = snapshot.docs.toList();
       docs.sort((a, b) {
-        final dynamic aOrderVal = (a.data())['order'];
-        final dynamic bOrderVal = (b.data())['order'];
-        final num aOrder = (aOrderVal is num) ? aOrderVal : 999999;
-        final num bOrder = (bOrderVal is num) ? bOrderVal : 999999;
+        final aOrderVal = (a.data())['order'];
+        final bOrderVal = (b.data())['order'];
+        final num aOrder = num.tryParse(aOrderVal?.toString() ?? '') ?? 999999;
+        final num bOrder = num.tryParse(bOrderVal?.toString() ?? '') ?? 999999;
         return aOrder.compareTo(bOrder);
       });
       return docs;
