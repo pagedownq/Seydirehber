@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:latlong2/latlong.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -5,7 +6,40 @@ import 'package:url_launcher/url_launcher_string.dart';
 class MapHelper {
   /// Launches external map application for directions
   static Future<void> openOnMap(double lat, double lng) async {
-    final url = 'https://www.google.com/maps/search/?api=1&query=$lat,$lng';
+    final String url;
+    
+    if (Platform.isIOS) {
+      // Apple Maps for iOS
+      url = 'https://maps.apple.com/?q=$lat,$lng';
+    } else {
+      // Google Maps for Android
+      url = 'https://www.google.com/maps/search/?api=1&query=$lat,$lng';
+    }
+    
+    if (await canLaunchUrlString(url)) {
+      await launchUrlString(url, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  /// Launches map with a string query (address or coordinates)
+  static Future<void> openMapWithAddress(String address) async {
+    if (address.isEmpty) return;
+
+    final String url;
+    final encodedAddress = Uri.encodeComponent(address);
+
+    if (address.startsWith('http')) {
+      url = address;
+    } else {
+      if (Platform.isIOS) {
+        // Apple Maps for iOS
+        url = 'https://maps.apple.com/?q=$encodedAddress';
+      } else {
+        // Google Maps for Android
+        url = 'https://www.google.com/maps/search/?api=1&query=$encodedAddress';
+      }
+    }
+
     if (await canLaunchUrlString(url)) {
       await launchUrlString(url, mode: LaunchMode.externalApplication);
     }

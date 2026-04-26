@@ -325,14 +325,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     behavior: SnackBarBehavior.floating,
                   ),
                 );
+                // Apple wants the flow to continue even if permission is not granted, or the user should decide in the system prompt.
+                // We'll proceed to the next page to not "block" the user.
+                _nextPage();
               }
             },
-            text: 'Konum İznini Etkinleştir',
+            text: 'Devam Et',
             icon: Icons.location_on_outlined,
-          ),
-          TextButton(
-            onPressed: _nextPage,
-            child: Text('Daha Sonra', style: TextStyle(color: AppColors.primary.withOpacity(0.7))),
           ),
         ],
       );

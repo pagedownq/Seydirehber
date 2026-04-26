@@ -298,16 +298,7 @@ class EventDetailScreen extends ConsumerWidget {
   }
 
   Future<void> _launchMap(String query) async {
-    String mapUrl = '';
-    if (query.startsWith('http')) {
-      mapUrl = query;
-    } else {
-      mapUrl = 'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(query)}';
-    }
-    final uri = Uri.parse(mapUrl);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
+    await MapHelper.openMapWithAddress(query);
   }
 }
 

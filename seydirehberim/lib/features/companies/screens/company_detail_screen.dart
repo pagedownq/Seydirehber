@@ -510,20 +510,7 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
   }
 
   Future<void> _launchMap(String query) async {
-    String mapUrl = '';
-    // If it's already a full link, use it, otherwise treat as search query
-    if (query.startsWith('http')) {
-      mapUrl = query;
-    } else {
-      mapUrl = 'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(query)}';
-    }
-    
-    final uri = Uri.parse(mapUrl);
-    
-    // On Android/iOS, this LaunchMode will prefer the native app
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
+    await MapHelper.openMapWithAddress(query);
   }
 
   Widget _buildMenuActionCard(String url) {

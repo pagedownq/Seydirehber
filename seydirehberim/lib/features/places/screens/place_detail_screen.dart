@@ -261,17 +261,6 @@ class PlaceDetailScreen extends ConsumerWidget {
   }
 
   Future<void> _launchURL(String url, BuildContext context) async {
-    final uri = Uri.parse(url);
-    if (!url.startsWith('http')) {
-      final googleMapsUri = Uri.parse('https://www.google.com/maps/search/?api=1&query=$url');
-      if (await canLaunchUrl(googleMapsUri)) {
-        await launchUrl(googleMapsUri, mode: LaunchMode.externalApplication);
-      }
-      return;
-    }
-    
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
+    await MapHelper.openMapWithAddress(url);
   }
 }
