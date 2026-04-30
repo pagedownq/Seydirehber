@@ -213,7 +213,7 @@ class EventDetailScreen extends ConsumerWidget {
                                 width: double.infinity,
                                 child: ElevatedButton.icon(
                                   onPressed: () {
-                                    _launchMap(konum!);
+                                    _launchMap(context, konum!);
                                   },
                                   icon: const Icon(Icons.near_me_rounded),
                                   label: const Text('HARİTA ÜZERİNDEN BAK', 
@@ -297,7 +297,7 @@ class EventDetailScreen extends ConsumerWidget {
     return date.toString();
   }
 
-  Future<void> _launchMap(String query) async {
+  Future<void> _launchMap(BuildContext context, String query) async {
     await MapHelper.openMapWithAddress(context, query);
   }
 }
