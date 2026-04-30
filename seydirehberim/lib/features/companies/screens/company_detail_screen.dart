@@ -510,7 +510,7 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
   }
 
   Future<void> _launchMap(String query) async {
-    await MapHelper.openMapWithAddress(query);
+    await MapHelper.openMapWithAddress(context, query);
   }
 
   Widget _buildMenuActionCard(String url) {

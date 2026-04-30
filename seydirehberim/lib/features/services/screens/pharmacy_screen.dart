@@ -6,6 +6,7 @@ import '../../../core/constants/app_text_styles.dart';
 import '../../../core/services/haptic_service.dart';
 import '../../../core/widgets/error_view.dart';
 import '../../../core/widgets/shimmer_widget.dart';
+import '../../../core/utils/map_helper.dart';
 
 class PharmacyScreen extends StatefulWidget {
   const PharmacyScreen({super.key});
@@ -45,10 +46,7 @@ class _PharmacyScreenState extends State<PharmacyScreen> {
           },
           onNavigationRequest: (request) async {
             final url = request.url;
-            if (url.startsWith('tel:') || 
-                url.startsWith('geo:') || 
-                url.contains('maps.google.com') ||
-                url.contains('google.com/maps')) {
+            if (url.startsWith('tel:')) {
               try {
                 final uri = Uri.parse(url);
                 if (await canLaunchUrl(uri)) {
@@ -56,6 +54,13 @@ class _PharmacyScreenState extends State<PharmacyScreen> {
                 }
               } catch (e) {
                 debugPrint('Launch error: $e');
+              }
+              return NavigationDecision.prevent;
+            } else if (url.startsWith('geo:') || 
+                url.contains('maps.google.com') ||
+                url.contains('google.com/maps')) {
+              if (context.mounted) {
+                await MapHelper.openMapWithAddress(context, url);
               }
               return NavigationDecision.prevent;
             }

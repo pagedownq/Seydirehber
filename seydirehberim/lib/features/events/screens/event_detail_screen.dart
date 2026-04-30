@@ -298,7 +298,7 @@ class EventDetailScreen extends ConsumerWidget {
   }
 
   Future<void> _launchMap(String query) async {
-    await MapHelper.openMapWithAddress(query);
+    await MapHelper.openMapWithAddress(context, query);
   }
 }
 

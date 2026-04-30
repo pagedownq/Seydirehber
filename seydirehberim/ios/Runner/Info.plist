@@ -109,6 +109,7 @@
 	<array>
 		<string>tel</string>
 		<string>mailto</string>
+		<string>comgooglemaps</string>
 	</array>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>

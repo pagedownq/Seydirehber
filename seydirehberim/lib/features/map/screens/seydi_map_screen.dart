@@ -822,7 +822,7 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
                     child: IconButton(
                       onPressed: () {
                         HapticService.vibrate();
-                        MapHelper.openOnMap(position.latitude, position.longitude);
+                        MapHelper.openOnMap(context, position.latitude, position.longitude);
                       },
                       icon: const Icon(Icons.navigation_rounded, color: AppColors.primary),
                       tooltip: 'Yol Tarifi',

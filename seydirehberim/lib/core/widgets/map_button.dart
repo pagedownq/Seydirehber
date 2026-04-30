@@ -16,9 +16,9 @@ class MapButton extends StatelessWidget {
     this.label = 'Harita Üzerinden Göster',
   });
 
-  Future<void> _openMap() async {
+  Future<void> _openMap(BuildContext context) async {
     HapticService.vibrate();
-    await MapHelper.openMapWithAddress(locationUrl);
+    await MapHelper.openMapWithAddress(context, locationUrl);
   }
 
   @override
@@ -26,7 +26,7 @@ class MapButton extends StatelessWidget {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
-        onPressed: _openMap,
+        onPressed: () => _openMap(context),
         icon: const Icon(Icons.map_outlined, size: 20),
         label: Text(label, style: AppTextStyles.button),
         style: ElevatedButton.styleFrom(

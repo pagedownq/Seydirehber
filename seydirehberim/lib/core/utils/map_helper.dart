@@ -2,47 +2,116 @@ import 'dart:io';
 import 'package:latlong2/latlong.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 
 class MapHelper {
   /// Launches external map application for directions
-  static Future<void> openOnMap(double lat, double lng) async {
-    final String url;
-    
-    if (Platform.isIOS) {
-      // Apple Maps for iOS
-      url = 'https://maps.apple.com/?q=$lat,$lng';
+  static Future<void> openOnMap(BuildContext? context, double lat, double lng) async {
+    if (Platform.isIOS && context != null) {
+      final appleUrl = 'https://maps.apple.com/?q=$lat,$lng';
+      final googleUrl = 'comgooglemaps://?q=$lat,$lng';
+      await _handleIosMapSelection(context, appleUrl, googleUrl);
     } else {
-      // Google Maps for Android
-      url = 'https://www.google.com/maps/search/?api=1&query=$lat,$lng';
-    }
-    
-    if (await canLaunchUrlString(url)) {
-      await launchUrlString(url, mode: LaunchMode.externalApplication);
+      final String url;
+      if (Platform.isIOS) {
+        url = 'https://maps.apple.com/?q=$lat,$lng';
+      } else {
+        url = 'https://www.google.com/maps/search/?api=1&query=$lat,$lng';
+      }
+      
+      if (await canLaunchUrlString(url)) {
+        await launchUrlString(url, mode: LaunchMode.externalApplication);
+      }
     }
   }
 
   /// Launches map with a string query (address or coordinates)
-  static Future<void> openMapWithAddress(String address) async {
+  static Future<void> openMapWithAddress(BuildContext? context, String address) async {
     if (address.isEmpty) return;
 
-    final String url;
-    final encodedAddress = Uri.encodeComponent(address);
+    final String encodedAddress = Uri.encodeComponent(address);
 
-    if (address.startsWith('http')) {
-      url = address;
-    } else {
-      if (Platform.isIOS) {
-        // Apple Maps for iOS
-        url = 'https://maps.apple.com/?q=$encodedAddress';
+    if (Platform.isIOS && context != null) {
+      String appleUrl;
+      String googleUrl;
+
+      if (address.startsWith('http')) {
+        final coords = await getCoordinates(address);
+        if (coords != null) {
+          appleUrl = 'https://maps.apple.com/?q=${coords.latitude},${coords.longitude}';
+          googleUrl = 'comgooglemaps://?q=${coords.latitude},${coords.longitude}';
+        } else {
+          appleUrl = 'https://maps.apple.com/?q=$encodedAddress';
+          googleUrl = address; // Fallback to raw URL
+        }
       } else {
-        // Google Maps for Android
-        url = 'https://www.google.com/maps/search/?api=1&query=$encodedAddress';
+        appleUrl = 'https://maps.apple.com/?q=$encodedAddress';
+        googleUrl = 'comgooglemaps://?q=$encodedAddress';
+      }
+
+      await _handleIosMapSelection(context, appleUrl, googleUrl);
+    } else {
+      final String url;
+      if (address.startsWith('http')) {
+        url = address;
+      } else {
+        if (Platform.isIOS) {
+          url = 'https://maps.apple.com/?q=$encodedAddress';
+        } else {
+          url = 'https://www.google.com/maps/search/?api=1&query=$encodedAddress';
+        }
+      }
+
+      if (await canLaunchUrlString(url)) {
+        await launchUrlString(url, mode: LaunchMode.externalApplication);
       }
     }
+  }
 
-    if (await canLaunchUrlString(url)) {
-      await launchUrlString(url, mode: LaunchMode.externalApplication);
+  static Future<void> _handleIosMapSelection(
+      BuildContext context, String appleMapsUrl, String googleMapsUrl) async {
+    final bool hasGoogleMaps = await canLaunchUrlString('comgooglemaps://');
+
+    if (!hasGoogleMaps) {
+      if (await canLaunchUrlString(appleMapsUrl)) {
+        await launchUrlString(appleMapsUrl, mode: LaunchMode.externalApplication);
+      }
+      return;
     }
+
+    if (!context.mounted) return;
+
+    showCupertinoModalPopup(
+      context: context,
+      builder: (BuildContext ctx) => CupertinoActionSheet(
+        title: const Text('Harita Seçimi'),
+        message: const Text('Hangi uygulama ile açmak istersiniz?'),
+        actions: <CupertinoActionSheetAction>[
+          CupertinoActionSheetAction(
+            child: const Text('Apple Maps'),
+            onPressed: () {
+              Navigator.pop(ctx);
+              launchUrlString(appleMapsUrl, mode: LaunchMode.externalApplication);
+            },
+          ),
+          CupertinoActionSheetAction(
+            child: const Text('Google Maps'),
+            onPressed: () {
+              Navigator.pop(ctx);
+              launchUrlString(googleMapsUrl, mode: LaunchMode.externalApplication);
+            },
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          isDefaultAction: true,
+          onPressed: () {
+            Navigator.pop(ctx);
+          },
+          child: const Text('İptal'),
+        ),
+      ),
+    );
   }
 
   /// Converts various location formats (URLs, text addresses, coordinates, DMS) to LatLng

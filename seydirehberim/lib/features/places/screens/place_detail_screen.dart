@@ -261,6 +261,6 @@ class PlaceDetailScreen extends ConsumerWidget {
   }
 
   Future<void> _launchURL(String url, BuildContext context) async {
-    await MapHelper.openMapWithAddress(url);
+    await MapHelper.openMapWithAddress(context, url);
   }
 }
