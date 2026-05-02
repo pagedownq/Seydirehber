@@ -44,60 +44,59 @@ class PoliciesScreen extends StatelessWidget {
   }
 
   static const String privacyPolicyContent = '''
-Son Güncelleme: 1 Nisan 2026
+Son Güncelleme: 2 Mayıs 2026
 
-Seydi Rehber olarak, kullanıcılarımızın kişisel verilerinin güvenliği ve gizliliği en temel önceliğimizdir.
+Seydi Rehber olarak, kullanıcılarımızın kişisel verilerinin güvenliği ve gizliliği en temel önceliğimizdir. Bu doğrultuda uygulama içindeki veri kullanım ilkelerimiz aşağıda şeffaf bir şekilde açıklanmıştır:
 
 1. Toplanan Veriler ve Kullanım Amaçları:
-• Kimlik Bilgileri: Google ile giriş yapıldığında; ad, soyad ve e-posta bilgileriniz profil oluşturmak ve destek talepleriniz için kullanılır.
-• Konum Verileri: Mekanların uzaklığını göstermek için anlık konumunuz kullanılır. Sunucularımıza ASLA kaydedilmez.
-• Kullanıcı Bildirimleri (Blok/Engel): Engellediğiniz kullanıcıların listesi sadece kendi cihazınızda (Shared Preferences) saklanır; bu veri sunucularımıza gönderilmez ve gizliliğiniz korunur.
-• Cihaz Bilgisi: Performans ve hata analizi için anonim cihaz modelleri işlenir.
+• Kimlik Bilgileri: Google veya Apple ile giriş yapıldığında; ad, soyad ve e-posta bilgileriniz sadece size özel bir profil oluşturmak ve destek taleplerinizde iletişime geçebilmek için kullanılır.
+• Konum Verileri: Uygulama içi harita ve uzaklık hesaplamaları için anlık konumunuz kullanılır. Konum verileriniz hiçbir şekilde sunucularımıza kaydedilmez ve üçüncü şahıslarla paylaşılmaz.
+• Cihaz ve Bildirim Bilgileri: Size zamanında hatırlatmalar ve duyurular yapabilmek için cihazınıza özel bildirim belirteçleri (Token) kullanılır. Bildirim tercihlerini istediğiniz zaman ayarlardan değiştirebilirsiniz.
+• Kullanıcı Tercihleri: Engellediğiniz kullanıcıların veya favoriye aldığınız mekanların listesi uygulamanın güvenli altyapısında gizliliğiniz korunarak saklanır.
 
 2. Veri Güvenliği ve Üçüncü Taraflar:
-Verileriniz asla reklam ağlarına veya üçüncü şahıslara SATILMAZ. Sadece güvenli Firebase altyapısı üzerinde, şifrelenmiş olarak tutulur.
+Verileriniz hiçbir koşulda reklam ağlarına, veri simsarlarına veya üçüncü şahıslara SATILMAZ. Tüm veriler dünya standartlarında güvenlik sağlayan Google Firebase altyapısı üzerinde, şifrelenmiş olarak tutulmaktadır.
 
 3. Veri Saklama ve Silme:
-"Ayarlar > Hesabımı Sil" butonuyla tüm verilerinizi (yorumlar, profil) anında ve kalıcı olarak silebilirsiniz.
+Uygulama içindeki "Ayarlar > Hesabı Sil" adımlarını izleyerek profilinizi, yorumlarınızı ve tüm kişisel verilerinizi anında ve kalıcı olarak silebilirsiniz. Silinen verilerin geri dönüşü yoktur.
 ''';
 
   static const String termsOfServiceContent = '''
-Son Güncelleme: 1 Nisan 2026
+Son Güncelleme: 2 Mayıs 2026
 
-Seydi Rehber uygulamasını kullanarak aşağıdaki topluluk ve güvenlik şartlarını kabul etmiş sayılırsınız:
+Seydi Rehber uygulamasını kullanarak aşağıdaki kullanım koşullarını, topluluk standartlarını ve güvenlik şartlarını kabul etmiş sayılırsınız:
 
-1. Yaş Kısıtlaması (18+):
-Uygulama genel içerik sunsa da, "Yorum Yapma" ve "Değerlendirme" gibi sosyal etkileşim özellikleri sadece 18 yaşından büyük kullanıcılar içindir. Yorum yaparak bu şartı kabul etmiş sayılırsınız.
+1. Temel Kullanım:
+Uygulama tüm kullanıcılara açıktır ancak "Yorum Yapma", "Değerlendirme" ve "Destek Talebi Oluşturma" gibi etkileşimli özellikler için Google veya Apple hesabı ile giriş yapılması gereklidir.
 
-2. Kullanıcı Tarafından Oluşturulan İçerik (UGC) Kuralları:
-Uygulama içinde paylaşılan tüm içerikler moderasyona tabidir. Aşağıdaki eylemler kesinlikle yasaktır:
-• Küfür, hakaret, argo veya nefret söylemi kullanmak.
-• Yanıltıcı, yasa dışı veya müstehcen içerik paylaşmak.
-• Diğer kullanıcıları taciz etmek.
+2. Topluluk ve İçerik (UGC) Kuralları:
+Kullanıcılar tarafından oluşturulan tüm içerikler sıkı bir moderasyona tabidir. Platformumuzda güvenli bir ortam sağlamak için aşağıdaki eylemler kesinlikle yasaktır:
+• Küfür, hakaret, aşağılayıcı argo, nefret söylemi veya tehdit içeren mesajlar paylaşmak.
+• Yanıltıcı, yasa dışı, müstehcen veya telif hakkı ihlali içeren içerikler yayınlamak.
+• Diğer kullanıcıları veya işletmeleri asılsız yere karalamak ve taciz etmek.
 
 3. Moderasyon ve Denetim Sistemi:
-• Raporlama: Uygunsuz bulduğunuz içerikleri "Rapor Et" butonuyla bildirebilirsiniz. Moderatörlerimiz bildirimleri 24 saat içinde inceler ve kural ihlali durumunda içeriği kalıcı olarak siler.
-• Engelleme: "Kullanıcıyı Engelle" özelliği ile sizi rahatsız eden kişilerin içeriklerini anında ve kalıcı olarak gizleyebilirsiniz.
-• Filtreleme: Sistemimiz otomatik küfür ve argo filtresi ile içerikleri denetlemektedir.
+• Raporlama (Şikayet): Uygunsuz bulduğunuz içerikleri veya kullanıcıları "Rapor Et" butonuyla anında bize bildirebilirsiniz. Moderatörlerimiz bildirimleri en geç 24 saat içinde inceler ve kural ihlali tespit edilirse içeriği kalıcı olarak siler.
+• Kullanıcı Engelleme: "Engelle" özelliği ile sizi rahatsız eden kişilerin içeriklerini anında akışınızdan gizleyebilir, bu kişilerle olan etkileşimi tamamen kapatabilirsiniz.
+• Yaptırımlar: Topluluk kurallarını ihlal eden kullanıcıların içerikleri silinir. İhlalin boyutuna veya tekrarına bağlı olarak kullanıcı hesabı kalıcı olarak platformdan uzaklaştırılabilir.
 
-4. Yaptırımlar:
-Kural ihlali yapan kullanıcıların yorumları silinir ve ihlalin tekrarı durumunda hesapları askıya alınabilir.
-
-5. Haber İçerikleri ve Telif Hakları (RSS):
-Uygulama içindeki "Haberler" bölümündeki içerikler, yerel basın kuruluşlarından RSS (Rich Site Summary) aracılığıyla otomatik olarak çekilmektedir.
-• Haberin tüm mali ve manevi hakları asıl kaynak kuruluşlara aittir.
-• Haber içeriğinin doğruluğu ve yasal sorumluluğu kaynak siteye aittir.
-• "Uyar-Kaldır" Sistemi: Hak sahibi olduğunuz bir içeriğin kaldırılmasını istiyorsanız, bize bildirdiğiniz takdirde içerik 24 saat içinde sistemimizden kaldırılacaktır.
+4. Haber İçerikleri ve Telif Hakları (RSS):
+Uygulamada yer alan "Haberler" bölümü, yerel basın kuruluşlarının halka açık RSS servislerinden otomatik olarak derlenmektedir. Haberlerin tüm mali ve manevi hakları, doğruluğu ve yasal sorumluluğu asıl kaynak yayıncılara aittir. "Uyar-Kaldır" prensibini benimsiyoruz; hak sahibi olduğunuz bir içeriğin kaldırılmasını talep ederseniz, ilgili içerik sistemimizden en kısa sürede çıkartılır.
 ''';
 
   static const String kvkkContent = '''
-Son Güncelleme: 1 Nisan 2026
+Son Güncelleme: 2 Mayıs 2026
 
-6698 sayılı KVKK uyarınca Seydi Rehber, veri sorumlusu olarak aşağıdaki hususları beyan eder:
+6698 sayılı Kişisel Verilerin Korunması Kanunu (KVKK) uyarınca Seydi Rehber, veri sorumlusu sıfatıyla aşağıdaki hususları kamuoyuna ve kullanıcılarına beyan eder:
 
-1. Veri İşleme: Verileriniz sadece hizmet sunumu, uygulama güvenliği ve topluluk kurallarının takibi amacıyla kanuna uygun işlenir.
-2. Haklarınız: Verilerinizin işlenip işlenmediğini öğrenme, yanlış verileri düzeltme ve tüm verilerinizin (hesap silme yoluyla) yok edilmesini talep etme hakkına sahipsiniz.
-3. İletişim: Tüm KVKK talepleriniz için seydirehber@gmail.com üzerinden bize ulaşabilirsiniz.
+1. Veri İşleme Amacı ve Hukuki Sebebi: 
+Kişisel verileriniz (ad, soyad, e-posta vb.); yalnızca size daha iyi bir hizmet sunmak, kullanıcı hesap güvenliğini sağlamak, topluluk kurallarının takibini yapmak ve uygulamayı geliştirmek amacıyla kanuna uygun bir şekilde işlenmektedir.
+
+2. İlgili Kişinin Hakları (Madde 11): 
+Kanun kapsamında; kişisel verilerinizin işlenip işlenmediğini öğrenme, yanlış veya eksik verilerin düzeltilmesini talep etme ve verilerinizin tamamen yok edilmesini isteme hakkına sahipsiniz. Uygulama içerisindeki "Hesabı Sil" seçeneği bu hakkınızı otomatik ve anında yerine getirir.
+
+3. İletişim: 
+Her türlü yasal bildirim, KVKK talepleri ve veri gizliliği ile ilgili sorularınız için destek bölümünden veya doğrudan e-posta yoluyla bize ulaşabilirsiniz.
 ''';
 
   Widget _buildPolicyItem(

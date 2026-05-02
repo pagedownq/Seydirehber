@@ -360,110 +360,11 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ),
           ),
-          const SizedBox(height: 12),
-          Center(
-            child: TextButton(
-              onPressed: () => _showEmailLoginDialog(context, ref),
-              child: Text(
-                'E-posta ile Giriş',
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: AppColors.textSecondary.withOpacity(0.5),
-                  fontSize: 12,
-                ),
-              ),
-            ),
-          ),
         ],
       ),
     );
   }
 
-  void _showEmailLoginDialog(BuildContext context, WidgetRef ref) {
-    final emailController = TextEditingController();
-    final passwordController = TextEditingController();
-    final isIOS = Theme.of(context).platform == TargetPlatform.iOS;
-    final authNotifier = ref.read(authNotifierProvider.notifier);
-
-    showAdaptiveDialog(
-      context: context,
-      builder: (context) => isIOS
-          ? CupertinoAlertDialog(
-              title: const Text('E-posta ile Giriş'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const SizedBox(height: 16),
-                  CupertinoTextField(
-                    controller: emailController,
-                    placeholder: 'E-posta',
-                    keyboardType: TextInputType.emailAddress,
-                    padding: const EdgeInsets.all(12),
-                  ),
-                  const SizedBox(height: 8),
-                  CupertinoTextField(
-                    controller: passwordController,
-                    placeholder: 'Şifre',
-                    obscureText: true,
-                    padding: const EdgeInsets.all(12),
-                  ),
-                ],
-              ),
-              actions: [
-                CupertinoDialogAction(
-                  child: const Text('İptal'),
-                  onPressed: () => Navigator.pop(context),
-                ),
-                CupertinoDialogAction(
-                  isDefaultAction: true,
-                  child: const Text('Giriş Yap'),
-                  onPressed: () async {
-                    final email = emailController.text.trim();
-                    final password = passwordController.text.trim();
-                    if (email.isNotEmpty && password.isNotEmpty) {
-                      Navigator.pop(context);
-                      await authNotifier.signInWithEmail(email, password);
-                    }
-                  },
-                ),
-              ],
-            )
-          : AlertDialog(
-              title: const Text('E-posta ile Giriş'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: emailController,
-                    decoration: const InputDecoration(labelText: 'E-posta'),
-                    keyboardType: TextInputType.emailAddress,
-                  ),
-                  TextField(
-                    controller: passwordController,
-                    decoration: const InputDecoration(labelText: 'Şifre'),
-                    obscureText: true,
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('İPTAL'),
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    final email = emailController.text.trim();
-                    final password = passwordController.text.trim();
-                    if (email.isNotEmpty && password.isNotEmpty) {
-                      Navigator.pop(context);
-                      await authNotifier.signInWithEmail(email, password);
-                    }
-                  },
-                  child: const Text('GİRİŞ YAP'),
-                ),
-              ],
-            ),
-    );
-  }
 
   void _showBlockedUsersBottomSheet(BuildContext context) {
     showModalBottomSheet(

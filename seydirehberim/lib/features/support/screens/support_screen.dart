@@ -23,14 +23,15 @@ class _SupportScreenState extends ConsumerState<SupportScreen> {
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _messageController = TextEditingController();
-  String _selectedCategory = 'Öneri';
+  String _selectedCategory = 'Mekan / Firma Ekleme Talebi';
   bool _isSending = false;
 
   final List<String> _categories = [
+    'Mekan / Firma Ekleme Talebi',
     'Öneri',
     'Şikayet',
     'Hata Bildirimi',
-    'İş Birliği',
+    'İş Birliği & Reklam',
     'Diğer',
   ];
 

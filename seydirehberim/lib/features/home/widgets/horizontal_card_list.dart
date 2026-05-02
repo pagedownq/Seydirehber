@@ -31,7 +31,7 @@ class HorizontalCardList extends ConsumerWidget {
 
     return dataAsync.when(
       loading: () => SizedBox(
-        height: type == CardType.company ? 220 : 300,
+        height: type == CardType.company ? 220 : 340,
         child: ListView.builder(
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -81,7 +81,7 @@ class HorizontalCardList extends ConsumerWidget {
         }
 
         // Horizontal for companies, Vertical for events/places
-        final double listHeight = type == CardType.company ? 220 : 300;
+        final double listHeight = type == CardType.company ? 220 : 340;
 
         return SizedBox(
           height: listHeight,
@@ -114,8 +114,8 @@ class HorizontalCardList extends ConsumerWidget {
     final address = rawAdres.isNotEmpty ? rawAdres : (rawKonum.startsWith('http') ? '' : rawKonum);
 
     // Dimensions for Vertical (Event/Place)
-    const double cardWidth = 170;
-    const double imageHeight = 200;
+    const double cardWidth = 220;
+    const double imageHeight = 240;
 
     return RepaintBoundary(
       child: GestureDetector(
@@ -145,7 +145,7 @@ class HorizontalCardList extends ConsumerWidget {
               Text(
                 name,
                 style: const TextStyle(
-                  fontSize: 15,
+                  fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
                   letterSpacing: -0.2,

@@ -330,8 +330,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 _nextPage();
               }
             },
-            text: 'Devam Et',
+            text: 'Konum İznini Ver',
             icon: Icons.location_on_outlined,
+          ),
+          TextButton(
+            onPressed: _nextPage,
+            child: Text('Atla', style: TextStyle(color: AppColors.primary.withOpacity(0.7))),
           ),
         ],
       );
@@ -873,17 +877,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             ),
           ),
         ),
-        const SizedBox(height: 8),
-        TextButton(
-          onPressed: () => _showEmailLoginDialog(context, authNotifier),
-          child: Text(
-            'E-posta ile Giriş',
-            style: AppTextStyles.bodySmall.copyWith(
-              color: AppColors.textSecondary.withOpacity(0.5),
-              fontSize: 12,
-            ),
-          ),
-        ),
       ],
     );
   }
@@ -1124,97 +1117,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     );
   }
 
-  void _showEmailLoginDialog(BuildContext context, AuthNotifier authNotifier) {
-    final emailController = TextEditingController();
-    final passwordController = TextEditingController();
-    final isIOS = Theme.of(context).platform == TargetPlatform.iOS;
-
-    showAdaptiveDialog(
-      context: context,
-      builder: (context) => isIOS
-          ? CupertinoAlertDialog(
-              title: const Text('E-posta ile Giriş'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const SizedBox(height: 16),
-                  CupertinoTextField(
-                    controller: emailController,
-                    placeholder: 'E-posta',
-                    keyboardType: TextInputType.emailAddress,
-                    padding: const EdgeInsets.all(12),
-                  ),
-                  const SizedBox(height: 8),
-                  CupertinoTextField(
-                    controller: passwordController,
-                    placeholder: 'Şifre',
-                    obscureText: true,
-                    padding: const EdgeInsets.all(12),
-                  ),
-                ],
-              ),
-              actions: [
-                CupertinoDialogAction(
-                  child: const Text('İptal'),
-                  onPressed: () => Navigator.pop(context),
-                ),
-                CupertinoDialogAction(
-                  isDefaultAction: true,
-                  child: const Text('Giriş Yap'),
-                  onPressed: () async {
-                    final email = emailController.text.trim();
-                    final password = passwordController.text.trim();
-                    if (email.isNotEmpty && password.isNotEmpty) {
-                      Navigator.pop(context);
-                      await authNotifier.signInWithEmail(email, password);
-                      final prefs = await SharedPreferences.getInstance();
-                      await prefs.setBool('onboarding_completed', true);
-                      if (mounted) context.go('/');
-                    }
-                  },
-                ),
-              ],
-            )
-          : AlertDialog(
-              title: const Text('E-posta ile Giriş'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: emailController,
-                    decoration: const InputDecoration(labelText: 'E-posta'),
-                    keyboardType: TextInputType.emailAddress,
-                  ),
-                  TextField(
-                    controller: passwordController,
-                    decoration: const InputDecoration(labelText: 'Şifre'),
-                    obscureText: true,
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('İPTAL'),
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    final email = emailController.text.trim();
-                    final password = passwordController.text.trim();
-                    if (email.isNotEmpty && password.isNotEmpty) {
-                      Navigator.pop(context);
-                      await authNotifier.signInWithEmail(email, password);
-                      final prefs = await SharedPreferences.getInstance();
-                      await prefs.setBool('onboarding_completed', true);
-                      if (mounted) context.go('/');
-                    }
-                  },
-                  child: const Text('GİRİŞ YAP'),
-                ),
-              ],
-            ),
-    );
-  }
 }
 
 class _MockupServiceCard extends StatelessWidget {
