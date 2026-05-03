@@ -1,7 +1,7 @@
 name: seydirehberim
 description: "Seydi Rehber - Seydişehir Rehber Uygulaması"
 publish_to: 'none'
-version: 1.0.1+16
+version: 1.0.2+23
 
 environment:
   sdk: ^3.10.8
