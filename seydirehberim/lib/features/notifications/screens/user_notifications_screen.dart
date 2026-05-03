@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
@@ -18,6 +19,7 @@ class UserNotificationsScreen extends StatefulWidget {
 class _UserNotificationsScreenState extends State<UserNotificationsScreen> {
   DateTime? _installationDate;
   bool _loading = true;
+  final String? _currentUserId = FirebaseAuth.instance.currentUser?.uid;
 
   @override
   void initState() {
@@ -60,14 +62,29 @@ class _UserNotificationsScreenState extends State<UserNotificationsScreen> {
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
-                  return Center(child: Text('Bir hata oluştu: ${snapshot.error}'));
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Text('Hata: ${snapshot.error}'),
+                    ),
+                  );
                 }
 
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
 
-                final docs = snapshot.data?.docs ?? [];
+                // Filter documents manually to avoid complex Filter and index requirements
+                final allDocs = snapshot.data?.docs ?? [];
+                final docs = allDocs.where((doc) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  final targetId = data['targetUserId'];
+                  
+                  // Show if:
+                  // 1. It's a global announcement (targetId is null)
+                  // 2. It's for this specific user
+                  return targetId == null || (_currentUserId != null && targetId == _currentUserId);
+                }).toList();
 
                 if (docs.isEmpty) {
                   return Center(

@@ -1,5 +1,29 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+class ReviewReply {
+  final String text;
+  final DateTime createdAt;
+
+  ReviewReply({
+    required this.text,
+    required this.createdAt,
+  });
+
+  factory ReviewReply.fromMap(Map<String, dynamic> map) {
+    return ReviewReply(
+      text: map['text'] ?? '',
+      createdAt: (map['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'text': text,
+      'createdAt': Timestamp.fromDate(createdAt),
+    };
+  }
+}
+
 class Review {
   final String id;
   final String targetId;
@@ -12,6 +36,7 @@ class Review {
   final DateTime createdAt;
   final bool isEdited;
   final DateTime? updatedAt;
+  final ReviewReply? reply;
 
   Review({
     required this.id,
@@ -25,6 +50,7 @@ class Review {
     required this.createdAt,
     this.isEdited = false,
     this.updatedAt,
+    this.reply,
   });
 
   factory Review.fromFirestore(DocumentSnapshot doc) {
@@ -41,6 +67,7 @@ class Review {
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       isEdited: data['isEdited'] ?? false,
       updatedAt: (data['updatedAt'] as Timestamp?)?.toDate(),
+      reply: data['reply'] != null ? ReviewReply.fromMap(data['reply'] as Map<String, dynamic>) : null,
     );
   }
 
@@ -56,6 +83,7 @@ class Review {
       'createdAt': FieldValue.serverTimestamp(),
       'isEdited': isEdited,
       'updatedAt': updatedAt != null ? Timestamp.fromDate(updatedAt!) : null,
+      'reply': reply?.toMap(),
     };
   }
 }
