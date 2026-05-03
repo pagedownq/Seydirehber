@@ -17,6 +17,8 @@ import '../../../core/widgets/interactive_map_widget.dart';
 import '../../../core/widgets/review_section.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../../../core/widgets/image_slider.dart';
+
 class CompanyDetailScreen extends ConsumerStatefulWidget {
   final String companyId;
 
@@ -99,6 +101,10 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
           }
           final name = data['ad'] as String? ?? '';
           final imageUrl = data['image_url'] as String? ?? data['gorsel'] as String? ?? '';
+          final List<String> images = (data['images'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [];
+          if (images.isEmpty && imageUrl.isNotEmpty) {
+            images.add(imageUrl);
+          }
           final hakkinda = data['hakkinda'] as String? ?? '';
           final iletisim = data['iletisim'] as String? ?? '';
           final yetkiliKisi = data['yetkili_kisi'] as String? ?? '';
@@ -115,7 +121,7 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
               CustomScrollView(
                 physics: const ClampingScrollPhysics(),
                 slivers: [
-                  // App Bar with Image
+                  // App Bar with Image Slider
                   SliverAppBar(
                     expandedHeight: 450,
                     pinned: true,
@@ -143,25 +149,23 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
                       background: Stack(
                         fit: StackFit.expand,
                         children: [
-                          Hero(
-                            tag: 'company-${widget.companyId}',
-                            child: CachedImageWidget(
-                              imageUrl: imageUrl,
-                              fit: BoxFit.cover,
-                              isCompany: true,
-                            ),
+                          ImageSlider(
+                            images: images,
+                            heroTag: 'company-${widget.companyId}',
                           ),
-                          // Dark overlay for readability
-                          DecoratedBox(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  Colors.black.withOpacity(0.4),
-                                  Colors.transparent,
-                                  Colors.black.withOpacity(0.2),
-                                ],
+                          // Dark overlay for readability (Wrapped with IgnorePointer to allow swiping)
+                          IgnorePointer(
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Colors.black.withOpacity(0.4),
+                                    Colors.transparent,
+                                    Colors.black.withOpacity(0.2),
+                                  ],
+                                ),
                               ),
                             ),
                           ),

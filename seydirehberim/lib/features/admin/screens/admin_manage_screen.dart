@@ -80,184 +80,93 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
   }
 
   Widget _buildDocList(List<DocumentSnapshot> docs) {
-          // Apply local sorting matching web admin logic
-          if (widget.collection == 'firmalar' || widget.collection == 'gezilecek_yerler' || widget.collection == 'otobus_saatleri') {
-            docs.sort((a, b) {
-              final aData = a.data() as Map<String, dynamic>;
-              final bData = b.data() as Map<String, dynamic>;
-              final aOrderVal = aData['order'];
-              final bOrderVal = bData['order'];
-              final num aOrder = num.tryParse(aOrderVal?.toString() ?? '') ?? 999999;
-              final num bOrder = num.tryParse(bOrderVal?.toString() ?? '') ?? 999999;
-              
-              if (aOrder != bOrder) return aOrder.compareTo(bOrder);
-              
-              final String aName = (aData['ad'] ?? aData['guzergah'] ?? '').toString().toLowerCase();
-              final String bName = (bData['ad'] ?? bData['guzergah'] ?? '').toString().toLowerCase();
-              return aName.compareTo(bName);
-            });
-          } else if (widget.collection == 'banners') {
-            docs.sort((a, b) {
-              final aData = a.data() as Map<String, dynamic>;
-              final bData = b.data() as Map<String, dynamic>;
-              final aOrderVal = aData['order'];
-              final bOrderVal = bData['order'];
-              final num aOrder = num.tryParse(aOrderVal?.toString() ?? '') ?? 999999;
-              final num bOrder = num.tryParse(bOrderVal?.toString() ?? '') ?? 999999;
-              return aOrder.compareTo(bOrder);
-            });
-          }
+    // Perform sorting once per data update
+    _sortDocs(docs);
 
-          final isReorderable = widget.collection == 'firmalar' || widget.collection == 'banners' || widget.collection == 'gezilecek_yerler' || widget.collection == 'otobus_saatleri';
+    final isReorderable = widget.collection == 'firmalar' || 
+                          widget.collection == 'banners' || 
+                          widget.collection == 'gezilecek_yerler' || 
+                          widget.collection == 'otobus_saatleri';
 
-          if (isReorderable) {
-            return ReorderableListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: docs.length,
-              onReorder: (oldIndex, newIndex) async {
-                if (newIndex > oldIndex) newIndex -= 1;
-                final movedItem = docs.removeAt(oldIndex);
-                docs.insert(newIndex, movedItem);
+    if (isReorderable) {
+      return ReorderableListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: docs.length,
+        onReorder: (oldIndex, newIndex) async {
+          if (newIndex > oldIndex) newIndex -= 1;
+          final movedItem = docs.removeAt(oldIndex);
+          docs.insert(newIndex, movedItem);
 
-                // Batch update orders in Firestore
-                final batch = FirebaseFirestore.instance.batch();
-                for (int i = 0; i < docs.length; i++) {
-                  final docRef = FirebaseFirestore.instance
-                      .collection(widget.collection)
-                      .doc(docs[i].id);
-                  batch.update(docRef, {'order': i});
-                }
-                await batch.commit();
-              },
-              proxyDecorator: (child, index, animation) {
-                return AnimatedBuilder(
-                  animation: animation,
-                  builder: (context, child) {
-                    return Material(
-                      elevation: 0,
-                      color: Colors.transparent,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.2),
-                              blurRadius: 15,
-                              spreadRadius: 2,
-                            )
-                          ],
-                        ),
-                        child: child,
-                      ),
-                    );
-                  },
-                  child: child,
-                );
-              },
-              itemBuilder: (context, index) {
-                final doc = docs[index];
-                return _buildListItem(doc, index, key: ValueKey(doc.id));
-              },
+          final batch = FirebaseFirestore.instance.batch();
+          for (int i = 0; i < docs.length; i++) {
+            batch.update(
+              FirebaseFirestore.instance.collection(widget.collection).doc(docs[i].id),
+              {'order': i},
             );
           }
-
-          return ListView.separated(
-            padding: const EdgeInsets.all(16),
-            itemCount: docs.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 10),
-            itemBuilder: (context, index) {
-              return _buildListItem(docs[index], index);
-            },
+          await batch.commit();
+        },
+        proxyDecorator: (child, index, animation) => Material(
+          elevation: 8,
+          color: Colors.transparent,
+          child: child,
+        ),
+        itemBuilder: (context, index) {
+          final doc = docs[index];
+          return _AdminListItem(
+            key: ValueKey(doc.id),
+            doc: doc,
+            index: index,
+            collection: widget.collection,
+            isReorderable: isReorderable,
+            onEdit: (id, data) => _showAddEditDialog(docId: id, existingData: data),
+            onDelete: (id, data) => _deleteDocument(id, data),
+            subtitleBuilder: _buildListSubtitle,
           );
+        },
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: docs.length,
+      itemBuilder: (context, index) {
+        final doc = docs[index];
+        return _AdminListItem(
+          key: ValueKey(doc.id),
+          doc: doc,
+          index: index,
+          collection: widget.collection,
+          isReorderable: false,
+          onEdit: (id, data) => _showAddEditDialog(docId: id, existingData: data),
+          onDelete: (id, data) => _deleteDocument(id, data),
+          subtitleBuilder: _buildListSubtitle,
+        );
+      },
+    );
   }
 
-  Widget _buildListItem(DocumentSnapshot doc, int index, {Key? key}) {
-    final data = doc.data() as Map<String, dynamic>;
-    final name = data['ad'] as String? ??
-        data['title'] as String? ??
-        data['baslik'] as String? ??
-        data['ad_soyad'] as String? ??
-        data['companyName'] as String? ??
-        data['userName'] as String? ??
-        data['username'] as String? ??
-        data['email'] as String? ??
-        data['name'] as String? ??
-        data['guzergah'] as String? ??
-        'İsimsiz';
-    final imageUrl =
-        data['image_url'] as String? ?? data['gorsel'] as String? ?? '';
-
-    final isReorderable = widget.collection == 'firmalar' || widget.collection == 'banners' || widget.collection == 'gezilecek_yerler' || widget.collection == 'otobus_saatleri';
-
-    return Container(
-      key: key,
-      margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(5),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: ListTile(
-        leading: CachedImageWidget(
-          imageUrl: imageUrl,
-          width: 50,
-          height: 50,
-          borderRadius: 8,
-        ),
-        title: Row(
-          children: [
-            Expanded(
-              child: Text(name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.bodyMedium
-                      .copyWith(fontWeight: FontWeight.w600)),
-            ),
-            if (data['order'] != null)
-              Text(
-                ' #${data['order']}',
-                style: TextStyle(fontSize: 10, color: Colors.grey[400]),
-              ),
-          ],
-        ),
-        subtitle: _buildListSubtitle(data),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            PopupMenuButton(
-              icon: const Icon(Icons.more_vert),
-              itemBuilder: (ctx) => [
-                const PopupMenuItem(value: 'edit', child: Text('Düzenle')),
-                const PopupMenuItem(value: 'delete', child: Text('Sil')),
-              ],
-              onSelected: (value) {
-                if (value == 'edit') {
-                  _showAddEditDialog(docId: doc.id, existingData: data);
-                } else if (value == 'delete') {
-                  _deleteDocument(doc.id, data);
-                }
-              },
-            ),
-            if (isReorderable)
-              ReorderableDragStartListener(
-                index: index,
-                child: const Padding(
-                  padding: EdgeInsets.only(left: 4),
-                  child: Icon(Icons.drag_indicator, color: Colors.grey),
-                ),
-              ),
-          ],
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-        ),
-      ),
-    );
+  void _sortDocs(List<DocumentSnapshot> docs) {
+    if (widget.collection == 'firmalar' || widget.collection == 'gezilecek_yerler' || widget.collection == 'otobus_saatleri') {
+      docs.sort((a, b) {
+        final aData = a.data() as Map<String, dynamic>;
+        final bData = b.data() as Map<String, dynamic>;
+        final aOrder = num.tryParse(aData['order']?.toString() ?? '') ?? 999999;
+        final bOrder = num.tryParse(bData['order']?.toString() ?? '') ?? 999999;
+        if (aOrder != bOrder) return aOrder.compareTo(bOrder);
+        final aName = (aData['ad'] ?? aData['guzergah'] ?? '').toString().toLowerCase();
+        final bName = (bData['ad'] ?? bData['guzergah'] ?? '').toString().toLowerCase();
+        return aName.compareTo(bName);
+      });
+    } else if (widget.collection == 'banners') {
+      docs.sort((a, b) {
+        final aData = a.data() as Map<String, dynamic>;
+        final bData = b.data() as Map<String, dynamic>;
+        final aOrder = num.tryParse(aData['order']?.toString() ?? '') ?? 999999;
+        final bOrder = num.tryParse(bData['order']?.toString() ?? '') ?? 999999;
+        return aOrder.compareTo(bOrder);
+      });
+    }
   }
 
 
@@ -484,14 +393,19 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
   void _showAddEditDialog({String? docId, Map<String, dynamic>? existingData}) {
     final fields = _getFields();
     final controllers = <String, TextEditingController>{};
-    File? selectedImage;
+    List<File> selectedImages = [];
+    List<String> existingImages = (existingData?['images'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [];
+    if (existingImages.isEmpty && existingData?['image_url'] != null) {
+      existingImages.add(existingData!['image_url']);
+    }
+    List<String> imagesToDelete = [];
     bool isLoading = false;
 
     final boolValues = <String, bool>{};
     for (final field in fields) {
       if (field.isBoolean) {
         boolValues[field.key] = existingData?[field.key] ?? field.defaultValue;
-        continue; // Booleans don't need controllers
+        continue;
       }
       String initialValue = '';
       final val = existingData?[field.key];
@@ -525,7 +439,6 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
       ),
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setModalState) {
-          // Sync with controller locally if needed, but allow toggle
           return Padding(
             padding: EdgeInsets.fromLTRB(
               20,
@@ -544,38 +457,108 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Image picker (if bucket exists)
+                  // MULTI-IMAGE PICKER (Firms Only)
                   if (widget.bucket != null) ...[
-                    GestureDetector(
-                      onTap: () async {
-                        final picker = ImagePicker();
-                        final image = await picker.pickImage(
-                          source: ImageSource.gallery,
-                          maxWidth: 1200,
-                        );
-                        if (image != null) {
-                          setModalState(() => selectedImage = File(image.path));
-                        }
-                      },
-                      child: Container(
-                        width: double.infinity,
-                        height: 120,
-                        decoration: BoxDecoration(
-                          color: AppColors.primarySurface,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppColors.border),
-                        ),
-                        child: selectedImage != null
-                            ? ClipRRect(
+                    const Text('Fotoğraflar', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                    const SizedBox(height: 8),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          // ADD BUTTON
+                          GestureDetector(
+                            onTap: () async {
+                              final picker = ImagePicker();
+                              final images = await picker.pickMultiImage(
+                                maxWidth: 1000, // Boyutu optimize ettik
+                                imageQuality: 70, // Sıkıştırma oranını artırdık (hız için)
+                              );
+                              if (images.isNotEmpty) {
+                                setModalState(() {
+                                  selectedImages.addAll(images.map((e) => File(e.path)));
+                                });
+                              }
+                            },
+                            child: Container(
+                              width: 80,
+                              height: 80,
+                              decoration: BoxDecoration(
+                                color: AppColors.primarySurface,
                                 borderRadius: BorderRadius.circular(12),
-                                child: Image.file(selectedImage!, fit: BoxFit.cover),
-                              )
-                            : CachedImageWidget(
-                                imageUrl: existingData?['image_url'] ?? '',
-                                borderRadius: 12,
-                                width: double.infinity,
-                                height: 120,
+                                border: Border.all(color: AppColors.border),
                               ),
+                              child: const Icon(Icons.add_a_photo, color: AppColors.primary),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          // EXISTING IMAGES (From URLs)
+                          ...existingImages.map((url) => Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: Stack(
+                              clipBehavior: Clip.none, // Butonun dışarı taşmasına izin ver
+                              children: [
+                                CachedImageWidget(
+                                  imageUrl: url,
+                                  width: 80,
+                                  height: 80,
+                                  borderRadius: 12,
+                                ),
+                                Positioned(
+                                  top: -8,
+                                  right: -8,
+                                  child: GestureDetector(
+                                    onTap: () => setModalState(() {
+                                      existingImages.remove(url);
+                                      imagesToDelete.add(url);
+                                    }),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(4),
+                                      decoration: BoxDecoration(
+                                        color: Colors.red,
+                                        shape: BoxShape.circle,
+                                        boxShadow: [
+                                          BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 4)
+                                        ],
+                                      ),
+                                      child: const Icon(Icons.close, size: 16, color: Colors.white),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )),
+                          // NEWLY SELECTED IMAGES (From Files)
+                          ...selectedImages.map((file) => Padding(
+                            padding: const EdgeInsets.only(right: 12, top: 8), // Boşlukları artırdık
+                            child: Stack(
+                              clipBehavior: Clip.none, // Butonun dışarı taşmasına izin ver
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Image.file(file, width: 80, height: 80, fit: BoxFit.cover),
+                                ),
+                                Positioned(
+                                  top: -8,
+                                  right: -8,
+                                  child: GestureDetector(
+                                    onTap: () => setModalState(() => selectedImages.remove(file)),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(4),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black,
+                                        shape: BoxShape.circle,
+                                        boxShadow: [
+                                          BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 4)
+                                        ],
+                                      ),
+                                      child: const Icon(Icons.close, size: 16, color: Colors.white),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -721,17 +704,32 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
                               setModalState(() => isLoading = true);
 
                               try {
-                                String? imageUrl = existingData?['image_url'] as String?;
+                                List<String> allImageUrls = [...existingImages];
 
-                                // Upload image to Supabase if selected
-                                if (selectedImage != null && widget.bucket != null) {
-                                  final fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
-                                  await Supabase.instance.client.storage
-                                      .from(widget.bucket!)
-                                      .upload(fileName, selectedImage!);
-                                  imageUrl = Supabase.instance.client.storage
-                                      .from(widget.bucket!)
-                                      .getPublicUrl(fileName);
+                                // Upload new images to Supabase in PARALLEL
+                                if (selectedImages.isNotEmpty && widget.bucket != null) {
+                                  final List<String> newUrls = await Future.wait(
+                                    selectedImages.map((file) async {
+                                      final fileName = '${DateTime.now().millisecondsSinceEpoch}_${selectedImages.indexOf(file)}_${file.path.split('/').last}';
+                                      await Supabase.instance.client.storage
+                                          .from(widget.bucket!)
+                                          .upload(fileName, file);
+                                      return Supabase.instance.client.storage
+                                          .from(widget.bucket!)
+                                          .getPublicUrl(fileName);
+                                    }),
+                                  );
+                                  allImageUrls.addAll(newUrls);
+                                }
+
+                                // Delete removed images from Supabase
+                                for (var url in imagesToDelete) {
+                                  try {
+                                    final fileName = url.split('/').last;
+                                    await Supabase.instance.client.storage.from(widget.bucket!).remove([fileName]);
+                                  } catch (e) {
+                                    debugPrint('Error deleting image: $e');
+                                  }
                                 }
 
                                 // Build document data
@@ -775,7 +773,6 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
                                     } else if (field.isCompanyPicker) {
                                       final parts = value.split(' | ');
                                       docData[field.key] = parts.last;
-                                      // If we have a category in existingData (from picker), add it to docData
                                       if (existingData?['companyCategory'] != null) {
                                         docData['companyCategory'] = existingData!['companyCategory'];
                                       }
@@ -787,12 +784,10 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
                                   }
                                 }
 
-                                if (imageUrl != null && imageUrl.isNotEmpty) {
-                                  docData['image_url'] = imageUrl;
-                                } else if (docId == null) {
-                                  // For NEW documents, if no image uploaded, default to empty string
-                                  docData['image_url'] = '';
-                                }
+                                // Update images list
+                                docData['images'] = allImageUrls;
+                                // Fallback for single image_url
+                                docData['image_url'] = allImageUrls.isNotEmpty ? allImageUrls.first : '';
 
                                   if (docId == null) {
                                     docData['created_at'] =
@@ -872,7 +867,9 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
                               child: CircularProgressIndicator(
                                   strokeWidth: 2, color: Colors.white),
                             )
-                          : Text(docId == null ? 'Ekle' : 'Güncelle'),
+                          : Text(docId == null 
+                              ? (selectedImages.isNotEmpty ? 'Fotoğraflar Yükleniyor...' : 'Ekle') 
+                              : (selectedImages.isNotEmpty ? 'Fotoğraflar Yükleniyor...' : 'Güncelle')),
                     ),
                   ),
                 ],
@@ -907,23 +904,20 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
     if (confirmed != true) return;
 
     try {
-      // Get image URL from multiple possible keys
-      final imageUrl = data['image_url'] as String? ?? data['gorsel'] as String?;
+      // Get all images to delete from Storage
+      final List<String> images = (data['images'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [];
+      if (images.isEmpty && (data['image_url'] as String?) != null) {
+        images.add(data['image_url']);
+      }
 
-      // Delete image from Supabase Storage if it exists and a bucket is assigned
-      if (widget.bucket != null && imageUrl != null && imageUrl.isNotEmpty) {
+      // Delete images from Supabase Storage if they exist and a bucket is assigned
+      if (widget.bucket != null && images.isNotEmpty) {
         try {
-          final uri = Uri.parse(imageUrl);
-          final fileName = uri.pathSegments.last;
-
-          await Supabase.instance.client.storage
-              .from(widget.bucket!)
-              .remove([fileName]);
-
-          debugPrint('Storage item deleted: $fileName');
+          final List<String> fileNames = images.map((url) => url.split('/').last).toList();
+          await Supabase.instance.client.storage.from(widget.bucket!).remove(fileNames);
+          debugPrint('Storage items deleted: $fileNames');
         } catch (storageError) {
           debugPrint('Storage delete error: $storageError');
-          // We continue to delete the document even if storage delete fails
         }
       }
 
@@ -1212,6 +1206,95 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
         ),
         const SizedBox(height: 16),
       ],
+    );
+  }
+}
+
+class _AdminListItem extends StatelessWidget {
+  final DocumentSnapshot doc;
+  final int index;
+  final String collection;
+  final bool isReorderable;
+  final Function(String, Map<String, dynamic>) onEdit;
+  final Function(String, Map<String, dynamic>) onDelete;
+  final Widget? Function(Map<String, dynamic>) subtitleBuilder;
+
+  const _AdminListItem({
+    super.key,
+    required this.doc,
+    required this.index,
+    required this.collection,
+    required this.isReorderable,
+    required this.onEdit,
+    required this.onDelete,
+    required this.subtitleBuilder,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final data = doc.data() as Map<String, dynamic>;
+    final name = data['ad'] as String? ??
+        data['title'] as String? ??
+        data['baslik'] as String? ??
+        data['ad_soyad'] as String? ??
+        data['companyName'] as String? ??
+        data['userName'] as String? ??
+        data['name'] as String? ??
+        data['guzergah'] as String? ??
+        'İsimsiz';
+    
+    final imageUrl = data['image_url'] as String? ?? data['gorsel'] as String? ?? '';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        leading: CachedImageWidget(
+          imageUrl: imageUrl,
+          width: 50,
+          height: 50,
+          borderRadius: 10,
+        ),
+        title: Text(
+          name,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold),
+        ),
+        subtitle: subtitleBuilder(data),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert, color: Colors.grey),
+              onSelected: (value) {
+                if (value == 'edit') onEdit(doc.id, data);
+                else if (value == 'delete') onDelete(doc.id, data);
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(value: 'edit', child: Text('Düzenle')),
+                const PopupMenuItem(value: 'delete', child: Text('Sil')),
+              ],
+            ),
+            if (isReorderable)
+              ReorderableDragStartListener(
+                index: index,
+                child: const Icon(Icons.drag_indicator, color: Colors.grey),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }
