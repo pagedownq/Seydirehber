@@ -373,6 +373,7 @@ class _SearchCollectionSection extends ConsumerWidget {
                           memCacheWidth: 100,
                           memCacheHeight: 100,
                           isCompany: routePrefix == '/companies',
+                          isEvent: routePrefix == '/events',
                         ),
                       ),
                 title: Text(name.toString()),

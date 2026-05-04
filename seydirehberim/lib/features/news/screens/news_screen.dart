@@ -49,9 +49,12 @@ class NewsScreen extends ConsumerWidget {
             onRefresh: () => ref.refresh(newsProvider.future),
             child: ListView.separated(
               padding: const EdgeInsets.all(16),
-              itemCount: newsList.length,
+              itemCount: newsList.length + 1, // Footer için +1
               separatorBuilder: (_, __) => const SizedBox(height: 16),
               itemBuilder: (context, index) {
+                if (index == newsList.length) {
+                  return _buildMoreNewsFooter(context);
+                }
                 final news = newsList[index];
                 return _NewsCard(news: news);
               },
@@ -124,8 +127,8 @@ class NewsScreen extends ConsumerWidget {
                   child: Column(
                     children: [
                        _buildLegalPoint(
-                        Icons.rss_feed_rounded,
-                        'Haberler, yayıncıların sunduğu RSS beslemeleriyle otomatik çekilmektedir.',
+                        Icons.newspaper_rounded,
+                        'Haberler, resmi izinli web sitesinden otomatik olarak çekilmektedir.',
                       ),
                       const SizedBox(height: 10),
                       _buildLegalPoint(
@@ -176,6 +179,59 @@ class NewsScreen extends ConsumerWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildMoreNewsFooter(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 24),
+      child: Column(
+        children: [
+          const Icon(
+            Icons.auto_awesome_motion_rounded,
+            color: AppColors.textLight,
+            size: 40,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Tüm haberleri gördünüz',
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Daha fazlası ve arşiv için haber sitesini ziyaret edin.',
+            textAlign: TextAlign.center,
+            style: AppTextStyles.bodySmall.copyWith(
+              color: AppColors.textLight,
+            ),
+          ),
+          const SizedBox(height: 20),
+          ElevatedButton.icon(
+            onPressed: () async {
+              HapticService.selection();
+              final url = Uri.parse('https://www.seydisehirhaber.com');
+              if (await canLaunchUrl(url)) {
+                await launchUrl(url, mode: LaunchMode.externalApplication);
+              }
+            },
+            icon: const Icon(Icons.open_in_new_rounded, size: 18),
+            label: const Text('Haber Sitesine Git'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 0,
+            ),
+          ),
+          const SizedBox(height: 40),
+        ],
       ),
     );
   }

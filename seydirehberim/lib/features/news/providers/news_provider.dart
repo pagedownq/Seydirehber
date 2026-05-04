@@ -1,70 +1,154 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
-import 'package:xml2json/xml2json.dart';
+import 'package:html/parser.dart' as parser;
+import 'package:html/dom.dart' as dom;
 import 'dart:convert';
 import '../models/news_model.dart';
+import 'package:flutter/foundation.dart';
 
 final newsProvider = FutureProvider<List<NewsModel>>((ref) async {
-  final Map<String, String> sources = {
-    'Seydişehir\'in Sesi': 'https://www.seydisehirinsesi.com.tr/rss.xml',
-  };
+  const String baseUrl = 'https://www.seydisehirhaber.com';
+  const String categoryUrl = '$baseUrl/kategori/32/seydisehir';
+  
+  try {
+    final response = await http.get(Uri.parse(categoryUrl), headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    }).timeout(const Duration(seconds: 15));
 
-  final List<NewsModel> allNews = [];
+    if (response.statusCode != 200) throw Exception('Sunucu hatası: ${response.statusCode}');
 
-  final results = await Future.wait(
-    sources.entries.map((entry) async {
-      try {
-        final response = await http.get(
-          Uri.parse(entry.value),
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Accept': 'application/xml, text/xml, */*',
-          },
-        ).timeout(const Duration(seconds: 15));
+    final document = parser.parse(utf8.decode(response.bodyBytes));
+    final List<dom.Element> newsLinks = document.querySelectorAll('a[href*="/haber/"]');
+    final List<String> uniqueLinks = [];
+    final Set<String> seen = {};
 
-        if (response.statusCode == 200) {
-          // allowMalformed: true helps with Turkish characters in legacy feeds
-          final xml = utf8.decode(response.bodyBytes, allowMalformed: true);
-          final myTransformer = Xml2Json();
-          myTransformer.parse(xml);
-          
-          final jsonStr = myTransformer.toGData();
-          final data = json.decode(jsonStr);
-          
-          final items = data['rss']?['channel']?['item'];
-          
-          List<NewsModel> sourceNews = [];
-          if (items is List) {
-            sourceNews = items.map((item) => NewsModel.fromXmlMap(item, entry.key)).toList();
-          } else if (items is Map<String, dynamic>) {
-            sourceNews = [NewsModel.fromXmlMap(items, entry.key)];
-          }
-          return sourceNews;
-        } else {
-          print('RSS Fetch Error (${entry.key}): Status ${response.statusCode}');
-        }
-      } catch (e) {
-        print('Error fetching RSS from ${entry.key}: $e');
+    for (var el in newsLinks) {
+      String? link = el.attributes['href'];
+      if (link == null || link.isEmpty || link.contains('resimler/')) continue;
+      if (!link.startsWith('http')) link = '$baseUrl${link.startsWith('/') ? '' : '/'}$link';
+      if (!seen.contains(link)) {
+        seen.add(link);
+        uniqueLinks.add(link);
       }
-      return <NewsModel>[];
-    }),
-  );
+      if (uniqueLinks.length >= 30) break;
+    }
 
-  for (var newsList in results) {
-    allNews.addAll(newsList);
+    // Haber detaylarını paralel olarak 5'erli gruplarla çekelim
+    List<NewsModel> allNews = [];
+    for (var i = 0; i < uniqueLinks.length; i += 5) {
+      final end = (i + 5 < uniqueLinks.length) ? i + 5 : uniqueLinks.length;
+      final batch = uniqueLinks.sublist(i, end);
+      
+      final results = await Future.wait(batch.map((link) => _fetchNewsDetail(link, baseUrl)));
+      allNews.addAll(results.whereType<NewsModel>());
+    }
+
+    // Tarih/ID Sıralaması (En yeni en üstte)
+    allNews.sort((a, b) {
+      if (a.date != null && b.date != null) return b.date!.compareTo(a.date!);
+      final idA = int.tryParse(RegExp(r'/haber/(\d+)/').firstMatch(a.link)?.group(1) ?? '0') ?? 0;
+      final idB = int.tryParse(RegExp(r'/haber/(\d+)/').firstMatch(b.link)?.group(1) ?? '0') ?? 0;
+      return idB.compareTo(idA);
+    });
+
+    return allNews;
+  } catch (e) {
+    debugPrint('❌ [ERROR] Scraper: $e');
+    rethrow;
   }
-
-  if (allNews.isEmpty) {
-    throw Exception('Şu an haberlere ulaşılamıyor. Lütfen daha sonra tekrar deneyin.');
-  }
-
-  // Sort by date (newest first)
-  allNews.sort((a, b) {
-    if (a.date == null && b.date == null) return 0;
-    if (a.date == null) return 1;
-    if (b.date == null) return -1;
-    return b.date!.compareTo(a.date!);
-  });
-
-  return allNews;
 });
+
+Future<NewsModel?> _fetchNewsDetail(String link, String baseUrl) async {
+  try {
+    final response = await http.get(Uri.parse(link), headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    }).timeout(const Duration(seconds: 10));
+
+    if (response.statusCode != 200) return null;
+    final doc = parser.parse(utf8.decode(response.bodyBytes));
+
+    // 1. Başlık (HTML kodlarından temizle)
+    String rawTitle = doc.querySelector('h1')?.text.trim() ?? 
+                   doc.querySelector('meta[property="og:title"]')?.attributes['content']?.replaceAll(' | Seydisehirhaber.com', '').trim() ?? 
+                   'Haber';
+    String title = parser.parseFragment(rawTitle).text?.trim() ?? rawTitle;
+
+    // 2. Resim (Hiyerarşik Arama)
+    String imageUrl = '';
+    
+    // a. OG:Image (En temiz kaynak)
+    imageUrl = doc.querySelector('meta[property="og:image"]')?.attributes['content'] ?? '';
+    
+    // b. Facebook Paylaşım Linkindeki Resim
+    if (imageUrl.isEmpty || imageUrl.contains('placeholder')) {
+      final fbLink = doc.querySelector('a[href*="facebook.com/sharer"]')?.attributes['href'];
+      if (fbLink != null && fbLink.contains('picture=')) {
+        final uri = Uri.parse(fbLink);
+        imageUrl = uri.queryParameters['picture'] ?? '';
+      }
+    }
+    
+    // c. H1 altındaki ilk büyük resim
+    if (imageUrl.isEmpty) {
+      final articleImg = doc.querySelector('article img, .news-content img, .entry-content img');
+      imageUrl = articleImg?.attributes['src'] ?? '';
+    }
+
+    if (imageUrl.isNotEmpty && !imageUrl.startsWith('http')) {
+      imageUrl = '$baseUrl${imageUrl.startsWith('/') ? '' : '/'}$imageUrl';
+    }
+
+    // 3. Tarih ve Saat
+    DateTime? date;
+    String pubDate = 'Güncel';
+    
+    // a. Meta Published Time (Saniye hassasiyetinde)
+    final metaTime = doc.querySelector('meta[property="article:published_time"]')?.attributes['content'];
+    if (metaTime != null) {
+      date = DateTime.tryParse(metaTime)?.toLocal();
+    }
+    
+    // b. Sayfa içindeki metinden saat çekme
+    if (date == null) {
+      final match = RegExp(r'(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2})').firstMatch(doc.body?.text ?? '');
+      if (match != null) {
+        date = DateTime(
+          int.parse(match.group(3)!), 
+          int.parse(match.group(2)!), 
+          int.parse(match.group(1)!),
+          int.parse(match.group(4)!),
+          int.parse(match.group(5)!),
+        );
+      }
+    }
+
+    // c. Resim URL'sinden Unix Timestamp (Son çare saat için)
+    if (date == null && imageUrl.isNotEmpty) {
+      final tsMatch = RegExp(r'(\d{10})_').firstMatch(imageUrl);
+      if (tsMatch != null) {
+        date = DateTime.fromMillisecondsSinceEpoch(int.parse(tsMatch.group(1)!) * 1000);
+      }
+    }
+
+    if (date != null) {
+      final trMonths = ['', 'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+      pubDate = '${date.day} ${trMonths[date.month]}, ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+    }
+
+    // 4. Açıklama (HTML kodlarından temizle)
+    String rawDesc = doc.querySelector('meta[name="description"]')?.attributes['content']?.trim() ?? '';
+    String description = parser.parseFragment(rawDesc).text?.replaceAll('&nbsp;', ' ').trim() ?? '';
+
+    return NewsModel.fromHtml(
+      title: title,
+      link: link,
+      imageUrl: imageUrl,
+      description: description,
+      pubDate: pubDate,
+      source: 'Seydişehir Haber',
+      date: date,
+    );
+  } catch (e) {
+    return null;
+  }
+}

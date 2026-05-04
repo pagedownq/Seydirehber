@@ -224,6 +224,7 @@ class GenericListScreen extends ConsumerWidget {
                         imageUrl: imageUrl,
                         fit: BoxFit.cover,
                         isCompany: routePrefix == 'companies',
+                        isEvent: routePrefix == 'events',
                       ),
                     ),
                     Positioned.fill(
@@ -457,6 +458,7 @@ class GenericListScreen extends ConsumerWidget {
                       child: CachedImageWidget(
                         imageUrl: imageUrl,
                         fit: BoxFit.cover,
+                        isEvent: routePrefix == 'events',
                       ),
                     ),
                     if (category.isNotEmpty)

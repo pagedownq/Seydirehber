@@ -82,6 +82,7 @@ class EventDetailScreen extends ConsumerWidget {
                             child: CachedImageWidget(
                               imageUrl: imageUrl,
                               fit: BoxFit.cover,
+                              isEvent: true,
                             ),
                           ),
                           DecoratedBox(

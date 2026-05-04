@@ -136,6 +136,7 @@ class HorizontalCardList extends ConsumerWidget {
                   width: cardWidth,
                   fit: BoxFit.cover,
                   borderRadius: 16,
+                  isEvent: type == CardType.event,
                 ),
               ),
 

@@ -13,6 +13,7 @@ class CachedImageWidget extends StatelessWidget {
   final int? memCacheHeight;
 
   final bool isCompany;
+  final bool isEvent;
 
   const CachedImageWidget({
     super.key,
@@ -24,6 +25,7 @@ class CachedImageWidget extends StatelessWidget {
     this.memCacheWidth,
     this.memCacheHeight,
     this.isCompany = false,
+    this.isEvent = false,
   });
 
   @override
@@ -31,9 +33,9 @@ class CachedImageWidget extends StatelessWidget {
     if (imageUrl.isEmpty) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius),
-        child: isCompany
+        child: isCompany || isEvent
             ? Image.asset(
-                'assets/fotoyok.png',
+                isEvent ? 'assets/etkinlikyok.png' : 'assets/fotoyok.png',
                 width: width,
                 height: height,
                 fit: fit,
@@ -73,9 +75,9 @@ class CachedImageWidget extends StatelessWidget {
             width: width,
             height: height,
             color: AppColors.primarySurface,
-            child: isCompany
+            child: isCompany || isEvent
                 ? Image.asset(
-                    'assets/fotoyok.png',
+                    isEvent ? 'assets/etkinlikyok.png' : 'assets/fotoyok.png',
                     width: width,
                     height: height,
                     fit: fit,

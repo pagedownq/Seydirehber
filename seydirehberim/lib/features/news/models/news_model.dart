@@ -163,4 +163,24 @@ class NewsModel {
       date: date,
     );
   }
+
+  factory NewsModel.fromHtml({
+    required String title,
+    required String link,
+    required String imageUrl,
+    required String description,
+    required String pubDate,
+    required String source,
+    DateTime? date,
+  }) {
+    return NewsModel(
+      title: title,
+      link: link,
+      description: description,
+      imageUrl: imageUrl,
+      pubDate: pubDate,
+      source: source,
+      date: date,
+    );
+  }
 }
