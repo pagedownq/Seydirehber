@@ -25,4 +25,18 @@ class Vefat {
       contact: cells.length > 5 ? cells[5].trim() : '',
     );
   }
+
+  DateTime? get dateTime {
+    try {
+      final parts = date.split('.');
+      if (parts.length == 3) {
+        return DateTime(
+          int.parse(parts[2]), // Yıl
+          int.parse(parts[1]), // Ay
+          int.parse(parts[0]), // Gün
+        );
+      }
+    } catch (_) {}
+    return null;
+  }
 }

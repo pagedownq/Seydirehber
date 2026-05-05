@@ -23,6 +23,7 @@ class NotificationService {
 
   NavigateToCallback? _navigateTo;
   String? _pendingRoute;
+  bool _isInitialized = false;
 
   set navigateTo(NavigateToCallback? callback) {
     _navigateTo = callback;
@@ -48,6 +49,9 @@ class NotificationService {
   static const String _installationDateKey = 'installationDate';
 
   Future<void> initialize() async {
+    if (_isInitialized) return;
+    _isInitialized = true;
+
     // 1. Initialize First Use Date if not set
     await _initInstallationDate();
 
@@ -84,12 +88,14 @@ class NotificationService {
       },
     );
 
-    // Set foreground presentation options (always do this on init, it doesn't prompt)
+    // Set foreground presentation options to FALSE on iOS
+    // This prevents the system from showing the notification automatically,
+    // allowing us to handle it manually through local notifications without duplicates.
     if (Platform.isIOS) {
       await _firebaseMessaging.setForegroundNotificationPresentationOptions(
-        alert: true,
-        badge: true,
-        sound: true,
+        alert: false,
+        badge: false,
+        sound: false,
       );
     }
 
@@ -114,11 +120,9 @@ class NotificationService {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       LogService().notification('Foreground message received: ${message.notification?.title}');
       
-      // On iOS, if we have a notification block, setForegroundNotificationPresentationOptions
-      // already handles showing the alert. Showing it again via local notifications causes duplicates.
-      if (Platform.isIOS && message.notification != null) {
-        return;
-      }
+      // We removed the iOS-specific return here because we disabled 
+      // setForegroundNotificationPresentationOptions above.
+      // Now, both Android and iOS will use the local notification display below.
 
       RemoteNotification? notification = message.notification;
       AndroidNotification? android = message.notification?.android;
@@ -183,6 +187,16 @@ class NotificationService {
       } else {
         await _firebaseMessaging.unsubscribeFromTopic('all');
         debugPrint('Auto-unsubscribed from "all" topic on init');
+      }
+
+      // Handle Vefat topic subscription
+      final isVefatEnabled = await isVefatNotificationsEnabled();
+      if (isVefatEnabled) {
+        await _firebaseMessaging.subscribeToTopic('vefat_notif');
+        debugPrint('Auto-subscribed to "vefat_notif" topic on init');
+      } else {
+        await _firebaseMessaging.unsubscribeFromTopic('vefat_notif');
+        debugPrint('Auto-unsubscribed from "vefat_notif" topic on init');
       }
     }
 
@@ -257,6 +271,28 @@ class NotificationService {
       DailyNotificationService()
           .setDailyNotificationsEnabled(false)
           .catchError((e) => debugPrint('DailyNotif cancel error: $e'));
+    }
+  }
+
+  // --- Vefat Notification Toggle Logic ---
+  static const String _vefatNotificationsEnabledKey = 'vefat_notifications_enabled';
+
+  Future<bool> isVefatNotificationsEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    // Default to true
+    return prefs.getBool(_vefatNotificationsEnabledKey) ?? true;
+  }
+
+  Future<void> setVefatNotificationsEnabled(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_vefatNotificationsEnabledKey, enabled);
+
+    if (enabled) {
+      await _firebaseMessaging.subscribeToTopic('vefat_notif');
+      debugPrint('Subscribed to "vefat_notif" topic');
+    } else {
+      await _firebaseMessaging.unsubscribeFromTopic('vefat_notif');
+      debugPrint('Unsubscribed from "vefat_notif" topic');
     }
   }
 

@@ -90,6 +90,10 @@ class SettingsScreen extends ConsumerWidget {
           const _DailyNotificationToggleItem(),
           const SizedBox(height: 8),
 
+          // Vefat Notification Toggle
+          const _VefatNotificationToggleItem(),
+          const SizedBox(height: 8),
+
           // Haptic Feedback Toggle
           const _HapticToggleItem(),
           const SizedBox(height: 8),
@@ -755,6 +759,73 @@ class _HapticToggleItemState extends State<_HapticToggleItem> {
           if (newHapticState) {
             HapticService.medium();
           }
+        },
+      ),
+    );
+  }
+}
+
+class _VefatNotificationToggleItem extends StatefulWidget {
+  const _VefatNotificationToggleItem();
+
+  @override
+  State<_VefatNotificationToggleItem> createState() => _VefatNotificationToggleItemState();
+}
+
+class _VefatNotificationToggleItemState extends State<_VefatNotificationToggleItem> {
+  bool? _vefatEnabled;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadState();
+  }
+
+  Future<void> _loadState() async {
+    final enabled = await NotificationService().isVefatNotificationsEnabled();
+    if (mounted) {
+      setState(() {
+        _vefatEnabled = enabled;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_vefatEnabled == null) {
+      return const SizedBox(height: 60, child: Center(child: CircularProgressIndicator()));
+    }
+
+    return Material(
+      color: AppColors.white,
+      borderRadius: BorderRadius.circular(14),
+      child: SwitchListTile(
+        activeColor: const Color(0xFF1A3F6A),
+        title: Text(
+          'Vefat İlanları',
+          style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600),
+        ),
+        subtitle: Text(
+          _vefatEnabled!
+              ? 'Vefat ilanlarından haberdar oluyorsunuz'
+              : 'Vefat ilanları bildirimi kapatıldı',
+          style: AppTextStyles.caption,
+        ),
+        secondary: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1A3F6A).withOpacity(0.1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: const Icon(Icons.history_edu_rounded, color: Color(0xFF1A3F6A), size: 22),
+        ),
+        value: _vefatEnabled!,
+        onChanged: (value) async {
+          HapticService.selection();
+          setState(() {
+            _vefatEnabled = value;
+          });
+          await NotificationService().setVefatNotificationsEnabled(value);
         },
       ),
     );

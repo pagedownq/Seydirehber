@@ -56,14 +56,14 @@ async function checkVefat() {
 
       const message = {
         notification: {
-          title: 'Vefat İlanı 🔔',
-          body: `${name} vefat etmiştir. Ailesine ve yakınlarına başsağlığı dileriz.`
+          title: 'Yeni Vefat Bildirimi 🔔',
+          body: 'Detaylar için uygulamayı ziyaret edebilirsiniz.'
         },
         data: {
           screen: '/vefat',
           click_action: 'FLUTTER_NOTIFICATION_CLICK'
         },
-        topic: 'all'
+        topic: 'vefat_notif'
       };
 
       await admin.messaging().send(message);
