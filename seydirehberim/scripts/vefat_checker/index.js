@@ -17,6 +17,17 @@ if (process.env.FIREBASE_SERVICE_ACCOUNT) {
 
 const LATEST_VEFAT_FILE = path.join(__dirname, 'latest_vefat.json');
 
+// Tarih ayrıştırma yardımcı fonksiyonu (DD.MM.YYYY formatı için)
+function parseDate(dateStr) {
+  try {
+    const parts = dateStr.trim().split('.');
+    if (parts.length === 3) {
+      return new Date(parts[2], parts[1] - 1, parts[0]);
+    }
+  } catch (e) {}
+  return null;
+}
+
 async function checkVefat() {
   try {
     console.log('Belediye sitesi kontrol ediliyor...');
@@ -27,22 +38,41 @@ async function checkVefat() {
     });
 
     const $ = cheerio.load(response.data);
-    const firstRow = $('table.table tbody tr').first();
+    const rows = $('table.table tbody tr');
     
-    if (!firstRow.length) {
+    if (!rows.length) {
       console.log('Vefat listesi bulunamadı.');
       return;
     }
 
-    const name = firstRow.find('th').first().text().trim();
-    const detail = firstRow.find('th').eq(3).text().trim(); // Yer / Zaman sütunu
+    let targetVefat = null;
+    const now = new Date();
+    const thirtyDays = 30 * 24 * 60 * 60 * 1000;
 
-    if (!name) {
-      console.log('İsim okunamadı.');
+    // Listeyi tara ve ilk geçerli (tarihi mantıklı) kişiyi bul
+    rows.each((i, el) => {
+      const name = $(el).find('th').first().text().trim();
+      const dateStr = $(el).find('th').eq(2).text().trim();
+      const vefatDate = parseDate(dateStr);
+
+      if (name && vefatDate) {
+        const diff = Math.abs(now - vefatDate);
+        // Sadece son 30 gün veya gelecek 30 gün içindeyse kabul et
+        if (diff <= thirtyDays) {
+          targetVefat = { name, dateStr };
+          return false; // Döngüden çık
+        } else {
+          console.log(`Atlanan hatalı tarihli ilan: ${name} (${dateStr})`);
+        }
+      }
+    });
+
+    if (!targetVefat) {
+      console.log('Geçerli tarihe sahip yeni ilan bulunamadı.');
       return;
     }
 
-    console.log(`Tespit edilen son kişi: ${name}`);
+    console.log(`İşlem yapılacak son geçerli kişi: ${targetVefat.name}`);
 
     // Eski veriyi oku
     let latestData = { name: '' };
@@ -51,8 +81,8 @@ async function checkVefat() {
     }
 
     // Karşılaştır
-    if (name !== latestData.name) {
-      console.log('Yeni vefat ilanı tespit edildi! Bildirim gönderiliyor...');
+    if (targetVefat.name !== latestData.name) {
+      console.log('Yeni geçerli vefat ilanı tespit edildi! Bildirim gönderiliyor...');
 
       const message = {
         notification: {
@@ -70,7 +100,11 @@ async function checkVefat() {
       console.log('Bildirim başarıyla gönderildi.');
 
       // Yeni ismi kaydet
-      fs.writeFileSync(LATEST_VEFAT_FILE, JSON.stringify({ name, date: new Date().toISOString() }, null, 2));
+      fs.writeFileSync(LATEST_VEFAT_FILE, JSON.stringify({ 
+        name: targetVefat.name, 
+        checkDate: new Date().toISOString(),
+        vefatDate: targetVefat.dateStr
+      }, null, 2));
     } else {
       console.log('Yeni bir ilan yok.');
     }
