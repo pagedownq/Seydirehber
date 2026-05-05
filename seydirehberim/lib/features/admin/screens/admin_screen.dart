@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../../core/services/review_service.dart';
 
 class AdminScreen extends ConsumerWidget {
   const AdminScreen({super.key});
@@ -198,6 +199,51 @@ class AdminScreen extends ConsumerWidget {
                         'title': 'Admin Yönetimi',
                         'bucket': null,
                       }),
+                    ),
+                    const SizedBox(height: 12),
+                    _AdminCard(
+                      icon: Icons.sync,
+                      title: 'Yorum İstatistiklerini Eşitle',
+                      color: const Color(0xFF455A64),
+                      onTap: () async {
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('İstatistikleri Eşitle'),
+                            content: const Text('Tüm firma ve yerlerin yorum sayılarını ve puanlarını yeniden hesaplamak istediğinize emin misiniz? Bu işlem biraz zaman alabilir.'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, false),
+                                child: const Text('İptal'),
+                              ),
+                              ElevatedButton(
+                                onPressed: () => Navigator.pop(context, true),
+                                child: const Text('Evet, Başlat'),
+                              ),
+                            ],
+                          ),
+                        );
+
+                        if (confirm == true) {
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Eşitleme işlemi başlatıldı...')),
+                          );
+                          
+                          try {
+                            await ref.read(reviewServiceProvider).syncAllReviewStats();
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Eşitleme başarıyla tamamlandı!')),
+                            );
+                          } catch (e) {
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Hata oluştu: $e')),
+                            );
+                          }
+                        }
+                      },
                     ),
                     const SizedBox(height: 12),
                   ],

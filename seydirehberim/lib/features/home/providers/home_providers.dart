@@ -177,6 +177,29 @@ final allPopularCompaniesProvider = StreamProvider<FirestoreDocs>((ref) {
       .map((s) => s.docs);
 });
 
+// Top Rated Companies - sorted by review count (limit 10 for home)
+final topRatedCompaniesProvider = StreamProvider<FirestoreDocs>((ref) {
+  return ref
+      .watch(firestoreProvider)
+      .collection('firmalar')
+      .where('yorum_sayisi', isGreaterThan: 0)
+      .orderBy('yorum_sayisi', descending: true)
+      .limit(10)
+      .snapshots()
+      .map((s) => s.docs);
+});
+
+// All Top Rated Companies - sorted by review count (no limit)
+final allTopRatedCompaniesProvider = StreamProvider<FirestoreDocs>((ref) {
+  return ref
+      .watch(firestoreProvider)
+      .collection('firmalar')
+      .where('yorum_sayisi', isGreaterThan: 0)
+      .orderBy('yorum_sayisi', descending: true)
+      .snapshots()
+      .map((s) => s.docs);
+});
+
 // Noterler
 final noterlerProvider = StreamProvider<FirestoreDocs>((ref) {
   return ref

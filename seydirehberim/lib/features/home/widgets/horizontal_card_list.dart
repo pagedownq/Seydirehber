@@ -14,6 +14,8 @@ class HorizontalCardList extends ConsumerWidget {
   final StreamProvider<List<QueryDocumentSnapshot<Map<String, dynamic>>>> provider;
   final CardType type;
   final Function(String id) onTap;
+  final bool showRating;
+  final String? heroTagPrefix;
 
   const HorizontalCardList({
     super.key,
@@ -21,9 +23,8 @@ class HorizontalCardList extends ConsumerWidget {
     required this.type,
     required this.onTap,
     this.heroTagPrefix,
+    this.showRating = false,
   });
-
-  final String? heroTagPrefix;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -248,25 +249,6 @@ class HorizontalCardList extends ConsumerWidget {
                     ),
                   ),
                 ),
-                // Blue overlay at the bottom like in the screenshot
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: Container(
-                    height: 70,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          AppColors.primaryDark.withOpacity(0.0),
-                          AppColors.primaryDark.withOpacity(0.8),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
                 if (category.isNotEmpty)
                   Positioned(
                     top: 12,
@@ -341,66 +323,94 @@ class HorizontalCardList extends ConsumerWidget {
                   ),
                 // Information at the bottom
                 Positioned(
-                  bottom: 12,
-                  left: 12,
-                  right: 12,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        name,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: address.isNotEmpty
-                                ? Row(
-                                    children: [
-                                      const Icon(Icons.location_on_outlined,
-                                          size: 14, color: Colors.white70),
-                                      const SizedBox(width: 4),
-                                      Expanded(
-                                        child: Text(
-                                          address,
-                                          style: const TextStyle(
-                                            color: Colors.white70,
-                                            fontSize: 12,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                    ],
-                                  )
-                                : const SizedBox.shrink(),
-                          ),
-                          const SizedBox(width: 8),
-                          Row(
-                            children: [
-                              const Icon(Icons.visibility,
-                                  color: Colors.white, size: 14),
-                              const SizedBox(width: 4),
-                              Text(
-                                '$viewCount',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10,
-                                ),
-                              ),
-                            ],
-                          ),
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    padding: const EdgeInsets.fromLTRB(12, 32, 12, 12),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          Colors.black.withOpacity(0.8),
                         ],
                       ),
-                    ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          name,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: -0.4,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: (address.isNotEmpty || showRating)
+                                  ? Row(
+                                      children: [
+                                        Icon(
+                                          showRating ? Icons.star : Icons.location_on_rounded, 
+                                          size: 14, 
+                                          color: showRating ? Colors.yellow : Colors.white70
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Expanded(
+                                          child: Text(
+                                            showRating 
+                                              ? '(${data['yorum_sayisi'] ?? 0} Değerlendirme)'
+                                              : address,
+                                            style: TextStyle(
+                                              color: showRating ? Colors.yellow : Colors.white70,
+                                              fontSize: 11,
+                                              fontWeight: showRating ? FontWeight.bold : FontWeight.normal,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
+                                    )
+                                  : const SizedBox.shrink(),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.visibility,
+                                      color: Colors.white, size: 12),
+                                  const SizedBox(width: 3),
+                                  Text(
+                                    '$viewCount',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],

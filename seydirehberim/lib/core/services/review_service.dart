@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import '../models/review.dart';
 import '../utils/profanity_filter.dart';
 
@@ -72,8 +73,29 @@ class ReviewService {
     await _firestore.collection('reviews').add(review.toFirestore());
 
     // Update target document (place/company) with average rating and count (denormalization)
-    // For now, we'll keep it simple and just add the review. 
-    // In a production app, we would use a Cloud Function or a transaction to update the average.
+    final collection = targetType == 'company' ? 'firmalar' : 'gezilecek_yerler';
+    final targetDoc = _firestore.collection(collection).doc(targetId);
+    
+    await _firestore.runTransaction((transaction) async {
+      final snapshot = await transaction.get(targetDoc);
+      if (snapshot.exists) {
+        final data = snapshot.data()!;
+        final double currentRating = (data['ortalama_puan'] as num?)?.toDouble() ?? 0.0;
+        final int currentCount = (data['yorum_sayisi'] as num?)?.toInt() ?? 0;
+        
+        final int newCount = currentCount + 1;
+        // Simple average calculation
+        final double newRating = ((currentRating * currentCount) + rating) / newCount;
+        
+        transaction.update(targetDoc, {
+          'ortalama_puan': newRating,
+          'yorum_sayisi': newCount,
+        });
+      }
+    }).catchError((e, stack) {
+      debugPrint('Denormalization error: $e');
+      return null;
+    });
   }
 
   Future<bool> hasUserReviewed(String targetId) async {
@@ -114,8 +136,47 @@ class ReviewService {
     final user = _auth.currentUser;
     if (user == null) throw Exception('Yorum silmek için giriş yapmalısınız.');
     
-    // Safety check: Firestore rules will also handle this
+    // Get review data before deleting to update target stats
+    final reviewDoc = await _firestore.collection('reviews').doc(reviewId).get();
+    if (!reviewDoc.exists) return;
+    
+    final reviewData = reviewDoc.data()!;
+    final String targetId = reviewData['targetId'];
+    final String targetType = reviewData['targetType'];
+    final double rating = (reviewData['rating'] as num).toDouble();
+
+    // Delete the review
     await _firestore.collection('reviews').doc(reviewId).delete();
+
+    // Update target document (denormalization)
+    final collection = targetType == 'company' ? 'firmalar' : 'gezilecek_yerler';
+    final targetDoc = _firestore.collection(collection).doc(targetId);
+    
+    await _firestore.runTransaction((transaction) async {
+      final snapshot = await transaction.get(targetDoc);
+      if (snapshot.exists) {
+        final data = snapshot.data()!;
+        final double currentRating = (data['ortalama_puan'] as num?)?.toDouble() ?? 0.0;
+        final int currentCount = (data['yorum_sayisi'] as num?)?.toInt() ?? 0;
+        
+        if (currentCount > 1) {
+          final int newCount = currentCount - 1;
+          final double newRating = ((currentRating * currentCount) - rating) / newCount;
+          transaction.update(targetDoc, {
+            'ortalama_puan': newRating,
+            'yorum_sayisi': newCount,
+          });
+        } else {
+          transaction.update(targetDoc, {
+            'ortalama_puan': 0.0,
+            'yorum_sayisi': 0,
+          });
+        }
+      }
+    }).catchError((e, stack) {
+      debugPrint('Denormalization delete error: $e');
+      return null;
+    });
   }
 
   Future<void> reportReview(Review review) async {
@@ -157,5 +218,40 @@ class ReviewService {
       'timestamp': FieldValue.serverTimestamp(),
       'status': 'pending',
     });
+  }
+
+  Future<void> syncAllReviewStats() async {
+    final companies = await _firestore.collection('firmalar').get();
+    final places = await _firestore.collection('gezilecek_yerler').get();
+    
+    final allTargets = [
+      ...companies.docs.map((d) => {'id': d.id, 'collection': 'firmalar'}),
+      ...places.docs.map((d) => {'id': d.id, 'collection': 'gezilecek_yerler'}),
+    ];
+    
+    for (var target in allTargets) {
+      final reviews = await _firestore
+          .collection('reviews')
+          .where('targetId', isEqualTo: target['id'])
+          .get();
+          
+      if (reviews.docs.isNotEmpty) {
+        double totalRating = 0;
+        for (var doc in reviews.docs) {
+          totalRating += (doc.data()['rating'] as num?)?.toDouble() ?? 0.0;
+        }
+        final double avg = totalRating / reviews.docs.length;
+        
+        await _firestore.collection(target['collection']! as String).doc(target['id']! as String).update({
+          'ortalama_puan': avg,
+          'yorum_sayisi': reviews.docs.length,
+        });
+      } else {
+        await _firestore.collection(target['collection']! as String).doc(target['id']! as String).update({
+          'ortalama_puan': 0.0,
+          'yorum_sayisi': 0,
+        });
+      }
+    }
   }
 }

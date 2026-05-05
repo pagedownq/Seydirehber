@@ -20,6 +20,8 @@ class GenericListScreen extends ConsumerWidget {
   final String? cacheKey;
   final bool useGrid;
 
+  final bool showRating;
+
   const GenericListScreen({
     super.key,
     required this.title,
@@ -28,6 +30,7 @@ class GenericListScreen extends ConsumerWidget {
     this.showViewCount = false,
     this.cacheKey,
     this.useGrid = false,
+    this.showRating = false,
   });
 
   @override
@@ -350,11 +353,19 @@ class GenericListScreen extends ConsumerWidget {
                       left: 0,
                       right: 0,
                       child: Container(
-                        padding: const EdgeInsets.all(15),
+                        padding: const EdgeInsets.fromLTRB(16, 40, 16, 16),
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.85),
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              Colors.black.withOpacity(0.8),
+                            ],
+                          ),
                         ),
                         child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Expanded(
                               child: Column(
@@ -365,22 +376,29 @@ class GenericListScreen extends ConsumerWidget {
                                     name,
                                     style: const TextStyle(
                                       color: Colors.white,
-                                      fontSize: 17,
-                                      fontWeight: FontWeight.w900,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: -0.5,
                                     ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
-                                  const SizedBox(height: 4),
+                                  const SizedBox(height: 6),
                                   Row(
                                     children: [
-                                      const Icon(Icons.location_on_rounded, size: 14, color: Colors.white),
+                                      Icon(
+                                        showRating ? Icons.star : Icons.location_on_rounded, 
+                                        size: 14, 
+                                        color: showRating ? Colors.yellow : Colors.white70
+                                      ),
                                       const SizedBox(width: 4),
                                       Expanded(
                                         child: Text(
-                                          locationText,
+                                          showRating 
+                                            ? '(${data['yorum_sayisi'] ?? 0} Değerlendirme)'
+                                            : locationText,
                                           style: TextStyle(
-                                            color: Colors.white.withOpacity(0.9),
+                                            color: Colors.white.withOpacity(0.8),
                                             fontSize: 11,
                                             fontWeight: FontWeight.w500,
                                           ),
@@ -394,16 +412,27 @@ class GenericListScreen extends ConsumerWidget {
                               ),
                             ),
                             if (showViewCount)
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(Icons.remove_red_eye_rounded, size: 20, color: Colors.white),
-                                  Text(
-                                    '$viewCount',
-                                    style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                                  ),
-                                ],
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.remove_red_eye_rounded, size: 14, color: Colors.white),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '$viewCount',
+                                      style: const TextStyle(
+                                        color: Colors.white, 
+                                        fontSize: 11, 
+                                        fontWeight: FontWeight.bold
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                           ],
                         ),

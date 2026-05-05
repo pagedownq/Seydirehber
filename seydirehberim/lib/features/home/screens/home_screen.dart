@@ -237,33 +237,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
           ),
 
-          // Tüm Firmalar Section
-          SliverToBoxAdapter(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 24),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: SeeAllButton(
-                    title: 'Tüm Firmalar',
-                    onTap: () => context.push('/companies'),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                HorizontalCardList(
-                  provider: topFiveCompaniesProvider,
-                  type: CardType.company,
-                  heroTagPrefix: 'top-companies',
-                  onTap: (id) {
-
-                    context.push('/companies/$id');
-                  },
-                ),
-              ],
-            ),
-          ),
-
           // Yeni Eklenen Firmalar Section
           SliverToBoxAdapter(
             child: Column(
@@ -283,7 +256,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   type: CardType.company,
                   heroTagPrefix: 'latest-companies',
                   onTap: (id) {
-
                     context.push('/companies/$id');
                   },
                 ),
@@ -310,7 +282,59 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   type: CardType.company,
                   heroTagPrefix: 'popular-companies',
                   onTap: (id) {
+                    context.push('/companies/$id');
+                  },
+                ),
+              ],
+            ),
+          ),
 
+          // En Çok Değerlendirme Alan Firmalar Section
+          SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 24),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: SeeAllButton(
+                    title: 'En Çok Değerlendirme Alan Firmalar',
+                    onTap: () => context.push('/companies/rated'),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                HorizontalCardList(
+                  provider: topRatedCompaniesProvider,
+                  type: CardType.company,
+                  heroTagPrefix: 'rated-companies',
+                  showRating: true,
+                  onTap: (id) {
+                    context.push('/companies/$id');
+                  },
+                ),
+              ],
+            ),
+          ),
+
+          // Tüm Firmalar Section
+          SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 24),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: SeeAllButton(
+                    title: 'Tüm Firmalar',
+                    onTap: () => context.push('/companies'),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                HorizontalCardList(
+                  provider: topFiveCompaniesProvider,
+                  type: CardType.company,
+                  heroTagPrefix: 'top-companies',
+                  onTap: (id) {
                     context.push('/companies/$id');
                   },
                 ),

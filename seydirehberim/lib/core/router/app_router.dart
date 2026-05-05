@@ -157,6 +157,17 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        path: '/companies/rated',
+        builder: (context, state) => GenericListScreen(
+          title: 'En Çok Değerlendirme Alanlar',
+          provider: allTopRatedCompaniesProvider,
+          routePrefix: 'companies',
+          showViewCount: true,
+          showRating: true,
+          cacheKey: 'companies_rated_cache',
+        ),
+      ),
+      GoRoute(
         path: '/companies/:id',
         builder: (context, state) => CompanyDetailScreen(
           companyId: state.pathParameters['id']!,
