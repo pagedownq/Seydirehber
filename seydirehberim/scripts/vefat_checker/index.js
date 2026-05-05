@@ -17,12 +17,41 @@ if (process.env.FIREBASE_SERVICE_ACCOUNT) {
 
 const LATEST_VEFAT_FILE = path.join(__dirname, 'latest_vefat.json');
 
-// Tarih ayrıştırma yardımcı fonksiyonu (DD.MM.YYYY formatı için)
+// Tarih ayrıştırma yardımcı fonksiyonu (DD.MM.YYYY veya D Ay YYYY formatı için)
 function parseDate(dateStr) {
   try {
-    const parts = dateStr.trim().split('.');
+    const cleanedDate = dateStr.trim().toLowerCase();
+    
+    // Eğer nokta ile ayrılmışsa (05.05.2026)
+    if (cleanedDate.includes('.')) {
+      const parts = cleanedDate.split('.');
+      if (parts.length === 3) {
+        return new Date(parts[2], parts[1] - 1, parts[0]);
+      }
+    }
+
+    // Eğer boşluk ile ayrılmışsa (5 mayıs 2026)
+    const parts = cleanedDate.split(' ');
     if (parts.length === 3) {
-      return new Date(parts[2], parts[1] - 1, parts[0]);
+      const day = parseInt(parts[0]);
+      const year = parseInt(parts[2]);
+      const monthStr = parts[1];
+      
+      const months = {
+        'ocak': 0, 'şubat': 1, 'mart': 2, 'nisan': 3, 'mayıs': 4, 'haziran': 5,
+        'temmuz': 6, 'ağustos': 7, 'eylül': 8, 'ekim': 9, 'kasım': 10, 'aralık': 11
+      };
+      
+      // Ay isminin anahtarlardan birini içerip içermediğine bak
+      let month = 0;
+      for (const [key, value] of Object.entries(months)) {
+        if (monthStr.includes(key)) {
+          month = value;
+          break;
+        }
+      }
+      
+      return new Date(year, month, day);
     }
   } catch (e) {}
   return null;
@@ -47,7 +76,7 @@ async function checkVefat() {
 
     let targetVefat = null;
     const now = new Date();
-    const thirtyDays = 30 * 24 * 60 * 60 * 1000;
+    const safetyFutureLimit = new Date(now.getTime() + (7 * 24 * 60 * 60 * 1000));
 
     // Listeyi tara ve ilk geçerli (tarihi mantıklı) kişiyi bul
     rows.each((i, el) => {
@@ -56,13 +85,12 @@ async function checkVefat() {
       const vefatDate = parseDate(dateStr);
 
       if (name && vefatDate) {
-        const diff = Math.abs(now - vefatDate);
-        // Sadece son 30 gün veya gelecek 30 gün içindeyse kabul et
-        if (diff <= thirtyDays) {
+        // Geçmişteki her şeye izin ver, ama gelecekte 7 günden fazlasını reddet
+        if (vefatDate <= safetyFutureLimit) {
           targetVefat = { name, dateStr };
           return false; // Döngüden çık
         } else {
-          console.log(`Atlanan hatalı tarihli ilan: ${name} (${dateStr})`);
+          console.log(`Atlanan absürt tarihli ilan: ${name} (${dateStr})`);
         }
       }
     });

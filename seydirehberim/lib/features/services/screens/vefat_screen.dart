@@ -100,12 +100,28 @@ class VefatScreen extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Expanded(
-                                child: Text(
-                                  item.name,
-                                  style: AppTextStyles.heading3.copyWith(
-                                    color: const Color(0xFF1A3F6A),
-                                    fontWeight: FontWeight.w800,
-                                  ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      item.name,
+                                      style: AppTextStyles.heading3.copyWith(
+                                        color: const Color(0xFF1A3F6A),
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                    if (item.relative.isNotEmpty)
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 4),
+                                        child: Text(
+                                          'Yakını: ${item.relative}',
+                                          style: AppTextStyles.bodySmall.copyWith(
+                                            color: AppColors.textSecondary,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
                                 ),
                               ),
                               Container(
@@ -120,7 +136,7 @@ class VefatScreen extends ConsumerWidget {
                                     Icon(Icons.calendar_today_rounded, size: 12, color: AppColors.primary),
                                     const SizedBox(width: 4),
                                     Text(
-                                      item.date,
+                                      'Defin: ${item.date}',
                                       style: AppTextStyles.bodySmall.copyWith(
                                         color: AppColors.primary,
                                         fontWeight: FontWeight.bold,
@@ -133,29 +149,6 @@ class VefatScreen extends ConsumerWidget {
                             ],
                           ),
                           const SizedBox(height: 12),
-                          if (item.relative.isNotEmpty)
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                              decoration: BoxDecoration(
-                                color: Colors.grey.withOpacity(0.05),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Row(
-                                children: [
-                                  const Icon(Icons.people_outline_rounded, size: 16, color: AppColors.textSecondary),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      item.relative,
-                                      style: AppTextStyles.bodyMedium.copyWith(
-                                        fontWeight: FontWeight.w600,
-                                        color: AppColors.textPrimary,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
                           const SizedBox(height: 16),
                           Text(
                             item.detail,

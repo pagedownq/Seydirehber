@@ -13,8 +13,8 @@ final vefatListProvider = FutureProvider<List<Vefat>>((ref) async {
       
       List<Vefat> vefatList = [];
       final now = DateTime.now();
-      final oneMonthAgo = now.subtract(const Duration(days: 30));
-      final oneMonthLater = now.add(const Duration(days: 30));
+      final safetyFutureLimit = now.add(const Duration(days: 7));
+      final Set<String> seenEntries = {}; // Mükerrer kontrolü için
 
       for (var row in rows) {
         var cells = row.querySelectorAll('th, td').map((e) => e.text).toList();
@@ -22,10 +22,15 @@ final vefatListProvider = FutureProvider<List<Vefat>>((ref) async {
           final vefat = Vefat.fromHtml(cells);
           final vefatDate = vefat.dateTime;
 
-          // Eğer tarih ayrıştırılamıyorsa veya belirlediğimiz aralıktaysa listeye ekle
-          if (vefatDate == null || 
-              (vefatDate.isAfter(oneMonthAgo) && vefatDate.isBefore(oneMonthLater))) {
-            vefatList.add(vefat);
+          // Geçmişteki her şeyi göster, ama gelecekte sadece 7 gün sonrasına kadar izin ver
+          if (vefatDate != null && vefatDate.isBefore(safetyFutureLimit)) {
+            // Benzersiz bir anahtar oluştur (İsim + Tarih)
+            final String entryKey = '${vefat.name.toLowerCase()}_${vefat.date}';
+            
+            if (!seenEntries.contains(entryKey)) {
+              vefatList.add(vefat);
+              seenEntries.add(entryKey);
+            }
           }
         }
       }
