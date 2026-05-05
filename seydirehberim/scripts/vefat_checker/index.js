@@ -21,7 +21,7 @@ const LATEST_VEFAT_FILE = path.join(__dirname, 'latest_vefat.json');
 function parseDate(dateStr) {
   try {
     const cleanedDate = dateStr.trim().toLowerCase();
-    
+
     // Eğer nokta ile ayrılmışsa (05.05.2026)
     if (cleanedDate.includes('.')) {
       const parts = cleanedDate.split('.');
@@ -36,12 +36,12 @@ function parseDate(dateStr) {
       const day = parseInt(parts[0]);
       const year = parseInt(parts[2]);
       const monthStr = parts[1];
-      
+
       const months = {
         'ocak': 0, 'şubat': 1, 'mart': 2, 'nisan': 3, 'mayıs': 4, 'haziran': 5,
         'temmuz': 6, 'ağustos': 7, 'eylül': 8, 'ekim': 9, 'kasım': 10, 'aralık': 11
       };
-      
+
       // Ay isminin anahtarlardan birini içerip içermediğine bak
       let month = 0;
       for (const [key, value] of Object.entries(months)) {
@@ -50,10 +50,10 @@ function parseDate(dateStr) {
           break;
         }
       }
-      
+
       return new Date(year, month, day);
     }
-  } catch (e) {}
+  } catch (e) { }
   return null;
 }
 
@@ -68,7 +68,7 @@ async function checkVefat() {
 
     const $ = cheerio.load(response.data);
     const rows = $('table.table tbody tr');
-    
+
     if (!rows.length) {
       console.log('Vefat listesi bulunamadı.');
       return;
@@ -114,7 +114,7 @@ async function checkVefat() {
 
       const message = {
         notification: {
-          title: 'Yeni Vefat Bildirimi 🔔',
+          title: 'Vefat İlanı 🔔',
           body: 'Detaylar için uygulamayı ziyaret edebilirsiniz.'
         },
         data: {
@@ -128,8 +128,8 @@ async function checkVefat() {
       console.log('Bildirim başarıyla gönderildi.');
 
       // Yeni ismi kaydet
-      fs.writeFileSync(LATEST_VEFAT_FILE, JSON.stringify({ 
-        name: targetVefat.name, 
+      fs.writeFileSync(LATEST_VEFAT_FILE, JSON.stringify({
+        name: targetVefat.name,
         checkDate: new Date().toISOString(),
         vefatDate: targetVefat.dateStr
       }, null, 2));
