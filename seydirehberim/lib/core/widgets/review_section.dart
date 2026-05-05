@@ -263,7 +263,7 @@ class ReviewSection extends ConsumerWidget {
               ),
               const SizedBox(height: 12),
               Text(
-                'Yorum yazabilmek ve şehri değerlendirebilmek için lütfen Google hesabınızla giriş yapın.',
+                'Yorum yazabilmek ve şehri değerlendirebilmek için lütfen giriş yapın.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 15,

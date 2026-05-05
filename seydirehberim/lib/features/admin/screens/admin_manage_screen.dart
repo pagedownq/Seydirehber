@@ -343,7 +343,7 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
           _FieldConfig('konum', 'Harita Konumu (Link, Koordinat veya DMS)'),
           _FieldConfig('website', 'Web Sitesi'),
           _FieldConfig('instagram', 'Instagram (Kullanıcı adı veya Link)'),
-          _FieldConfig('menu_url', 'Menü Linki (Opsiyonel)'),
+          _FieldConfig('menu_url', 'Dijital Bağlantı (Mağaza, Menü, Katalog vb.)'),
           _FieldConfig('expiry_date', 'Firma Bitiş Tarihi', isDate: true),
           _FieldConfig('order', 'Sıra (Görünüm Sırası)', isNumber: true),
         ];

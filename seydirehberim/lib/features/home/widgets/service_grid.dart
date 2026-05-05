@@ -14,7 +14,7 @@ class ServiceGrid extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         children: [
-          // 2x3 Grid for all services
+          // 2x3 Grid for main services
           GridView.count(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -65,14 +65,14 @@ class ServiceGrid extends StatelessWidget {
                 onTap: () => context.push('/otobus'),
               ),
               _ServiceCard(
-                icon: Icons.newspaper_rounded,
-                title: 'Haberler',
+                icon: Icons.person_off_rounded,
+                title: 'Vefat Edenler',
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF2E7D32), Color(0xFF43A047)],
+                  colors: [Color(0xFF546E7A), Color(0xFF78909C)],
                 ),
                 iconColor: Colors.white,
-                showNewsPattern: true,
-                onTap: () => context.push('/news'),
+                showVefatPattern: true,
+                onTap: () => context.push('/vefat'),
               ),
               _ServiceCard(
                 icon: Icons.map_rounded,
@@ -85,6 +85,19 @@ class ServiceGrid extends StatelessWidget {
                 onTap: () => context.push('/seydi-map'),
               ),
             ],
+          ),
+          const SizedBox(height: 12),
+          // Full width Haberler button
+          _ServiceCard(
+            icon: Icons.newspaper_rounded,
+            title: 'Haberler',
+            gradient: const LinearGradient(
+              colors: [Color(0xFF2E7D32), Color(0xFF43A047)],
+            ),
+            iconColor: Colors.white,
+            showNewsPattern: true,
+            isFullWidth: true,
+            onTap: () => context.push('/news'),
           ),
         ],
       ),
@@ -227,6 +240,38 @@ class _MarketPatternPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
+class _VefatPatternPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.12)
+      ..strokeWidth = 1.5
+      ..style = PaintingStyle.stroke;
+
+    final path = Path();
+    
+    // Abstract respectful "rising" or "flowing" lines
+    for (var i = 0; i < 4; i++) {
+      double x = size.width * (0.5 + (i * 0.12));
+      path.moveTo(x, size.height);
+      path.quadraticBezierTo(
+        x + 20, size.height * 0.5,
+        x - 10, 0,
+      );
+    }
+
+    canvas.drawPath(path, paint);
+    
+    // Add some small "light" dots
+    final dotPaint = Paint()..color = Colors.white.withOpacity(0.15);
+    canvas.drawCircle(Offset(size.width * 0.85, size.height * 0.3), 2, dotPaint);
+    canvas.drawCircle(Offset(size.width * 0.75, size.height * 0.6), 1.5, dotPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
 class _ServiceCard extends StatelessWidget {
   final IconData? icon;
   final String? imagePath;
@@ -244,6 +289,7 @@ class _ServiceCard extends StatelessWidget {
   final bool showNewsPattern;
   final bool showBusPattern;
   final bool showMarketPattern;
+  final bool showVefatPattern;
 
   const _ServiceCard({
     this.icon,
@@ -262,6 +308,7 @@ class _ServiceCard extends StatelessWidget {
     this.showNewsPattern = false,
     this.showBusPattern = false,
     this.showMarketPattern = false,
+    this.showVefatPattern = false,
   });
 
   @override
@@ -315,6 +362,12 @@ class _ServiceCard extends StatelessWidget {
                 Positioned.fill(
                   child: CustomPaint(
                     painter: _MarketPatternPainter(),
+                  ),
+                ),
+              if (showVefatPattern)
+                Positioned.fill(
+                  child: CustomPaint(
+                    painter: _VefatPatternPainter(),
                   ),
                 ),
               Padding(

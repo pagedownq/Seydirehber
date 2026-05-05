@@ -250,7 +250,7 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
 
                             // DIGITAL MENU CARD (New Extension)
                             if (menuUrl != null && menuUrl.isNotEmpty) ...[
-                              _buildMenuActionCard(menuUrl),
+                              _buildMenuActionCard(menuUrl, category),
                               const SizedBox(height: 40),
                             ],
 
@@ -517,7 +517,39 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
     await MapHelper.openMapWithAddress(context, query);
   }
 
-  Widget _buildMenuActionCard(String url) {
+  Widget _buildMenuActionCard(String url, String category) {
+    final lowerUrl = url.toLowerCase();
+    final lowerCategory = category.toLowerCase();
+
+    String title = 'DİJİTAL KATALOG';
+    String subtitle = 'Ürünleri ve detayları incele';
+    IconData icon = Icons.auto_awesome_motion_rounded;
+    List<Color> gradientColors = [const Color(0xFF6366F1), const Color(0xFF8B5CF6)]; // Indigo/Violet
+
+    if (lowerUrl.contains('shopier.com')) {
+      title = 'SHOPİER MAĞAZASI';
+      subtitle = 'Ürünleri incele ve hemen satın al';
+      icon = Icons.shopping_bag_rounded;
+      gradientColors = [const Color(0xFFEC4899), const Color(0xFFF43F5E)]; // Pink/Rose
+    } else if (lowerCategory.contains('restoran') || 
+               lowerCategory.contains('kafe') || 
+               lowerCategory.contains('lokanta') || 
+               lowerCategory.contains('pastane')) {
+      title = 'DİJİTAL MENÜ';
+      subtitle = 'Fiyatları ve ürünleri incele';
+      icon = Icons.restaurant_menu_rounded;
+      gradientColors = [const Color(0xFFFF8F00), const Color(0xFFFFB300)]; // Orange/Amber
+    } else if (lowerCategory.contains('giyim') || 
+               lowerCategory.contains('mağaza') || 
+               lowerCategory.contains('butik') || 
+               lowerCategory.contains('ayakkabı') || 
+               lowerCategory.contains('aksesuar')) {
+      title = 'DİJİTAL MAĞAZA';
+      subtitle = 'Koleksiyonu ve ürünleri incele';
+      icon = Icons.storefront_rounded;
+      gradientColors = [const Color(0xFF0EA5E9), const Color(0xFF2563EB)]; // Sky/Blue
+    }
+
     return InkWell(
       onTap: () {
         HapticService.medium();
@@ -527,15 +559,15 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFFFF8F00), Color(0xFFFFB300)],
+          gradient: LinearGradient(
+            colors: gradientColors,
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFFFF8F00).withOpacity(0.3),
+              color: gradientColors.first.withOpacity(0.3),
               blurRadius: 15,
               offset: const Offset(0, 8),
             ),
@@ -549,16 +581,16 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
                 color: Colors.white.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(Icons.restaurant_menu_rounded, color: Colors.white, size: 28),
+              child: Icon(icon, color: Colors.white, size: 28),
             ),
             const SizedBox(width: 20),
-            const Expanded(
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'DİJİTAL MENÜ',
-                    style: TextStyle(
+                    title,
+                    style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w900,
                       fontSize: 16,
@@ -566,8 +598,8 @@ class _CompanyDetailScreenState extends ConsumerState<CompanyDetailScreen> {
                     ),
                   ),
                   Text(
-                    'Fiyatları ve ürünleri incele',
-                    style: TextStyle(
+                    subtitle,
+                    style: const TextStyle(
                       color: Colors.white70,
                       fontSize: 12,
                     ),

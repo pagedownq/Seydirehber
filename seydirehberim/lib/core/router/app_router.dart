@@ -12,6 +12,7 @@ import '../../features/services/screens/noterler_screen.dart';
 import '../../features/services/screens/pazarlar_screen.dart';
 import '../../features/services/screens/otobus_screen.dart';
 import '../../features/services/screens/weather_screen.dart';
+import '../../features/services/screens/vefat_screen.dart';
 import '../../features/news/screens/news_screen.dart';
 import '../../features/support/screens/support_screen.dart';
 import '../../features/settings/screens/policies_screen.dart';
@@ -198,6 +199,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/weather',
         builder: (context, state) => const WeatherScreen(),
+      ),
+      GoRoute(
+        path: '/vefat',
+        builder: (context, state) => const VefatScreen(),
       ),
 
       // News standalone route
