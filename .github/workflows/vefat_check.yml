@@ -20,20 +20,20 @@ jobs:
 
       - name: Install dependencies
         run: |
-          cd scripts/vefat_checker
+          cd seydirehberim/scripts/vefat_checker
           npm install
 
       - name: Run vefat checker
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: |
-          cd scripts/vefat_checker
+          cd seydirehberim/scripts/vefat_checker
           node index.js
 
       - name: Commit changes
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add scripts/vefat_checker/latest_vefat.json
+          git add seydirehberim/scripts/vefat_checker/latest_vefat.json
           git diff --quiet && git diff --staged --quiet || git commit -m "Update latest vefat [skip ci]"
           git push
