@@ -2,7 +2,7 @@ name: Vefat Kontrol ve Bildirim
 
 on:
   schedule:
-    - cron: '0 9,12,16,19 * * *' # 09:00, 12:00, 16:00, 19:00
+    - cron: '*/30 * * * *' # Her 30 dakikada bir çalışır
   workflow_dispatch: # Manuel tetikleme için
 
 permissions:
