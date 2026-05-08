@@ -1,9 +1,13 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LocalCacheService {
   static SharedPreferences? _prefs;
+  static SharedPreferences get prefs => _prefs!;
 
   static Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();

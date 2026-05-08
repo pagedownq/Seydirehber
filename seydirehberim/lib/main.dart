@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -126,6 +127,22 @@ class _StartupWrapperState extends State<StartupWrapper> {
 
       // Hazır olduğunda bildirimi arkadan başlat
       NotificationService().initialize().catchError((e) => debugPrint(e.toString()));
+
+      // Eski misafir kullanıcıları Anonim Giriş sistemine geçir
+      final auth = FirebaseAuth.instance;
+      if (auth.currentUser == null && (LocalCacheService.prefs.getBool('onboarding_completed') ?? false)) {
+        debugPrint('Legacy guest migration starting...');
+        await auth.signInAnonymously().then((_) {
+          debugPrint('Legacy guest migration successful.');
+          // Migration sonrası varlık kaydını hemen oluştur
+          NotificationService().updatePresence();
+        }).catchError((e) {
+          debugPrint('Legacy guest migration failed: $e');
+        });
+      } else {
+        // Zaten giriş yapmış olanlar için de varlık kaydını güncelle
+        NotificationService().updatePresence();
+      }
 
       // Günlük etkileşim bildirimlerini planla
       DailyNotificationService().initialize().catchError((e) => debugPrint('DailyNotif init error: $e'));

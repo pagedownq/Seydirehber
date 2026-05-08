@@ -11,6 +11,7 @@ import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:crypto/crypto.dart';
 import 'dart:math';
 import 'dart:io';
+import '../../../core/services/analytics_service.dart';
 
 // Admin emails
 const List<String> adminEmails = [
@@ -98,7 +99,7 @@ final adminPermissionsProvider = StreamProvider<Map<String, bool>>((ref) {
 final isGuestProvider = Provider<bool>((ref) {
   final authState = ref.watch(authStateProvider);
   return authState.whenOrNull(
-        data: (user) => user == null,
+        data: (user) => user == null || user.isAnonymous,
       ) ??
       true;
 });
@@ -106,12 +107,19 @@ final isGuestProvider = Provider<bool>((ref) {
 // Auth Notifier
 final authNotifierProvider =
     StateNotifierProvider<AuthNotifier, AsyncValue<User?>>((ref) {
-  return AuthNotifier();
+  return AuthNotifier(ref);
 });
 
 class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
-  AuthNotifier() : super(AsyncValue.data(FirebaseAuth.instance.currentUser));
+  AuthNotifier(this.ref) : super(AsyncValue.data(FirebaseAuth.instance.currentUser)) {
+    // Set initial user id if already logged in
+    final user = _auth.currentUser;
+    if (user != null) {
+      ref.read(analyticsServiceProvider).setUserId(user.uid);
+    }
+  }
 
+  final Ref ref;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
@@ -135,8 +143,13 @@ class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
 
       final userCredential = await _auth.signInWithCredential(credential);
       
+      // Analytics
+      ref.read(analyticsServiceProvider).logLogin('google');
+      ref.read(analyticsServiceProvider).setUserId(userCredential.user?.uid);
+
       // Send welcome email if new user
       if (userCredential.additionalUserInfo?.isNewUser ?? false) {
+        ref.read(analyticsServiceProvider).logSignUp('google');
         _sendWelcomeEmail(userCredential.user);
       }
 
@@ -186,8 +199,12 @@ class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
         
         // Hoşgeldin maili (Yeni kullanıcıysa)
         if (userCredential.additionalUserInfo?.isNewUser ?? false) {
+          ref.read(analyticsServiceProvider).logSignUp('apple');
           _sendWelcomeEmail(_auth.currentUser);
         }
+        
+        ref.read(analyticsServiceProvider).logLogin('apple');
+        ref.read(analyticsServiceProvider).setUserId(user?.uid);
         
         state = AsyncValue.data(_auth.currentUser);
       }
@@ -248,16 +265,27 @@ class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
   }
 
   Future<void> continueAsGuest() async {
-    // Guest: no Firebase auth, user stays null
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('onboarding_completed', true);
-    state = const AsyncValue.data(null);
+    try {
+      state = const AsyncValue.loading();
+      final userCredential = await _auth.signInAnonymously();
+      
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('onboarding_completed', true);
+      
+      ref.read(analyticsServiceProvider).logLogin('guest');
+      ref.read(analyticsServiceProvider).setUserId(userCredential.user?.uid);
+      
+      state = AsyncValue.data(userCredential.user);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
   }
 
   Future<void> signOut() async {
     try {
       await _googleSignIn.signOut();
       await _auth.signOut();
+      ref.read(analyticsServiceProvider).setUserId(null);
       state = const AsyncValue.data(null);
     } catch (e, st) {
       state = AsyncValue.error(e, st);

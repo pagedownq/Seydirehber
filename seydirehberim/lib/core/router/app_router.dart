@@ -30,10 +30,14 @@ import '../../features/coupons/screens/coupons_screen.dart';
 import '../../features/coupons/screens/coupon_detail_screen.dart';
 import '../../features/map/screens/seydi_map_screen.dart';
 import '../../features/notifications/screens/user_notifications_screen.dart';
+import '../services/analytics_service.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/',
+    observers: [
+      ref.read(analyticsServiceProvider).getObserver(),
+    ],
     redirect: (context, state) async {
       final prefs = await SharedPreferences.getInstance();
       final onboardingCompleted = docsCompletedCheck(prefs);

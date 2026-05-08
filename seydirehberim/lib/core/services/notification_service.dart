@@ -326,6 +326,17 @@ class NotificationService {
         }
       }
 
+      // 1. Always update or create a record for the current UID if logged in
+      if (user != null) {
+        await FirebaseFirestore.instance.collection('user_presence').doc(user.uid).set({
+          'uid': user.uid,
+          'lastSeen': FieldValue.serverTimestamp(),
+          'platform': Platform.isAndroid ? 'android' : 'ios',
+          'isAnonymous': user.isAnonymous,
+        }, SetOptions(merge: true));
+      }
+
+      // 2. Token handling (for notifications)
       final docRef = FirebaseFirestore.instance.collection('user_tokens').doc(token);
       
       await docRef.set({
@@ -339,6 +350,11 @@ class NotificationService {
       
       // Update local storage with the current latest token
       await prefs.setString(oldTokenKey, token);
+      
+      // Clean up other stale tokens for this user (older than 7 days)
+      if (user != null) {
+        _cleanOldUserTokens(user.uid, token);
+      }
       
       // Topic subscription is handled by the caller
     } catch (e) {
@@ -428,6 +444,45 @@ class NotificationService {
   /// If permanently denied, it should prompt user to go to settings.
   Future<PermissionStatus> getPermissionStatus() async {
     return await Permission.notification.status;
+  }
+
+  Future<void> updatePresence() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        await FirebaseFirestore.instance.collection('user_presence').doc(user.uid).set({
+          'uid': user.uid,
+          'lastSeen': FieldValue.serverTimestamp(),
+          'platform': Platform.isAndroid ? 'android' : 'ios',
+          'isAnonymous': user.isAnonymous,
+        }, SetOptions(merge: true));
+        debugPrint('Presence updated for user: ${user.uid}');
+      }
+    } catch (e) {
+      debugPrint('Presence update error: $e');
+    }
+  }
+
+  Future<void> _cleanOldUserTokens(String userId, String currentToken) async {
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('user_tokens')
+          .where('userId', isEqualTo: userId)
+          .get();
+      
+      for (var doc in snapshot.docs) {
+        if (doc.id != currentToken) {
+          final lastSeen = (doc.data()['lastSeen'] as Timestamp?)?.toDate();
+          // If token hasn't been seen for 7 days, delete it
+          if (lastSeen == null || DateTime.now().difference(lastSeen).inDays > 7) {
+            await doc.reference.delete();
+            debugPrint('Cleaned up stale token: ${doc.id}');
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Token cleanup error: $e');
+    }
   }
 }
 
