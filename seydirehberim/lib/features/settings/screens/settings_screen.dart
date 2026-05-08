@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/utils/app_notification.dart';
@@ -510,7 +511,7 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  Future<bool> _showPlatformConfirmDialog({
+  static Future<bool> _showPlatformConfirmDialog({
     required BuildContext context,
     required String title,
     required String content,
@@ -562,6 +563,32 @@ class SettingsScreen extends ConsumerWidget {
         ) ??
         false;
   }
+
+  static Future<bool> checkAndShowPermissionDialog(BuildContext context) async {
+    final status = await NotificationService().getPermissionStatus();
+    
+    if (status.isGranted) return true;
+
+    if (status.isPermanentlyDenied) {
+      if (context.mounted) {
+        final confirmed = await _showPlatformConfirmDialog(
+          context: context,
+          title: 'Bildirim İzni Gerekli',
+          content: 'Bildirimleri alabilmek için ayarlardan izin vermeniz gerekmektedir. Ayarlara gitmek ister misiniz?',
+          confirmText: 'Ayarlara Git',
+          cancelText: 'Vazgeç',
+        );
+        if (confirmed) {
+          await openAppSettings();
+        }
+      }
+      return false;
+    }
+
+    // Is denied but not permanently (first time or reset)
+    final result = await NotificationService().requestPermission();
+    return result;
+  }
 }
 
 class _NotificationToggleItem extends StatefulWidget {
@@ -571,20 +598,38 @@ class _NotificationToggleItem extends StatefulWidget {
   State<_NotificationToggleItem> createState() => _NotificationToggleItemState();
 }
 
-class _NotificationToggleItemState extends State<_NotificationToggleItem> {
+class _NotificationToggleItemState extends State<_NotificationToggleItem> with WidgetsBindingObserver {
   bool? _notificationsEnabled;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadState();
   }
 
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _loadState();
+    }
+  }
+
   Future<void> _loadState() async {
-    final enabled = await NotificationService().isNotificationsEnabled();
-    setState(() {
-      _notificationsEnabled = enabled;
-    });
+    final prefsEnabled = await NotificationService().isNotificationsEnabled();
+    final systemStatus = await NotificationService().getPermissionStatus();
+    
+    if (mounted) {
+      setState(() {
+        _notificationsEnabled = prefsEnabled && systemStatus.isGranted;
+      });
+    }
   }
 
   @override
@@ -617,6 +662,12 @@ class _NotificationToggleItemState extends State<_NotificationToggleItem> {
         value: _notificationsEnabled!,
         onChanged: (value) async {
           HapticService.selection();
+          
+          if (value) {
+            final hasPermission = await SettingsScreen.checkAndShowPermissionDialog(context);
+            if (!hasPermission) return;
+          }
+
           setState(() {
             _notificationsEnabled = value;
           });
@@ -634,20 +685,36 @@ class _DailyNotificationToggleItem extends StatefulWidget {
   State<_DailyNotificationToggleItem> createState() => _DailyNotificationToggleItemState();
 }
 
-class _DailyNotificationToggleItemState extends State<_DailyNotificationToggleItem> {
+class _DailyNotificationToggleItemState extends State<_DailyNotificationToggleItem> with WidgetsBindingObserver {
   bool? _dailyEnabled;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadState();
   }
 
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _loadState();
+    }
+  }
+
   Future<void> _loadState() async {
-    final enabled = await DailyNotificationService().isDailyNotificationsEnabled();
+    final prefsEnabled = await DailyNotificationService().isDailyNotificationsEnabled();
+    final systemStatus = await NotificationService().getPermissionStatus();
+    
     if (mounted) {
       setState(() {
-        _dailyEnabled = enabled;
+        _dailyEnabled = prefsEnabled && systemStatus.isGranted;
       });
     }
   }
@@ -684,6 +751,12 @@ class _DailyNotificationToggleItemState extends State<_DailyNotificationToggleIt
         value: _dailyEnabled!,
         onChanged: (value) async {
           HapticService.selection();
+
+          if (value) {
+            final hasPermission = await SettingsScreen.checkAndShowPermissionDialog(context);
+            if (!hasPermission) return;
+          }
+
           setState(() {
             _dailyEnabled = value;
           });
@@ -772,20 +845,36 @@ class _VefatNotificationToggleItem extends StatefulWidget {
   State<_VefatNotificationToggleItem> createState() => _VefatNotificationToggleItemState();
 }
 
-class _VefatNotificationToggleItemState extends State<_VefatNotificationToggleItem> {
+class _VefatNotificationToggleItemState extends State<_VefatNotificationToggleItem> with WidgetsBindingObserver {
   bool? _vefatEnabled;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadState();
   }
 
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _loadState();
+    }
+  }
+
   Future<void> _loadState() async {
-    final enabled = await NotificationService().isVefatNotificationsEnabled();
+    final prefsEnabled = await NotificationService().isVefatNotificationsEnabled();
+    final systemStatus = await NotificationService().getPermissionStatus();
+    
     if (mounted) {
       setState(() {
-        _vefatEnabled = enabled;
+        _vefatEnabled = prefsEnabled && systemStatus.isGranted;
       });
     }
   }
@@ -822,6 +911,12 @@ class _VefatNotificationToggleItemState extends State<_VefatNotificationToggleIt
         value: _vefatEnabled!,
         onChanged: (value) async {
           HapticService.selection();
+
+          if (value) {
+            final hasPermission = await SettingsScreen.checkAndShowPermissionDialog(context);
+            if (!hasPermission) return;
+          }
+
           setState(() {
             _vefatEnabled = value;
           });

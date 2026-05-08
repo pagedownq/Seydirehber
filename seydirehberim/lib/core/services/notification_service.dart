@@ -423,6 +423,12 @@ class NotificationService {
 
     return granted;
   }
+
+  /// Checks if notification permissions are denied or permanently denied.
+  /// If permanently denied, it should prompt user to go to settings.
+  Future<PermissionStatus> getPermissionStatus() async {
+    return await Permission.notification.status;
+  }
 }
 
 @pragma('vm:entry-point')

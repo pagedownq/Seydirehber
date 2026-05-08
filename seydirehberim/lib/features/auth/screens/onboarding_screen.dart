@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
@@ -215,6 +216,25 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           _buildPrimaryButton(
             onPressed: () async {
               HapticService.light(); 
+              
+              final status = await NotificationService().getPermissionStatus();
+              
+              if (status.isPermanentlyDenied) {
+                if (mounted) {
+                  final confirmed = await _showPlatformConfirmDialog(
+                    context: context,
+                    title: 'Bildirim İzni Gerekli',
+                    content: 'Bildirimleri alabilmek için ayarlardan izin vermeniz gerekmektedir. Ayarlara gitmek ister misiniz?',
+                    confirmText: 'Ayarlara Git',
+                    cancelText: 'Vazgeç',
+                  );
+                  if (confirmed) {
+                    await openAppSettings();
+                  }
+                }
+                return;
+              }
+
               final granted = await NotificationService().requestPermission();
               if (granted && mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -1115,6 +1135,59 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         ),
       ),
     );
+  }
+  
+  Future<bool> _showPlatformConfirmDialog({
+    required BuildContext context,
+    required String title,
+    required String content,
+    String confirmText = 'Evet',
+    String cancelText = 'Vazgeç',
+    bool isDestructive = false,
+  }) async {
+    if (Platform.isIOS) {
+      return await showCupertinoDialog<bool>(
+            context: context,
+            builder: (context) => CupertinoAlertDialog(
+              title: Text(title),
+              content: Text(content),
+              actions: [
+                CupertinoDialogAction(
+                  child: Text(cancelText),
+                  onPressed: () => Navigator.pop(context, false),
+                ),
+                CupertinoDialogAction(
+                  isDestructiveAction: isDestructive,
+                  onPressed: () => Navigator.pop(context, true),
+                  child: Text(confirmText),
+                ),
+              ],
+            ),
+          ) ??
+          false;
+    }
+
+    return await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(title),
+            content: Text(content),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text(cancelText),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: isDestructive 
+                  ? TextButton.styleFrom(foregroundColor: AppColors.error)
+                  : null,
+                child: Text(confirmText),
+              ),
+            ],
+          ),
+        ) ??
+        false;
   }
 
 }
