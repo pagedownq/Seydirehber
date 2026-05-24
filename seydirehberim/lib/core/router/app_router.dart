@@ -31,6 +31,8 @@ import '../../features/coupons/screens/coupon_detail_screen.dart';
 import '../../features/map/screens/seydi_map_screen.dart';
 import '../../features/notifications/screens/user_notifications_screen.dart';
 import '../services/analytics_service.dart';
+import '../../features/forum/screens/forum_screen.dart';
+import '../../features/forum/screens/forum_detail_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -53,6 +55,17 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/notifications',
         builder: (context, state) => const UserNotificationsScreen(),
+      ),
+      // Forum
+      GoRoute(
+        path: '/forum',
+        builder: (context, state) => const ForumScreen(),
+      ),
+      GoRoute(
+        path: '/forum/:id',
+        builder: (context, state) => ForumDetailScreen(
+          postId: state.pathParameters['id']!,
+        ),
       ),
       // Onboarding
       GoRoute(

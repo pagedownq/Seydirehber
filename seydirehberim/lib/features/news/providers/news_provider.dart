@@ -11,26 +11,40 @@ final newsProvider = FutureProvider<List<NewsModel>>((ref) async {
   const String categoryUrl = '$baseUrl/kategori/32/seydisehir';
   
   try {
-    final response = await http.get(Uri.parse(categoryUrl), headers: {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    }).timeout(const Duration(seconds: 15));
+    final headers = {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+    };
 
-    if (response.statusCode != 200) throw Exception('Sunucu hatası: ${response.statusCode}');
+    // Ana sayfa ve Kategori sayfasını aynı anda çekiyoruz
+    final responses = await Future.wait([
+      http.get(Uri.parse(baseUrl), headers: headers),
+      http.get(Uri.parse(categoryUrl), headers: headers),
+    ]).timeout(const Duration(seconds: 15));
 
-    final document = parser.parse(utf8.decode(response.bodyBytes));
-    final List<dom.Element> newsLinks = document.querySelectorAll('a[href*="/haber/"]');
     final List<String> uniqueLinks = [];
     final Set<String> seen = {};
 
-    for (var el in newsLinks) {
-      String? link = el.attributes['href'];
-      if (link == null || link.isEmpty || link.contains('resimler/')) continue;
-      if (!link.startsWith('http')) link = '$baseUrl${link.startsWith('/') ? '' : '/'}$link';
-      if (!seen.contains(link)) {
-        seen.add(link);
-        uniqueLinks.add(link);
+    for (var response in responses) {
+      if (response.statusCode != 200) continue;
+      final document = parser.parse(utf8.decode(response.bodyBytes));
+      // /haber/ içeren tüm linkleri bul
+      final List<dom.Element> newsLinks = document.querySelectorAll('a[href*="/haber/"]');
+
+      for (var el in newsLinks) {
+        String? link = el.attributes['href'];
+        // Resim/video galerilerini veya boş linkleri atla
+        if (link == null || link.isEmpty || link.contains('resimler/') || link.contains('video/')) continue;
+        
+        if (!link.startsWith('http')) link = '$baseUrl${link.startsWith('/') ? '' : '/'}$link';
+        
+        // Kopya (Duplicate) kontrolü
+        if (!seen.contains(link)) {
+          seen.add(link);
+          uniqueLinks.add(link);
+        }
+        // Toplamda en fazla 30 haber yeterli (performans için)
+        if (uniqueLinks.length >= 30) break;
       }
-      if (uniqueLinks.length >= 30) break;
     }
 
     // Haber detaylarını paralel olarak 5'erli gruplarla çekelim

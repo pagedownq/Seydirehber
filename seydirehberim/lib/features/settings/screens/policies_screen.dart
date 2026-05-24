@@ -77,11 +77,15 @@ Kullanıcılar tarafından oluşturulan tüm içerikler sıkı bir moderasyona t
 • Diğer kullanıcıları veya işletmeleri asılsız yere karalamak ve taciz etmek.
 
 3. Moderasyon ve Denetim Sistemi:
+• Otomatik Filtreleme: Sistemimizde bulunan akıllı küfür ve argo filtresi, uygunsuz kelimeleri otomatik olarak algılar ve yayına girmesini engeller.
 • Raporlama (Şikayet): Uygunsuz içerikleri "Rapor Et" butonuyla bize bildirebilirsiniz. Moderatörlerimiz bildirimleri 24 saat içinde inceler ve ihlal varsa içeriği siler.
-• Kullanıcı Engelleme: Sizi rahatsız eden kişileri "Engelle" özelliği ile anında akışınızdan gizleyebilirsiniz.
+• Kullanıcı Engelleme: Sizi rahatsız eden kişileri "Kullanıcıyı Engelle" özelliği ile akışınızdan gizleyebilir, sonrasında Ayarlar menüsünden engeli kaldırabilirsiniz.
 • Yaptırımlar: Kuralları ihlal eden hesaplar kalıcı olarak platformdan uzaklaştırılabilir.
 
-4. Haber İçerikleri (RSS):
+4. Ziyaretçi (Anonim) Kullanımı:
+Misafir kullanıcılar forumdaki ana gönderileri okuyabilir ancak diğer kullanıcıların verdiği yanıtları görebilmek veya yanıt yazabilmek için kayıt olmaları / giriş yapmaları zorunludur.
+
+5. Haber İçerikleri (RSS):
 Haberler yerel basın kuruluşlarının RSS servislerinden derlenmektedir. Haberlerin yasal sorumluluğu asıl kaynak yayıncılara aittir. Uyar-Kaldır prensibi uygulanmaktadır.
 ''';
 

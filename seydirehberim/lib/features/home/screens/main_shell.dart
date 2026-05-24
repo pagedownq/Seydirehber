@@ -13,6 +13,7 @@ import '../../../core/services/daily_notification_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../auth/widgets/name_request_dialog.dart';
+import '../../../core/widgets/survey_dialog.dart';
 
 class MainShell extends ConsumerStatefulWidget {
   const MainShell({super.key});
@@ -57,6 +58,7 @@ class _MainShellState extends ConsumerState<MainShell> with WidgetsBindingObserv
     WidgetsBinding.instance.addPostFrameCallback((_) {
       UpdateService.checkForUpdate();
       _checkMissingName();
+      _checkSurvey();
     });
   }
 
@@ -82,9 +84,21 @@ class _MainShellState extends ConsumerState<MainShell> with WidgetsBindingObserv
               }
             },
           ),
-        ).then((_) => _isNameDialogShowing = false);
+        ).then((_) {
+          _isNameDialogShowing = false;
+          _checkSurvey(); // İsim girildikten sonra anketi tekrar kontrol et
+        });
       }
     }
+  }
+
+  /// Anket henüz tamamlanmadıysa dialog gösterir.
+  void _checkSurvey() {
+    // İsim dialog'u kapandıktan sonra göstermek için kısa bir gecikme
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (!mounted || _isNameDialogShowing) return;
+      SurveyDialog.showIfNeeded(context);
+    });
   }
 
   @override

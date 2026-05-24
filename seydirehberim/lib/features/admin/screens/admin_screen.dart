@@ -6,6 +6,7 @@ import '../../../core/constants/app_text_styles.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../../core/services/review_service.dart';
 import '../../../core/services/stat_service.dart';
+import 'admin_forum_screen.dart';
 
 class AdminScreen extends ConsumerWidget {
   const AdminScreen({super.key});
@@ -287,6 +288,19 @@ class AdminScreen extends ConsumerWidget {
                       title: 'Yorum Şikayetleri',
                       color: const Color(0xFFD32F2F),
                       onTap: () => context.push('/admin/reports'),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                  if (permissions['canManageForum'] ?? false) ...[
+                    _AdminCard(
+                      icon: Icons.forum_rounded,
+                      title: 'Forum Moderasyonu',
+                      color: const Color(0xFF5C35CC),
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const AdminForumScreen(),
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 12),
                   ],

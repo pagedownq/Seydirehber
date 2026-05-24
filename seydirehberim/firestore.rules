@@ -3,6 +3,8 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
+    // --- YARDIMCI FONKSİYONLAR ---
+    
     function isAdmin() {
       return request.auth != null && 
         (request.auth.token.email == 'mehmetirem305@gmail.com' || 
@@ -11,14 +13,16 @@ service cloud.firestore {
          exists(/databases/$(database)/documents/admins/$(request.auth.token.email)));
     }
 
+    // --- SİSTEM KOLEKSİYONLARI ---
+
     match /admins/{email} {
       allow read: if request.auth != null && (request.auth.token.email == email || isAdmin());
       allow write: if isAdmin();
     }
 
-    // Esnaf yetki kontrolü kaldırıldı (Auth kullanılmadığı için kurallar esnetildi)
-    function isEsnaf(firmaId) {
-      return true; // Esnaf_web Auth kullanmadığından bypass edildi
+    match /user_presence/{uid} {
+      allow read: if isAdmin();
+      allow write: if request.auth != null && request.auth.uid == uid;
     }
 
     match /yardim_destek/{docId} {
@@ -27,14 +31,14 @@ service cloud.firestore {
     }
 
     match /sikayetler/{docId} {
-      allow create: if true; // Everyone can report content
+      allow create: if true;
       allow read: if isAdmin() || (request.auth != null && resource.data.reporterId == request.auth.uid);
       allow update, delete: if isAdmin();
     }
 
     match /user_tokens/{docId} {
-      allow read: if isAdmin();
-      allow write: if true; // Everyone can register their device token
+      allow read, delete: if isAdmin() || (request.auth != null && resource.data.userId == request.auth.uid);
+      allow create, update: if true;
     }
 
     match /duyurular/{docId} {
@@ -42,70 +46,122 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // Public collections (Read: public, Write: admin)
+    // --- REHBER & İÇERİK KOLEKSİYONLARI ---
+
     match /banners/{docId} { allow read: if true; allow write: if isAdmin(); }
     match /etkinlikler/{docId} { allow read: if true; allow write: if isAdmin(); }
     match /noterler/{docId} { allow read: if true; allow write: if isAdmin(); }
     match /pazarlar/{docId} { allow read: if true; allow write: if isAdmin(); }
     match /otobus_saatleri/{docId} { allow read: if true; allow write: if isAdmin(); }
     match /gezilecek_yerler/{docId} { allow read: if true; allow write: if isAdmin(); }
+    
     match /firmalar/{docId} { 
       allow read: if true; 
       allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['goruntulenme']);
       allow write: if isAdmin(); 
     }
 
-    // Yorumlar kuralları
+    match /surveys/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // --- YORUMLAR (REVIEWS) ---
+
     match /reviews/{docId} {
       allow read: if true;
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
       allow update, delete: if request.auth != null && (resource.data.userId == request.auth.uid || isAdmin());
     }
 
-    // Alt koleksiyon yorumları (Nested Reviews)
     match /targets/{targetType}/items/{targetId}/reviews/{docId} {
       allow read: if true;
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
       allow update, delete: if request.auth != null && (resource.data.userId == request.auth.uid || isAdmin());
     }
     
-    // --- KUPON & ESNAF SİSTEMİ KURALLARI ---
+    // --- KUPON & ESNAF SİSTEMİ ---
     
     match /esnaf_users/{docId} {
-      // Esnaf panelinde giriş yapabilmek için (Auth olmadan) okumaya açık olmalı
       allow read: if true;
       allow write: if isAdmin(); 
     }
 
     match /coupons/{docId} {
-      // Kuponları uygulamadaki herkes okuyabilir, sadece admin oluşturup silebilir.
       allow read: if true;
       allow update: if isAdmin() || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['used_count']));
       allow write: if isAdmin();
     }
 
     match /generated_codes/{docId} {
-      // 1. Kullanıcı kendi kodunu oluşturabilir.
-      // (Bunu kendi UID'si ile oluşturmak zorunda)
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      
-      // Müşteri kendi kodunu okuyabilir, admin ve esnaf da arama yapabilir
       allow read: if true;
-                  
-      // 3. Güncelleme Yetkisi (Transaction anı):
-      // - Herkes ('kodu bilen') sadece durumu 'pending' den 'used'a alabilir ve usedAt atayabilir. (Auth kaldırıldığı için sınırlı yetki açıldı)
       allow update: if isAdmin() || 
                     (
                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'usedAt']) &&
                       request.resource.data.status == 'used' && 
                       resource.data.status == 'pending'
                     );
-                    
       allow delete: if isAdmin();
     }
-    // ----------------------------------------
+
+    // --- FORUM KOLEKSİYONLARI ---
+
+    match /forum_posts/{postId} {
+      // Herkes görünür gönderileri okuyabilir
+      allow read: if true;
+
+      // Giriş yapmış (anonim olmayan) kullanıcılar gönderi oluşturabilir
+      // Giriş yapmış (anonim olmayan) kullanıcılar gönderi oluşturabilir
+      allow create: if request.auth != null
+        && request.resource.data.user_id == request.auth.uid
+        && request.resource.data.title is string
+        && request.resource.data.content is string;
+
+      // Sadece rapor/gizleme alanları güncellenebilir (transaction üzerinden)
+      allow update: if request.auth != null
+        && (
+          // Kullanıcı sadece rapor, gizleme, yanıt sayısını ve oyları güncelleyebilir
+          request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['report_count', 'is_hidden', 'reporter_ids', 'updated_at', 'reply_count', 'helpful_voter_ids', 'unhelpful_voter_ids'])
+          ||
+          // Kullanıcı kendi gönderisini düzenleyebilir
+          (resource.data.user_id == request.auth.uid && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['title', 'content', 'category', 'is_edited', 'updated_at']))
+          ||
+          // Admin her şeyi güncelleyebilir
+          isAdmin()
+        );
+
+      // Silme işlemi admin veya gönderi sahibi tarafından yapılabilir
+      allow delete: if isAdmin() || (request.auth != null && resource.data.user_id == request.auth.uid);
+    }
+
+    match /forum_replies/{replyId} {
+      // Herkes görünür yanıtları okuyabilir
+      allow read: if true;
+
+      // Giriş yapmış kullanıcılar yanıt yazabilir
+      allow create: if request.auth != null
+        && request.resource.data.user_id == request.auth.uid
+        && request.resource.data.content is string;
+
+      // Sadece rapor alanları veya admin güncelleyebilir
+      allow update: if request.auth != null
+        && (
+          request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['report_count', 'is_hidden', 'reporter_ids'])
+          ||
+          // Kullanıcı kendi yanıtını düzenleyebilir
+          (resource.data.user_id == request.auth.uid && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['content', 'is_edited']))
+          ||
+          isAdmin()
+        );
+
+      // Silme işlemi admin veya yanıt sahibi tarafından yapılabilir
+      allow delete: if isAdmin() || (request.auth != null && resource.data.user_id == request.auth.uid);
+    }
     
-    // Default fallback rule: denies all access by default
+    // --- VARSAYILAN KAPALI ---
     match /{document=**} {
       allow read, write: if false;
     }

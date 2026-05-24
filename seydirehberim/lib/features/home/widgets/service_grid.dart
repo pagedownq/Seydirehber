@@ -4,6 +4,7 @@ import '../../../core/services/haptic_service.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../forum/widgets/forum_rules_sheet.dart';
 
 class ServiceGrid extends StatelessWidget {
   const ServiceGrid({super.key});
@@ -84,23 +85,38 @@ class ServiceGrid extends StatelessWidget {
                 showMapPattern: true,
                 onTap: () => context.push('/seydi-map'),
               ),
+              _ServiceCard(
+                icon: Icons.newspaper_rounded,
+                title: 'Haberler',
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF2E7D32), Color(0xFF43A047)],
+                ),
+                iconColor: Colors.white,
+                showNewsPattern: true,
+                onTap: () => context.push('/news'),
+              ),
+              _ServiceCard(
+                icon: Icons.forum_rounded,
+                title: 'Forum',
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF5C35CC), Color(0xFF7B52E8)],
+                ),
+                iconColor: Colors.white,
+                showForumPattern: true,
+                onTap: () => _openForum(context),
+              ),
             ],
-          ),
-          const SizedBox(height: 12),
-          // Full width Haberler button
-          _ServiceCard(
-            icon: Icons.newspaper_rounded,
-            title: 'Haberler',
-            gradient: const LinearGradient(
-              colors: [Color(0xFF2E7D32), Color(0xFF43A047)],
-            ),
-            iconColor: Colors.white,
-            showNewsPattern: true,
-            isFullWidth: true,
-            onTap: () => context.push('/news'),
           ),
         ],
       ),
+    );
+  }
+
+  /// Forum kuralları onaylandıysa direkt aç, değilse kurallar sheet'ini göster.
+  static void _openForum(BuildContext context) {
+    ForumRulesSheet.showIfNeeded(
+      context,
+      onAccepted: () => context.push('/forum'),
     );
   }
 }
@@ -290,6 +306,7 @@ class _ServiceCard extends StatelessWidget {
   final bool showBusPattern;
   final bool showMarketPattern;
   final bool showVefatPattern;
+  final bool showForumPattern;
 
   const _ServiceCard({
     this.icon,
@@ -309,6 +326,7 @@ class _ServiceCard extends StatelessWidget {
     this.showBusPattern = false,
     this.showMarketPattern = false,
     this.showVefatPattern = false,
+    this.showForumPattern = false,
   });
 
   @override
@@ -370,6 +388,12 @@ class _ServiceCard extends StatelessWidget {
                     painter: _VefatPatternPainter(),
                   ),
                 ),
+              if (showForumPattern)
+                Positioned.fill(
+                  child: CustomPaint(
+                    painter: _ForumPatternPainter(),
+                  ),
+                ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: isFullWidth
@@ -383,7 +407,7 @@ class _ServiceCard extends StatelessWidget {
                             ),
                             child: _buildIcon(imageSize ?? 32),
                           ),
-                          const SizedBox(width: 16),
+                          const SizedBox(width: 10),
                           Expanded(
                             child: Text(
                               title,
@@ -391,7 +415,7 @@ class _ServiceCard extends StatelessWidget {
                               style: AppTextStyles.bodyMedium.copyWith(
                                 color: textColor,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 17,
+                                fontSize: 15,
                               ),
                             ),
                           ),
@@ -448,4 +472,38 @@ class _ServiceCard extends StatelessWidget {
     }
     return Icon(icon ?? Icons.help_outline, color: iconColor, size: size);
   }
+}
+
+class _ForumPatternPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.15)
+      ..strokeWidth = 1.5
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke;
+
+    // Sohbet baloncuklarını andıran şematik çizgiler
+    final path = Path();
+    path.addRRect(RRect.fromRectAndRadius(
+      Rect.fromLTWH(size.width * 0.45, size.height * 0.1,
+          size.width * 0.4, size.height * 0.3),
+      const Radius.circular(6),
+    ));
+    path.addRRect(RRect.fromRectAndRadius(
+      Rect.fromLTWH(size.width * 0.48, size.height * 0.5,
+          size.width * 0.32, size.height * 0.25),
+      const Radius.circular(6),
+    ));
+    canvas.drawPath(path, paint);
+
+    final dotPaint = Paint()..color = Colors.white.withOpacity(0.2);
+    canvas.drawCircle(
+        Offset(size.width * 0.9, size.height * 0.15), 2.5, dotPaint);
+    canvas.drawCircle(
+        Offset(size.width * 0.87, size.height * 0.65), 2, dotPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

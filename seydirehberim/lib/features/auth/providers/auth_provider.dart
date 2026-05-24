@@ -39,7 +39,7 @@ final isAdminProvider = StreamProvider<bool>((ref) {
 // Detailed Admin Permissions Provider
 final adminPermissionsProvider = StreamProvider<Map<String, bool>>((ref) {
   final authState = ref.watch(authStateProvider).value;
-  if (authState == null || authState.email == null) {
+  if (authState == null || authState.email == null || authState.email!.isEmpty) {
     return Stream.value({});
   }
   
@@ -62,6 +62,7 @@ final adminPermissionsProvider = StreamProvider<Map<String, bool>>((ref) {
       'canManageEsnaf': true,
       'canManageCoupons': true,
       'canManageAdmins': true,
+      'canManageForum': true,
     });
   }
 
@@ -91,6 +92,7 @@ final adminPermissionsProvider = StreamProvider<Map<String, bool>>((ref) {
           'canManageEsnaf': data['canManageEsnaf'] ?? false,
           'canManageCoupons': data['canManageCoupons'] ?? false,
           'canManageAdmins': data['canManageAdmins'] ?? false,
+          'canManageForum': data['canManageForum'] ?? false,
         };
       });
 });

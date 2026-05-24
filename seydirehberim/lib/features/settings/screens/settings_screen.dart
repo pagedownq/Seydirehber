@@ -14,6 +14,7 @@ import '../../../core/utils/app_notification.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../../core/providers/app_info_provider.dart';
 import '../../../core/services/block_service.dart';
+import '../../forum/providers/forum_providers.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../core/services/daily_notification_service.dart';
 import '../../../core/services/haptic_service.dart';
@@ -137,7 +138,7 @@ class SettingsScreen extends ConsumerWidget {
             title: 'Engellenen Kullanıcılar',
             subtitle: 'Engellediğiniz kişileri yönetin',
             iconColor: AppColors.error,
-            onTap: () => _showBlockedUsersBottomSheet(context),
+            onTap: () => _showBlockedUsersBottomSheet(context, ref),
           ),
           const SizedBox(height: 8),
 
@@ -371,7 +372,7 @@ class SettingsScreen extends ConsumerWidget {
   }
 
 
-  void _showBlockedUsersBottomSheet(BuildContext context) {
+  void _showBlockedUsersBottomSheet(BuildContext context, WidgetRef ref) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -455,7 +456,7 @@ class SettingsScreen extends ConsumerWidget {
                           trailing: TextButton(
                             onPressed: () async {
                               HapticService.selection();
-                              await BlockService.unblockUser(user.uid);
+                              await ref.read(blockedUsersProvider.notifier).unblockUser(user.uid);
                               setModalState(() {});
                               if (context.mounted) {
                                 AppNotification.success(context, 'Engel kaldırıldı.');
