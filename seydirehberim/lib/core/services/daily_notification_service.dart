@@ -12,38 +12,35 @@ class DailyNotificationService {
   factory DailyNotificationService() => _instance;
   DailyNotificationService._internal();
 
-  static const String _lastScheduledKey = 'daily_notif_last_scheduled';
+  static const String _weeklyScheduledKey = 'weekly_notif_scheduled_v2';
   static const String _dailyNotifEnabledKey = 'daily_notif_enabled';
   static const String channelId = 'seydirehberim_notifications';
 
-  static const int _morningId = 9001;
-  static const int _afternoonId = 9002;
-  static const int _eveningId = 9003;
+  // Notification IDs
+  static const int _mondayId = 9101;
+  static const int _thursdayId = 9102;
+  static const int _fridayId = 9103;
+  static const int _sundayId = 9104;
 
-
-  static const List<_NotifTemplate> _morningMessages = [
-    _NotifTemplate(title: 'Günaydın! ☀️', body: 'Bugünün hava durumuna göz attın mı? Hemen kontrol et!', route: '/weather'),
-    _NotifTemplate(title: 'Günaydın Seydişehir! 📰', body: 'Yeni haberler seni bekliyor, bir göz at!', route: '/news'),
-    _NotifTemplate(title: 'Günaydın! 💊', body: 'Bugünün nöbetçi eczanesi hangisi? Hemen öğren!', route: '/pharmacy'),
-    _NotifTemplate(title: 'Güne Merhaba! ☕', body: 'Kahvaltını nerede yapacağına karar veremedin mi? En iyileri keşfet!', route: '/companies/popular'),
-    _NotifTemplate(title: 'Ulaşım 🚌', body: 'Bugün otobüs kullanacaksan saatlere göz atmayı unutma!', route: '/otobus'),
-    _NotifTemplate(title: 'Harika Bir Gün! 🗺️', body: 'Seydişehir\'de bugün gezilecek yerleri keşfetmeye ne dersin?', route: '/places'),
+  // Tailored templates for specific days
+  static const List<_NotifTemplate> _mondayMessages = [
+    _NotifTemplate(title: 'Yeni Haftaya Başlarken ☀️', body: 'Bugünün nöbetçi eczanesini ve güncel otobüs saatlerini hemen öğren!', route: '/pharmacy'),
+    _NotifTemplate(title: 'Harika Bir Hafta Olsun! ☕', body: 'Güne güzel bir başlangıç için Seydişehir\'in en sevilen mekanlarını keşfet.', route: '/companies/popular'),
   ];
 
-  static const List<_NotifTemplate> _afternoonMessages = [
-    _NotifTemplate(title: 'Seydi Rehber 🎫', body: 'Fırsat kuponlarına baktın mı? İndirimli fırsatlar seni bekliyor!', route: '/coupons'),
-    _NotifTemplate(title: 'Öğle Molası 🍔', body: 'Seydişehir\'deki en popüler mekanlar hangileri? Keşfet!', route: '/companies/popular'),
-    _NotifTemplate(title: 'Tatlı Krizin mi Tuttu? 🍰', body: 'Rehbere yeni eklenen mekanları ve kafeleri incele.', route: '/companies/latest'),
-    _NotifTemplate(title: 'Pazar Alışverişi 🍎', body: 'Seydişehir\'deki halk pazarları nerede kuruluyor? Hemen öğren.', route: '/pazarlar'),
-    _NotifTemplate(title: 'Şehirde Neler Oluyor? 📅', body: 'Yaklaşan etkinlikleri kaçırma, planını şimdiden yap!', route: '/events'),
+  static const List<_NotifTemplate> _thursdayMessages = [
+    _NotifTemplate(title: 'Pazar Alışverişi Zamanı! 🍎', body: 'Bugün kurulan halk pazarı nerede? Taze alışveriş için yerini hemen öğren.', route: '/pazarlar'),
+    _NotifTemplate(title: 'Perşembe Fırsatları 🎫', body: 'Hafta sonu öncesi indirim kuponlarına göz attın mı? Fırsatları kaçırma!', route: '/coupons'),
   ];
 
-  static const List<_NotifTemplate> _eveningMessages = [
-    _NotifTemplate(title: 'İyi Akşamlar! 🌙', body: 'Yarının hava durumuna şimdiden göz at!', route: '/weather'),
-    _NotifTemplate(title: 'Unutma! 💊', body: 'Bugünün nöbetçi eczanesini kontrol ettin mi?', route: '/pharmacy'),
-    _NotifTemplate(title: 'Günün Yorgunluğunu At ☕', body: 'Akşam kahvesi için en çok tercih edilen mekanlara göz at.', route: '/companies/popular'),
-    _NotifTemplate(title: 'Haberleri Kaçırdın mı? 📰', body: 'Günün öne çıkan gelişmeleri Seydi Rehber\'de. Göz atmak ister misin?', route: '/news'),
-    _NotifTemplate(title: 'Seydişehir\'i Keşfet 📱', body: 'Haritayı açıp etrafındaki yeni yerleri keşfetmeye ne dersin?', route: '/seydi-map'),
+  static const List<_NotifTemplate> _fridayMessages = [
+    _NotifTemplate(title: 'Hafta Sonu Geldi! 🎉', body: 'Akşam kahvesi veya akşam yemeği için nereye gitmeli? Popüler mekanları keşfet.', route: '/companies/popular'),
+    _NotifTemplate(title: 'Hafta Sonuna Özel 🍰', body: 'Rehbere yeni eklenen kafe, restoran ve butikleri incelemeye ne dersin?', route: '/companies/latest'),
+  ];
+
+  static const List<_NotifTemplate> _sundayMessages = [
+    _NotifTemplate(title: 'Bugün Neler Var? 📅', body: 'Seydişehir\'deki en güncel etkinlikleri kaçırma, planını hemen yap!', route: '/events'),
+    _NotifTemplate(title: 'Pazar Keşfi 🗺️', body: 'Seydişehir\'in saklı kalmış doğal ve tarihi güzelliklerini keşfe çık!', route: '/places'),
   ];
 
   FlutterLocalNotificationsPlugin get _localNotif => NotificationService().localNotificationsPlugin;
@@ -56,7 +53,6 @@ class DailyNotificationService {
       debugPrint('Timezone setup error: $e');
     }
 
-    // Plugin is already initialized in NotificationService
     await scheduleDailyNotifications();
   }
 
@@ -65,47 +61,60 @@ class DailyNotificationService {
     if (!dailyEnabled) return;
 
     final prefs = await SharedPreferences.getInstance();
-    final lastScheduled = prefs.getString(_lastScheduledKey);
-    final todayStr = _todayString();
 
-    if (lastScheduled == todayStr) {
-      debugPrint('[DailyNotif] Bugün zaten planlanmış.');
-      return;
-    }
-
+    // Overwrite the schedules anyway to keep it fresh and updated
     await _cancelDailyNotifications();
     final random = Random();
 
-    await _scheduleNotification(
-      id: _morningId,
-      template: _morningMessages[random.nextInt(_morningMessages.length)],
-      scheduledDate: _nextOccurrence(9, 0),
-    );
-    await _scheduleNotification(
-      id: _afternoonId,
-      template: _afternoonMessages[random.nextInt(_afternoonMessages.length)],
-      scheduledDate: _nextOccurrence(13, 0),
-    );
-    await _scheduleNotification(
-      id: _eveningId,
-      template: _eveningMessages[random.nextInt(_eveningMessages.length)],
-      scheduledDate: _nextOccurrence(19, 0),
+    // Monday (Pazartesi) @ 09:30 (Day 1)
+    await _scheduleWeeklyNotification(
+      id: _mondayId,
+      template: _mondayMessages[random.nextInt(_mondayMessages.length)],
+      dayOfWeek: DateTime.monday,
+      hour: 9,
+      minute: 30,
     );
 
-    await prefs.setString(_lastScheduledKey, todayStr);
+    // Thursday (Perşembe) @ 10:00 (Day 4)
+    await _scheduleWeeklyNotification(
+      id: _thursdayId,
+      template: _thursdayMessages[random.nextInt(_thursdayMessages.length)],
+      dayOfWeek: DateTime.thursday,
+      hour: 10,
+      minute: 0,
+    );
+
+    // Friday (Cuma) @ 18:00 (Day 5)
+    await _scheduleWeeklyNotification(
+      id: _fridayId,
+      template: _fridayMessages[random.nextInt(_fridayMessages.length)],
+      dayOfWeek: DateTime.friday,
+      hour: 18,
+      minute: 0,
+    );
+
+    // Sunday (Pazar) @ 13:00 (Day 7)
+    await _scheduleWeeklyNotification(
+      id: _sundayId,
+      template: _sundayMessages[random.nextInt(_sundayMessages.length)],
+      dayOfWeek: DateTime.sunday,
+      hour: 13,
+      minute: 0,
+    );
+
+    await prefs.setBool(_weeklyScheduledKey, true);
+    debugPrint('[DailyNotif] Özel gün bazlı haftalık bildirimler başarıyla planlandı.');
   }
-
 
   NotificationDetails _getDetails() {
     return const NotificationDetails(
       android: AndroidNotificationDetails(
         channelId,
         'Seydi Rehber Bildirimleri',
-        channelDescription: 'Günlük bildirimler.',
+        channelDescription: 'Seydişehir güncel rehber bildirimleri.',
         importance: Importance.max,
         priority: Priority.max,
         icon: 'ic_stat_s',
-        fullScreenIntent: true,
       ),
       iOS: DarwinNotificationDetails(
         presentAlert: true,
@@ -115,27 +124,24 @@ class DailyNotificationService {
     );
   }
 
-  Future<void> _scheduleNotification({
+  Future<void> _scheduleWeeklyNotification({
     required int id,
     required _NotifTemplate template,
-    required tz.TZDateTime scheduledDate,
+    required int dayOfWeek,
+    required int hour,
+    required int minute,
   }) async {
     try {
-      final now = tz.TZDateTime.now(tz.local);
-      var finalDate = scheduledDate;
-      
-      if (finalDate.isBefore(now)) {
-        finalDate = finalDate.add(const Duration(days: 1));
-      }
+      final scheduledDate = _nextOccurrenceForDay(dayOfWeek, hour, minute);
 
       await _localNotif.zonedSchedule(
         id: id,
         title: template.title,
         body: template.body,
-        scheduledDate: finalDate,
+        scheduledDate: scheduledDate,
         notificationDetails: _getDetails(),
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        matchDateTimeComponents: DateTimeComponents.time,
+        matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
         payload: template.route,
       );
     } catch (e) {
@@ -145,26 +151,24 @@ class DailyNotificationService {
 
   Future<void> _cancelDailyNotifications() async {
     try {
-      await _localNotif.cancel(id: _morningId);
-      await _localNotif.cancel(id: _afternoonId);
-      await _localNotif.cancel(id: _eveningId);
+      await _localNotif.cancel(id: _mondayId);
+      await _localNotif.cancel(id: _thursdayId);
+      await _localNotif.cancel(id: _fridayId);
+      await _localNotif.cancel(id: _sundayId);
     } catch (e) {
       debugPrint('Cancel error: $e');
     }
   }
 
-  tz.TZDateTime _nextOccurrence(int hour, int minute) {
+  tz.TZDateTime _nextOccurrenceForDay(int dayOfWeek, int hour, int minute) {
     final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
     tz.TZDateTime scheduledDate = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
-    if (scheduledDate.isBefore(now)) {
+    
+    // Find the next occurrence of this day of the week in the future
+    while (scheduledDate.weekday != dayOfWeek || scheduledDate.isBefore(now)) {
       scheduledDate = scheduledDate.add(const Duration(days: 1));
     }
     return scheduledDate;
-  }
-
-  String _todayString() {
-    final now = DateTime.now();
-    return '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
   }
 
   Future<bool> isDailyNotificationsEnabled() async {
@@ -176,7 +180,7 @@ class DailyNotificationService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_dailyNotifEnabledKey, enabled);
     if (enabled) {
-      await prefs.remove(_lastScheduledKey);
+      await prefs.remove(_weeklyScheduledKey);
       await scheduleDailyNotifications();
     } else {
       await _cancelDailyNotifications();

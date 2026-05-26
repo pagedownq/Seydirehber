@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'cached_image_widget.dart';
 
 class ImageSlider extends StatefulWidget {
@@ -22,12 +23,30 @@ class _ImageSliderState extends State<ImageSlider> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
   Timer? _timer;
+  bool _isPrecached = false;
 
   @override
   void initState() {
     super.initState();
     if (widget.images.length > 1) {
       _startTimer();
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_isPrecached && widget.images.isNotEmpty) {
+      _isPrecached = true;
+      // Pre-cache all gallery images in the background so they are ready instantly
+      for (final imageUrl in widget.images) {
+        if (imageUrl.isNotEmpty) {
+          precacheImage(
+            CachedNetworkImageProvider(imageUrl),
+            context,
+          ).catchError((_) {});
+        }
+      }
     }
   }
 
@@ -69,6 +88,8 @@ class _ImageSliderState extends State<ImageSlider> {
       );
     }
 
+    final cacheWidth = (MediaQuery.of(context).size.width * MediaQuery.of(context).devicePixelRatio).round();
+
     return Stack(
       children: [
         PageView.builder(
@@ -86,6 +107,7 @@ class _ImageSliderState extends State<ImageSlider> {
                 imageUrl: widget.images[index],
                 fit: BoxFit.cover,
                 isCompany: true,
+                memCacheWidth: cacheWidth,
               ),
             );
           },

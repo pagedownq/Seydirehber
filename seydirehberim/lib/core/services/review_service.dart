@@ -73,29 +73,7 @@ class ReviewService {
     await _firestore.collection('reviews').add(review.toFirestore());
 
     // Update target document (place/company) with average rating and count (denormalization)
-    final collection = targetType == 'company' ? 'firmalar' : 'gezilecek_yerler';
-    final targetDoc = _firestore.collection(collection).doc(targetId);
-    
-    await _firestore.runTransaction((transaction) async {
-      final snapshot = await transaction.get(targetDoc);
-      if (snapshot.exists) {
-        final data = snapshot.data()!;
-        final double currentRating = (data['ortalama_puan'] as num?)?.toDouble() ?? 0.0;
-        final int currentCount = (data['yorum_sayisi'] as num?)?.toInt() ?? 0;
-        
-        final int newCount = currentCount + 1;
-        // Simple average calculation
-        final double newRating = ((currentRating * currentCount) + rating) / newCount;
-        
-        transaction.update(targetDoc, {
-          'ortalama_puan': newRating,
-          'yorum_sayisi': newCount,
-        });
-      }
-    }).catchError((e, stack) {
-      debugPrint('Denormalization error: $e');
-      return null;
-    });
+    await _syncTargetStats(targetId, targetType);
   }
 
   Future<bool> hasUserReviewed(String targetId) async {
@@ -130,6 +108,13 @@ class ReviewService {
       'isEdited': true,
       'updatedAt': FieldValue.serverTimestamp(),
     });
+
+    // Update target stats to reflect any changes in rating
+    final reviewDoc = await _firestore.collection('reviews').doc(reviewId).get();
+    if (reviewDoc.exists) {
+      final reviewData = reviewDoc.data()!;
+      await _syncTargetStats(reviewData['targetId'], reviewData['targetType']);
+    }
   }
 
   Future<void> deleteReview(String reviewId) async {
@@ -149,34 +134,7 @@ class ReviewService {
     await _firestore.collection('reviews').doc(reviewId).delete();
 
     // Update target document (denormalization)
-    final collection = targetType == 'company' ? 'firmalar' : 'gezilecek_yerler';
-    final targetDoc = _firestore.collection(collection).doc(targetId);
-    
-    await _firestore.runTransaction((transaction) async {
-      final snapshot = await transaction.get(targetDoc);
-      if (snapshot.exists) {
-        final data = snapshot.data()!;
-        final double currentRating = (data['ortalama_puan'] as num?)?.toDouble() ?? 0.0;
-        final int currentCount = (data['yorum_sayisi'] as num?)?.toInt() ?? 0;
-        
-        if (currentCount > 1) {
-          final int newCount = currentCount - 1;
-          final double newRating = ((currentRating * currentCount) - rating) / newCount;
-          transaction.update(targetDoc, {
-            'ortalama_puan': newRating,
-            'yorum_sayisi': newCount,
-          });
-        } else {
-          transaction.update(targetDoc, {
-            'ortalama_puan': 0.0,
-            'yorum_sayisi': 0,
-          });
-        }
-      }
-    }).catchError((e, stack) {
-      debugPrint('Denormalization delete error: $e');
-      return null;
-    });
+    await _syncTargetStats(targetId, targetType);
   }
 
   Future<void> reportReview(Review review) async {
@@ -252,6 +210,38 @@ class ReviewService {
           'yorum_sayisi': 0,
         });
       }
+    }
+  }
+
+  Future<void> _syncTargetStats(String targetId, String targetType) async {
+    final collection = targetType == 'company' ? 'firmalar' : 'gezilecek_yerler';
+    final targetDoc = _firestore.collection(collection).doc(targetId);
+
+    try {
+      final reviews = await _firestore
+          .collection('reviews')
+          .where('targetId', isEqualTo: targetId)
+          .get();
+          
+      if (reviews.docs.isNotEmpty) {
+        double totalRating = 0;
+        for (var doc in reviews.docs) {
+          totalRating += (doc.data()['rating'] as num?)?.toDouble() ?? 0.0;
+        }
+        final double avg = totalRating / reviews.docs.length;
+        
+        await targetDoc.update({
+          'ortalama_puan': avg,
+          'yorum_sayisi': reviews.docs.length,
+        });
+      } else {
+        await targetDoc.update({
+          'ortalama_puan': 0.0,
+          'yorum_sayisi': 0,
+        });
+      }
+    } catch (e) {
+      debugPrint('Sync target stats error: $e');
     }
   }
 }

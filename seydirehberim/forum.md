@@ -71,8 +71,3 @@ Bir gönderi veya yorum şikayet edildiğinde sistem arka planda şu mantıkla �
   "created_at": "timestamp"
 }
 
-
- anaysafadaki hizmetler bölümündeki haberler ve forum butonları yanyana ve  bu haberler butonunn içindeki metin tam gözükmüyor  forum butonundan dolayıu fontu büyük sanırım onun  onu düzelt + olarak  foruma ilk defa girerken foruma giriş yap dialog yerinde yukarıdan alta sürükleyince o dialogu kapatma olmuyor  onu ayarla 
- W/Firestore(21673): (25.1.4) [Firestore]: Listen for Query(target=Query(forum_posts where is_hidden==false order by -created_at, -__name__);limitType=LIMIT_TO_FIRST) failed: Status{code=PERMISSION_DENIED, description=Missing or insufficient permissions., cause=null}
- hatası var bide W/Firestore(21673): (25.1.4) [Firestore]: Listen for Query(target=Query(forum_posts where is_hidden==false order by -created_at, -__name__);limitType=LIMIT_TO_FIRST) failed: Status{code=FAILED_PRECONDITION, description=The query requires an index. You can create it here: https://console.firebase.google.com/v1/r/project/seydirehber1/firestore/indexes?create_composite=ClBwcm9qZWN0cy9zZXlkaXJlaGJlcjEvZGF0YWJhc2VzLyhkZWZhdWx0KS9jb2xsZWN0aW9uR3JvdXBzL2ZvcnVtX3Bvc3RzL2luZGV4ZXMvXxABGg0KCWlzX2hpZGRlbhABGg4KCmNyZWF0ZWRfYXQQAhoMCghfX25hbWVfXxAC, cause=null}
- var bunları çöz 

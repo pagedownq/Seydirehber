@@ -6,6 +6,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../core/constants/app_constants.dart';
 import '../../../core/widgets/cached_image_widget.dart';
 import '../../../core/widgets/interactive_map_widget.dart';
 import '../../../core/widgets/favorite_button.dart';
@@ -110,12 +111,16 @@ class PlaceDetailScreen extends ConsumerWidget {
                       color: Colors.black.withOpacity(0.3),
                       shape: BoxShape.circle,
                     ),
-                    child: IconButton(
-                      icon: const Icon(Icons.share_outlined, color: Colors.white, size: 20),
-                      onPressed: () {
-                        HapticService.selection();
-                        Share.share('$name yerini Seydi Rehber\'de keşfet!');
-                      },
+                    child: Builder(
+                      builder: (buttonContext) => IconButton(
+                        icon: const Icon(Icons.share_outlined, color: Colors.white, size: 20),
+                        onPressed: () {
+                          HapticService.selection();
+                          final box = buttonContext.findRenderObject() as RenderBox?;
+                          final rect = box != null ? box.localToGlobal(Offset.zero) & box.size : null;
+                          Share.share(AppConstants.getShareText('$name yerini Seydi Rehber\'de keşfet!'), sharePositionOrigin: rect);
+                        },
+                      ),
                     ),
                   ),
                   FavoriteButton(id: placeId, type: 'place'),

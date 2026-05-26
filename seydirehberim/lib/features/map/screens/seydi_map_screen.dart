@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_cancellable_tile_provider/flutter_map_cancellable_tile_provider.dart';
+import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -44,9 +45,19 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
   final Map<String, LatLng> _coordinateCache = {};
   final Map<String, Marker> _markerCache = {};
   final Set<String> _pendingResolutions = {};
+  Timer? _rebuildTimer;
   
   // Track previous filter to detect changes
   String _lastFilterUsed = '';
+
+  // New States for Map Features
+  String _currentMapTheme = 'light';
+  bool _showRadius = false;
+  final double _radiusKm = 2.0;
+  
+  bool _isSearching = false;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
   // User Location
   LatLng? _userLocation;
@@ -71,6 +82,7 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
 
   @override
   void dispose() {
+    _rebuildTimer?.cancel();
     _locationSubscription?.cancel();
     _serviceStatusSubscription?.cancel();
     super.dispose();
@@ -333,19 +345,31 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
             ),
           ),
           
-          // Floating Filter Bar at the top
+          // Floating Search & Filter Bar at the top
           Positioned(
             top: 0,
             left: 0,
             right: 0,
-            child: _buildFilterBar(),
+            child: Column(
+              children: [
+                _buildSearchBar(),
+                _buildFilterBar(),
+              ],
+            ),
           ),
           
           // Compact loading indicator
           Positioned(
-            top: 85, // Adjusted to not overlap with filter bar
+            top: 120, // Adjusted to not overlap with search & filter bar
             right: 20,
             child: _buildCompactLoadingIndicator(places, companies, events, noterler, pazarlar),
+          ),
+          
+          // Map Controls (Theme & Radius)
+          Positioned(
+            bottom: 30,
+            right: 16,
+            child: _buildMapControls(),
           ),
         ],
       ),
@@ -383,23 +407,11 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
   }
 
   Widget _buildFilterBar() {
-    return Container(
-      height: 90,
-      padding: const EdgeInsets.only(top: 8),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Colors.white.withOpacity(0.8),
-            Colors.white.withOpacity(0.4),
-            Colors.transparent,
-          ],
-        ),
-      ),
+    return SizedBox(
+      height: 40,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         itemCount: _filters.length,
         itemBuilder: (context, index) {
           final filter = _filters[index];
@@ -407,33 +419,38 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
           final icon = _filterIcons[filter] ?? Icons.category_rounded;
           
           return Padding(
-            padding: const EdgeInsets.only(right: 12),
+            padding: const EdgeInsets.only(right: 8),
             child: InkWell(
               onTap: () {
                 if (_selectedFilter != filter) {
-                  HapticService.vibrate(); // Upgrade to vibrate to ensure it's felt
+                  HapticService.selection();
                   setState(() => _selectedFilter = filter);
                 }
               },
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(20),
               child: AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  gradient: isSelected ? AppColors.primaryGradient : null,
-                  color: isSelected ? null : AppColors.primarySurface.withOpacity(0.5),
-                  borderRadius: BorderRadius.circular(16),
+                  color: isSelected ? AppColors.primary : Colors.white.withOpacity(0.95),
+                  borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: isSelected ? Colors.transparent : AppColors.primary.withOpacity(0.1),
+                    color: isSelected ? Colors.transparent : Colors.grey.withOpacity(0.2),
                     width: 1,
                   ),
                   boxShadow: [
                     if (isSelected)
                       BoxShadow(
                         color: AppColors.primary.withOpacity(0.3),
-                        blurRadius: 12,
-                        offset: const Offset(0, 6),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      )
+                    else
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
                       ),
                   ],
                 ),
@@ -442,17 +459,17 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
                   children: [
                     Icon(
                       icon,
-                      size: 18,
+                      size: 16,
                       color: isSelected ? Colors.white : AppColors.primary,
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 6),
                     Text(
                       filter,
                       style: TextStyle(
-                        color: isSelected ? Colors.white : AppColors.primary.withOpacity(0.8),
+                        color: isSelected ? Colors.white : Colors.black87,
                         fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                        fontSize: 13,
-                        letterSpacing: -0.3,
+                        fontSize: 12,
+                        letterSpacing: -0.2,
                       ),
                     ),
                   ],
@@ -465,6 +482,16 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
     );
   }
 
+
+  String _getTileUrl() {
+    switch (_currentMapTheme) {
+      case 'satellite':
+        return 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+      case 'light':
+      default:
+        return 'https://{s}.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}.png';
+    }
+  }
 
   Widget _buildMap(List<Marker> markers) {
     return FlutterMap(
@@ -480,18 +507,58 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
       ),
       children: [
         TileLayer(
-          urlTemplate: 'https://{s}.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}.png',
+          urlTemplate: _getTileUrl(),
           subdomains: const ['a', 'b', 'c', 'd'],
           userAgentPackageName: 'com.seydirehberim.app',
           tileProvider: CancellableNetworkTileProvider(),
           // Optimize tile loading performance
-          tileDisplay: const TileDisplay.fadeIn(duration: Duration(milliseconds: 150)),
-          keepBuffer: 3,
+          tileDisplay: const TileDisplay.fadeIn(duration: Duration(milliseconds: 100)),
+          keepBuffer: 5,
+          panBuffer: 2,
         ),
-        MarkerLayer(
-          markers: [
-            ...markers,
-            if (_userLocation != null)
+        if (_showRadius && _userLocation != null)
+          CircleLayer(
+            circles: [
+              CircleMarker(
+                point: _userLocation!,
+                color: AppColors.primary.withOpacity(0.1),
+                borderStrokeWidth: 2,
+                borderColor: AppColors.primary.withOpacity(0.5),
+                useRadiusInMeter: true,
+                radius: _radiusKm * 1000,
+              ),
+            ],
+          ),
+        MarkerClusterLayerWidget(
+          options: MarkerClusterLayerOptions(
+            maxClusterRadius: 45,
+            size: const Size(40, 40),
+            alignment: Alignment.center,
+            padding: const EdgeInsets.all(50),
+            maxZoom: 15,
+            markers: markers,
+            builder: (context, clusterMarkers) {
+              return Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  color: AppColors.primary,
+                  boxShadow: [
+                    BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 4)
+                  ],
+                ),
+                child: Center(
+                  child: Text(
+                    clusterMarkers.length.toString(),
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        if (_userLocation != null)
+          MarkerLayer(
+            markers: [
               Marker(
                 point: _userLocation!,
                 width: 60,
@@ -502,10 +569,7 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
                     Container(
                       width: 20,
                       height: 20,
-                      decoration: BoxDecoration(
-                        color: Colors.blue.withOpacity(0.2),
-                        shape: BoxShape.circle,
-                      ),
+                      decoration: BoxDecoration(color: Colors.blue.withOpacity(0.2), shape: BoxShape.circle),
                     ),
                     Container(
                       width: 12,
@@ -514,22 +578,139 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
                         color: Colors.blue,
                         shape: BoxShape.circle,
                         border: Border.all(color: Colors.white, width: 2),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.blue.withOpacity(0.3),
-                            blurRadius: 4,
-                            spreadRadius: 2,
-                          ),
-                        ],
+                        boxShadow: [BoxShadow(color: Colors.blue.withOpacity(0.3), blurRadius: 4, spreadRadius: 2)],
                       ),
                     ),
                   ],
                 ),
               ),
-          ],
-          alignment: Alignment.topCenter,
+            ],
+            alignment: Alignment.topCenter,
+          ),
+      ],
+    );
+  }
+
+  Widget _buildMapControls() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        // Radius Toggle Button
+        FloatingActionButton.extended(
+          heroTag: 'btnRadius',
+          backgroundColor: _showRadius ? AppColors.primary : Colors.white,
+          foregroundColor: _showRadius ? Colors.white : AppColors.primary,
+          onPressed: () {
+            HapticService.selection();
+            setState(() {
+              _showRadius = !_showRadius;
+            });
+          },
+          icon: const Icon(Icons.radar_rounded, size: 20),
+          label: const Text('Yakınımdakiler', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+        ),
+        const SizedBox(height: 12),
+        // Map Theme Button
+        FloatingActionButton.extended(
+          heroTag: 'btnTheme',
+          backgroundColor: Colors.white,
+          foregroundColor: AppColors.primary,
+          onPressed: _showThemeSelector,
+          icon: const Icon(Icons.layers_rounded, size: 20),
+          label: const Text('Görünüm', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
         ),
       ],
+    );
+  }
+
+  void _showThemeSelector() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        margin: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(margin: const EdgeInsets.symmetric(vertical: 12), width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text('Harita Görünümü', style: AppTextStyles.heading3),
+            ),
+            ListTile(
+              leading: const Icon(Icons.map_rounded),
+              title: const Text('Açık (Standart)'),
+              trailing: _currentMapTheme == 'light' ? const Icon(Icons.check, color: AppColors.primary) : null,
+              onTap: () {
+                setState(() => _currentMapTheme = 'light');
+                Navigator.pop(ctx);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.satellite_alt_rounded),
+              title: const Text('Uydu'),
+              trailing: _currentMapTheme == 'satellite' ? const Icon(Icons.check, color: AppColors.primary) : null,
+              onTap: () {
+                setState(() => _currentMapTheme = 'satellite');
+                Navigator.pop(ctx);
+              },
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSearchBar() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+      child: Container(
+        height: 48,
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.95),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: TextField(
+          controller: _searchController,
+          onChanged: (val) {
+            setState(() {
+              _searchQuery = val;
+            });
+          },
+          decoration: InputDecoration(
+            hintText: 'Mekan, esnaf veya etkinlik ara...',
+            hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
+            prefixIcon: const Icon(Icons.search, color: AppColors.primary, size: 22),
+            suffixIcon: _searchQuery.isNotEmpty
+                ? IconButton(
+                    icon: const Icon(Icons.close, color: Colors.grey, size: 20),
+                    onPressed: () {
+                      _searchController.clear();
+                      setState(() {
+                        _searchQuery = '';
+                      });
+                      FocusScope.of(context).unfocus();
+                    },
+                  )
+                : null,
+            border: InputBorder.none,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          ),
+        ),
+      ),
     );
   }
 
@@ -582,28 +763,42 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
           final String? konum = data['konum'];
           
           if (konum != null && konum.isNotEmpty) {
+            // 1. Search Filter
+            if (_searchQuery.isNotEmpty && !name.toLowerCase().contains(_searchQuery.toLowerCase())) {
+              continue;
+            }
+
             final docKey = '${doc.id}_$konum';
+            LatLng? coords;
             
-            // Check Marker Cache first (highest performance)
-            if (_markerCache.containsKey(docKey)) {
-              markers.add(_markerCache[docKey]!);
-            } 
-            // Then check Coordinate Cache and build marker if found
-            else if (_coordinateCache.containsKey(docKey)) {
-              final m = _buildMarker(doc.id, name, _coordinateCache[docKey]!, color, routePrefix, type, data: data);
-              _markerCache[docKey] = m;
-              markers.add(m);
-            } 
-            // Finally try quick parse or resolve async
-            else {
-              final coords = _quickParseCoords(konum);
+            if (_coordinateCache.containsKey(docKey)) {
+              coords = _coordinateCache[docKey];
+            } else {
+              coords = _quickParseCoords(konum);
               if (coords != null) {
                 _coordinateCache[docKey] = coords;
+              } else if (!_pendingResolutions.contains(docKey)) {
+                _resolvePosition(docKey, konum);
+              }
+            }
+
+            if (coords != null) {
+              // 2. Radius Filter
+              if (_showRadius && _userLocation != null) {
+                final dist = Geolocator.distanceBetween(
+                  _userLocation!.latitude, _userLocation!.longitude,
+                  coords.latitude, coords.longitude
+                );
+                if (dist > _radiusKm * 1000) continue;
+              }
+
+              // Build or fetch from cache
+              if (_markerCache.containsKey(docKey)) {
+                markers.add(_markerCache[docKey]!);
+              } else {
                 final m = _buildMarker(doc.id, name, coords, color, routePrefix, type, data: data);
                 _markerCache[docKey] = m;
                 markers.add(m);
-              } else if (!_pendingResolutions.contains(docKey)) {
-                _resolvePosition(docKey, konum);
               }
             }
           }
@@ -619,9 +814,15 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
     _pendingResolutions.add(docKey);
     final coords = await MapHelper.getCoordinates(locationData);
     if (mounted && coords != null) {
-      setState(() {
-        _coordinateCache[docKey] = coords;
-        _pendingResolutions.remove(docKey);
+      _coordinateCache[docKey] = coords;
+      _pendingResolutions.remove(docKey);
+
+      // Debounce the setState to avoid triggering 50 individual rebuilds!
+      _rebuildTimer?.cancel();
+      _rebuildTimer = Timer(const Duration(milliseconds: 150), () {
+        if (mounted) {
+          setState(() {});
+        }
       });
     } else {
        _pendingResolutions.remove(docKey);
@@ -647,7 +848,7 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
       point: position,
       width: 110,
       height: 60,
-      alignment: Alignment.topCenter,
+      alignment: Alignment.topCenter, // flutter_map'te topCenter marker'ı yukarı iter, yani altını koordinata sabitler
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () {
@@ -660,9 +861,11 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
              context.push('$routePrefix$id');
           }
         },
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
+        child: Align(
+          alignment: Alignment.bottomCenter, // İçeriği (pini) kutunun en altına itiyoruz ki ucu koordinata değsin
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
@@ -690,6 +893,7 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
             ),
             Icon(Icons.location_on, color: color, size: 28),
           ],
+        ),
         ),
       ),
     );

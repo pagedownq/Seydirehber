@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 final firestoreProvider = Provider((ref) => FirebaseFirestore.instance);
 
@@ -36,6 +37,27 @@ final allEventsProvider = StreamProvider<FirestoreDocs>((ref) {
         if (expiryDate.isBefore(cleanupThreshold)) {
           // EXPIRED! 
           // Attempt to delete from DB (only works if user is Admin)
+          
+          // Get all images to delete from Storage
+          final List<String> images = (data['images'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [];
+          final imageUrl = data['image_url'] as String? ?? data['gorsel'] as String? ?? '';
+          if (images.isEmpty && imageUrl.isNotEmpty) {
+            images.add(imageUrl);
+          }
+
+          // Delete images from Supabase Storage
+          if (images.isNotEmpty) {
+            try {
+              final List<String> fileNames = images.map((url) => url.split('/').last).toList();
+              Supabase.instance.client.storage.from('etkinlikler').remove(fileNames).catchError((e) {
+                // Silme hatasını sessizce loglayalım
+                return <FileObject>[];
+              });
+            } catch (e) {
+              // Hata durumunda uygulamanın çökmesini önle
+            }
+          }
+
           doc.reference.delete().catchError((_) {}); 
           return false;
         }

@@ -67,9 +67,9 @@ class ForumScreen extends ConsumerWidget {
                       ),
                     ),
                     icon: const Icon(Icons.person_rounded, size: 16),
-                    label: Text(
-                      '${myPosts.length} Gönderi',
-                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+                    label: const Text(
+                      'Gönderilerim',
+                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
                     ),
                   ),
                 );

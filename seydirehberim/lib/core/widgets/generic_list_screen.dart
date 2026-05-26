@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_constants.dart';
 import '../../core/widgets/cached_image_widget.dart';
 import '../../core/widgets/shimmer_widget.dart';
 import '../../core/widgets/empty_state_widget.dart';
@@ -60,12 +61,16 @@ class GenericListScreen extends ConsumerWidget {
           },
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.share_rounded, color: Colors.white, size: 22),
-            onPressed: () {
-              HapticService.selection();
-              Share.share('Seydi Rehber - $title listesine göz at!');
-            },
+          Builder(
+            builder: (buttonContext) => IconButton(
+              icon: const Icon(Icons.share_rounded, color: Colors.white, size: 22),
+              onPressed: () {
+                HapticService.selection();
+                final box = buttonContext.findRenderObject() as RenderBox?;
+                final rect = box != null ? box.localToGlobal(Offset.zero) & box.size : null;
+                Share.share(AppConstants.getShareText('Seydi Rehber - $title listesine göz at!'), sharePositionOrigin: rect);
+              },
+            ),
           ),
         ],
       ),

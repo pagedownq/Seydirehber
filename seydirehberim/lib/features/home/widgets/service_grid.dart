@@ -436,16 +436,14 @@ class _ServiceCard extends StatelessWidget {
                           ),
                           const SizedBox(height: 4),
                           Flexible(
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              alignment: Alignment.bottomLeft,
-                              child: Text(
-                                title,
-                                style: AppTextStyles.bodyMedium.copyWith(
-                                  color: textColor,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 13,
-                                ),
+                            child: Text(
+                              title,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTextStyles.bodyMedium.copyWith(
+                                color: textColor,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
                               ),
                             ),
                           ),

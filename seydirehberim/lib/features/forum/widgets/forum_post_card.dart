@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/services/haptic_service.dart';
+import '../../../core/widgets/modern_confirm_dialog.dart';
 import '../models/forum_post.dart';
 import '../providers/forum_providers.dart';
 import '../widgets/forum_report_sheet.dart';
@@ -104,62 +105,77 @@ class ForumPostCard extends ConsumerWidget {
                   // Menü (Bildir veya Sil)
                   if (userId != null)
                     PopupMenuButton<String>(
-                      icon: const Icon(Icons.more_vert,
-                          color: AppColors.textLight, size: 20),
+                      icon: const Icon(Icons.more_horiz_rounded,
+                          color: AppColors.textLight, size: 22),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      color: Colors.white,
+                      elevation: 10,
+                      position: PopupMenuPosition.under,
+                      offset: const Offset(0, 5),
                       itemBuilder: (_) => [
                         if (userId != post.userId)
                           PopupMenuItem(
                             value: 'report',
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                             child: Row(
                               children: [
-                                const Icon(Icons.flag_outlined,
-                                    color: AppColors.error, size: 18),
-                                const SizedBox(width: 8),
-                                Text('Bildir',
-                                    style: AppTextStyles.bodySmall
-                                        .copyWith(color: AppColors.error)),
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(color: AppColors.error.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+                                  child: const Icon(Icons.flag_rounded, color: AppColors.error, size: 18),
+                                ),
+                                const SizedBox(width: 12),
+                                Text('Bildir', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.error, fontWeight: FontWeight.w600)),
                               ],
                             ),
                           ),
                         if (userId == post.userId || isAdmin)
                           PopupMenuItem(
                             value: 'delete',
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                             child: Row(
                               children: [
-                                const Icon(Icons.delete_outline,
-                                    color: AppColors.error, size: 18),
-                                const SizedBox(width: 8),
-                                Text('Sil',
-                                    style: AppTextStyles.bodySmall
-                                        .copyWith(color: AppColors.error)),
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(color: AppColors.error.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+                                  child: const Icon(Icons.delete_rounded, color: AppColors.error, size: 18),
+                                ),
+                                const SizedBox(width: 12),
+                                Text('Sil', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.error, fontWeight: FontWeight.w600)),
                               ],
                             ),
                           ),
                         if (userId == post.userId)
                           PopupMenuItem(
                             value: 'edit',
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                             child: Row(
                               children: [
-                                const Icon(Icons.edit_outlined,
-                                    color: AppColors.textSecondary, size: 18),
-                                const SizedBox(width: 8),
-                                Text('Düzenle',
-                                    style: AppTextStyles.bodySmall
-                                        .copyWith(color: AppColors.textSecondary)),
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+                                  child: const Icon(Icons.edit_rounded, color: AppColors.primary, size: 18),
+                                ),
+                                const SizedBox(width: 12),
+                                Text('Düzenle', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.primary, fontWeight: FontWeight.w600)),
                               ],
                             ),
                           ),
                         if (userId != post.userId)
                           PopupMenuItem(
                             value: 'block',
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                             child: Row(
                               children: [
-                                const Icon(Icons.block,
-                                    color: AppColors.error, size: 18),
-                                const SizedBox(width: 8),
-                                Text('Kullanıcıyı Engelle',
-                                    style: AppTextStyles.bodySmall
-                                        .copyWith(color: AppColors.error)),
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(color: AppColors.error.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+                                  child: const Icon(Icons.block_rounded, color: AppColors.error, size: 18),
+                                ),
+                                const SizedBox(width: 12),
+                                Text('Kullanıcıyı Engelle', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.error, fontWeight: FontWeight.w600)),
                               ],
                             ),
                           ),
@@ -175,16 +191,15 @@ class ForumPostCard extends ConsumerWidget {
                             ),
                           );
                         } else if (value == 'block') {
-                          final confirm = await showDialog<bool>(
+                          final confirm = await showModernConfirmDialog(
                             context: context,
-                            builder: (ctx) => AlertDialog(
-                              title: const Text('Kullanıcıyı Engelle'),
-                              content: const Text('Bu kullanıcıyı engellemek istediğinize emin misiniz? Engellediğinizde bu kişinin paylaşımlarını bir daha göremeyeceksiniz.'),
-                              actions: [
-                                TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('İptal')),
-                                TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Engelle', style: TextStyle(color: Colors.red))),
-                              ],
-                            ),
+                            title: 'Kullanıcıyı Engelle',
+                            content: 'Bu kullanıcıyı engellemek istediğinize emin misiniz? Engellediğinizde bu kişinin paylaşımlarını bir daha göremeyeceksiniz.',
+                            confirmLabel: 'Engelle',
+                            cancelLabel: 'İptal',
+                            icon: Icons.block_outlined,
+                            iconColor: AppColors.error,
+                            isDestructive: true,
                           );
                           if (confirm == true) {
                             ref.read(blockedUsersProvider.notifier).blockUser(
@@ -197,16 +212,15 @@ class ForumPostCard extends ConsumerWidget {
                             }
                           }
                         } else if (value == 'delete') {
-                          final confirm = await showDialog<bool>(
+                          final confirm = await showModernConfirmDialog(
                             context: context,
-                            builder: (ctx) => AlertDialog(
-                              title: const Text('Gönderiyi Sil'),
-                              content: const Text('Bu gönderiyi silmek istediğinize emin misiniz?'),
-                              actions: [
-                                TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Vazgeç')),
-                                TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Sil', style: TextStyle(color: Colors.red))),
-                              ],
-                            ),
+                            title: 'Gönderiyi Sil',
+                            content: 'Bu gönderiyi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.',
+                            confirmLabel: 'Sil',
+                            cancelLabel: 'Vazgeç',
+                            icon: Icons.delete_outline_rounded,
+                            iconColor: AppColors.error,
+                            isDestructive: true,
                           );
                           if (confirm == true) {
                             try {

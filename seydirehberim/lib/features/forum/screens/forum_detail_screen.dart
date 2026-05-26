@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/services/haptic_service.dart';
+import '../../../core/widgets/modern_confirm_dialog.dart';
 import '../models/forum_post.dart';
 import '../providers/forum_providers.dart';
 import '../widgets/forum_reply_card.dart';
@@ -386,16 +387,15 @@ class _ForumDetailScreenState extends ConsumerState<ForumDetailScreen> {
                                         ),
                                       );
                                     } else if (value == 'block') {
-                                      final confirm = await showDialog<bool>(
+                                      final confirm = await showModernConfirmDialog(
                                         context: context,
-                                        builder: (ctx) => AlertDialog(
-                                          title: const Text('Kullanıcıyı Engelle'),
-                                          content: const Text('Bu kullanıcıyı engellemek istediğinize emin misiniz? Engellediğinizde bu kişinin paylaşımlarını bir daha göremeyeceksiniz.'),
-                                          actions: [
-                                            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('İptal')),
-                                            TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Engelle', style: TextStyle(color: Colors.red))),
-                                          ],
-                                        ),
+                                        title: 'Kullanıcıyı Engelle',
+                                        content: 'Bu kullanıcıyı engellemek istediğinize emin misiniz? Engellediğinizde bu kişinin paylaşımlarını bir daha göremeyeceksiniz.',
+                                        confirmLabel: 'Engelle',
+                                        cancelLabel: 'İptal',
+                                        icon: Icons.block_outlined,
+                                        iconColor: AppColors.error,
+                                        isDestructive: true,
                                       );
                                       if (confirm == true) {
                                         ref.read(blockedUsersProvider.notifier).blockUser(
@@ -409,16 +409,15 @@ class _ForumDetailScreenState extends ConsumerState<ForumDetailScreen> {
                                         }
                                       }
                                     } else if (value == 'delete') {
-                                      final confirm = await showDialog<bool>(
+                                      final confirm = await showModernConfirmDialog(
                                         context: context,
-                                        builder: (ctx) => AlertDialog(
-                                          title: const Text('Gönderiyi Sil'),
-                                          content: const Text('Bu gönderiyi silmek istediğinize emin misiniz?'),
-                                          actions: [
-                                            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Vazgeç')),
-                                            TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Sil', style: TextStyle(color: Colors.red))),
-                                          ],
-                                        ),
+                                        title: 'Gönderiyi Sil',
+                                        content: 'Bu gönderiyi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.',
+                                        confirmLabel: 'Sil',
+                                        cancelLabel: 'Vazgeç',
+                                        icon: Icons.delete_outline_rounded,
+                                        iconColor: AppColors.error,
+                                        isDestructive: true,
                                       );
                                       if (confirm == true) {
                                         try {

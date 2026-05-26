@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../core/constants/app_constants.dart';
 import '../../../core/services/haptic_service.dart';
 import '../providers/home_providers.dart';
 import '../widgets/banner_slider.dart';
@@ -76,15 +77,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: _buildTopActionButton(
-                      title: 'Arkadaşlarınla Paylaş',
-                      icon: Icons.share_outlined,
-                      isBlack: true,
-                      onTap: () {
-                        Share.share(
-                          'Seydi Rehber uygulamasını indir ve Seydişehir hakkında her şeyi öğren! 📱',
-                        );
-                      },
+                    child: Builder(
+                      builder: (buttonContext) => _buildTopActionButton(
+                        title: 'Arkadaşlarınla Paylaş',
+                        icon: Icons.share_outlined,
+                        isBlack: true,
+                        onTap: () {
+                          // iOS/iPadOS için Share popup'ının nerede açılacağını belirtmemiz gerekiyor
+                          final box = buttonContext.findRenderObject() as RenderBox?;
+                          final rect = box != null 
+                              ? box.localToGlobal(Offset.zero) & box.size 
+                              : null;
+                              
+                          Share.share(
+                            AppConstants.getShareText('Seydi Rehber uygulamasını indir ve Seydişehir hakkında her şeyi öğren! 📱'),
+                            sharePositionOrigin: rect,
+                          );
+                        },
+                      ),
                     ),
                   ),
                 ],
@@ -225,7 +235,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
                 const SizedBox(height: 8),
                 HorizontalCardList(
-                  provider: latestPlacesProvider,
+                  provider: allPlacesProvider,
                   type: CardType.place,
                   heroTagPrefix: 'latest-places',
                   onTap: (id) {
@@ -331,7 +341,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
                 const SizedBox(height: 8),
                 HorizontalCardList(
-                  provider: topFiveCompaniesProvider,
+                  provider: allCompaniesProvider,
                   type: CardType.company,
                   heroTagPrefix: 'top-companies',
                   onTap: (id) {
