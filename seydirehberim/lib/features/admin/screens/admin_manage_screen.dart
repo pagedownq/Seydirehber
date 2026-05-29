@@ -272,6 +272,16 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
             buildGroup('PAZAR', pazar, Colors.red[800]!),
           ],
         );
+      case 'surveys':
+        final isActive = data['isActive'] as bool? ?? false;
+        final url = data['url'] as String? ?? '';
+        return Text(
+          'Durum: ${isActive ? '✅ Aktif' : '❌ Pasif'}\nBağlantı: $url',
+          style: TextStyle(
+            fontSize: 12,
+            color: isActive ? Colors.green[700] : Colors.red,
+          ),
+        );
       default:
         return null;
     }
@@ -363,7 +373,15 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
           _FieldConfig('discountPercentage', 'İndirim Yüzdesi (Örn: 20)', isNumber: true),
           _FieldConfig('expiry_date', 'Bitiş Tarihi (Opsiyonel)', isDate: true),
           _FieldConfig('total_limit', 'Toplam Kupon Sayısı (Opsiyonel)', isNumber: true),
+          _FieldConfig('isInformational', 'Bilgi Kuponu Mu? (QR/Kodsuz)', isBoolean: true, defaultValue: false),
           _FieldConfig('isActive', 'Aktif Mi?', isBoolean: true, defaultValue: true),
+        ];
+      case 'surveys':
+        return [
+          _FieldConfig('title', 'Anket Başlığı', required: true),
+          _FieldConfig('url', 'Anket Linki (Google Forms vb.)', required: true),
+          _FieldConfig('description', 'Açıklama / Bilgi Metni', multiline: true),
+          _FieldConfig('isActive', 'Aktif Mi?', isBoolean: true, defaultValue: false),
         ];
       case 'admins':
         return [
@@ -384,6 +402,7 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
           _FieldConfig('canManageEsnaf', 'Esnaf Yönetimi', isBoolean: true, defaultValue: false),
           _FieldConfig('canManageCoupons', 'Kupon Yönetimi', isBoolean: true, defaultValue: false),
           _FieldConfig('canManageAdmins', 'Admin Yönetimi', isBoolean: true, defaultValue: false),
+          _FieldConfig('canManageSurveys', 'Anket Yönetimi', isBoolean: true, defaultValue: false),
         ];
       default:
         return [_FieldConfig('ad', 'Ad', required: true)];
@@ -565,6 +584,13 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
                   ],
 
                   ...fields.expand((field) {
+                    if (widget.collection == 'coupons') {
+                      final isInfo = boolValues['isInformational'] ?? false;
+                      if (isInfo && (field.key == 'discountPercentage' || field.key == 'total_limit')) {
+                        return <Widget>[];
+                      }
+                    }
+
                     final isInteractionField = field.isDate || field.isTime || field.isDateTime || field.isCompanyPicker;
                     final isExpiryField = field.key == 'expiry_date';
 
@@ -585,7 +611,36 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
                           contentPadding: EdgeInsets.zero,
                           dense: true,
                         ),
-                      if (field.isBoolean)
+                      if (field.key == 'isInformational')
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: DropdownButtonFormField<bool>(
+                            value: boolValues[field.key] ?? false,
+                            decoration: InputDecoration(
+                              labelText: 'Kupon Türü',
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            items: const [
+                              DropdownMenuItem<bool>(
+                                value: false,
+                                child: Text('İndirim Kuponu'),
+                              ),
+                              DropdownMenuItem<bool>(
+                                value: true,
+                                child: Text('Bilgilendirme Kuponu'),
+                              ),
+                            ],
+                            onChanged: (val) {
+                              setModalState(() {
+                                boolValues[field.key] = val ?? false;
+                              });
+                            },
+                          ),
+                        )
+                      else if (field.isBoolean)
                         SwitchListTile(
                           value: boolValues[field.key] ?? false,
                           onChanged: (val) => setModalState(() => boolValues[field.key] = val),
@@ -1260,12 +1315,22 @@ class _AdminListItem extends StatelessWidget {
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-        leading: CachedImageWidget(
-          imageUrl: imageUrl,
-          width: 50,
-          height: 50,
-          borderRadius: 10,
-        ),
+        leading: collection == 'surveys'
+            ? Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.assignment_outlined, color: AppColors.primary, size: 28),
+              )
+            : CachedImageWidget(
+                imageUrl: imageUrl,
+                width: 50,
+                height: 50,
+                borderRadius: 10,
+              ),
         title: Text(
           name,
           maxLines: 1,

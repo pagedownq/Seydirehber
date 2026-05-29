@@ -25,12 +25,16 @@ class MainShell extends ConsumerStatefulWidget {
 class _MainShellState extends ConsumerState<MainShell> with WidgetsBindingObserver {
   int _currentIndex = 0;
   bool _isNameDialogShowing = false;
-
-  final List<Widget> _screens = const [
-    HomeScreen(),
-    NewsScreen(),
-    SettingsScreen(),
-  ];
+  final ScrollController _homeScrollController = ScrollController();
+  final ScrollController _newsScrollController = ScrollController();
+  List<Widget>? _cachedScreens;
+  List<Widget> get _screens {
+    return _cachedScreens ??= [
+      HomeScreen(scrollController: _homeScrollController),
+      NewsScreen(scrollController: _newsScrollController),
+      const SettingsScreen(),
+    ];
+  }
 
   @override
   void initState() {
@@ -103,6 +107,8 @@ class _MainShellState extends ConsumerState<MainShell> with WidgetsBindingObserv
 
   @override
   void dispose() {
+    _homeScrollController.dispose();
+    _newsScrollController.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -128,9 +134,18 @@ class _MainShellState extends ConsumerState<MainShell> with WidgetsBindingObserv
     });
 
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
+      body: PopScope(
+        canPop: _currentIndex == 0,
+        onPopInvoked: (didPop) {
+          if (didPop) return;
+          setState(() {
+            _currentIndex = 0;
+          });
+        },
+        child: IndexedStack(
+          index: _currentIndex,
+          children: _screens,
+        ),
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
@@ -146,10 +161,26 @@ class _MainShellState extends ConsumerState<MainShell> with WidgetsBindingObserv
         child: SafeArea(
           child: NavigationBar(
             selectedIndex: _currentIndex,
-              onDestinationSelected: (i) {
-                HapticService.selection();
+            onDestinationSelected: (i) {
+              HapticService.selection();
+              if (_currentIndex == i) {
+                if (i == 0 && _homeScrollController.hasClients) {
+                  _homeScrollController.animateTo(
+                    0,
+                    duration: const Duration(milliseconds: 500),
+                    curve: Curves.easeInOut,
+                  );
+                } else if (i == 1 && _newsScrollController.hasClients) {
+                  _newsScrollController.animateTo(
+                    0,
+                    duration: const Duration(milliseconds: 500),
+                    curve: Curves.easeInOut,
+                  );
+                }
+              } else {
                 setState(() => _currentIndex = i);
-              },
+              }
+            },
             backgroundColor: AppColors.white,
             indicatorColor: AppColors.primarySurface,
             surfaceTintColor: Colors.transparent,

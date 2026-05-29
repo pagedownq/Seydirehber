@@ -63,6 +63,7 @@ final adminPermissionsProvider = StreamProvider<Map<String, bool>>((ref) {
       'canManageCoupons': true,
       'canManageAdmins': true,
       'canManageForum': true,
+      'canManageSurveys': true,
     });
   }
 
@@ -93,6 +94,7 @@ final adminPermissionsProvider = StreamProvider<Map<String, bool>>((ref) {
           'canManageCoupons': data['canManageCoupons'] ?? false,
           'canManageAdmins': data['canManageAdmins'] ?? false,
           'canManageForum': data['canManageForum'] ?? false,
+          'canManageSurveys': data['canManageSurveys'] ?? false,
         };
       });
 });

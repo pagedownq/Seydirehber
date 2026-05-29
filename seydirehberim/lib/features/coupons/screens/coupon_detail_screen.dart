@@ -3,12 +3,14 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../../../core/widgets/shimmer_widget.dart';
+import '../../home/providers/home_providers.dart';
 
 class CouponDetailScreen extends ConsumerStatefulWidget {
   final String couponId;
@@ -43,9 +45,12 @@ class _CouponDetailScreenState extends ConsumerState<CouponDetailScreen> {
 
   Future<void> _initialize() async {
     setState(() => _isChecking = true);
-    await _checkExistingActiveCode();
     if (_currentCouponData == null) {
       await _fetchCouponData();
+    }
+    final isInformational = _currentCouponData?['isInformational'] as bool? ?? false;
+    if (!isInformational) {
+      await _checkExistingActiveCode();
     }
     if (mounted) {
       setState(() => _isChecking = false);
@@ -346,20 +351,39 @@ class _CouponDetailScreenState extends ConsumerState<CouponDetailScreen> {
 
   Widget _buildCouponHeader() {
     final title = _currentCouponData?['title'] ?? 'Kupon';
+    final companyId = _currentCouponData?['companyId'] as String? ?? '';
     final companyName = _currentCouponData?['companyName'] ?? '';
     final discount = _currentCouponData?['discountPercentage'] ?? 0;
     final expiry = _currentCouponData?['expiry_date'] as Timestamp?;
     final totalLimit = _currentCouponData?['total_limit'] as int?;
     final usedCount = _currentCouponData?['used_count'] as int? ?? 0;
+    final isInformational = _currentCouponData?['isInformational'] as bool? ?? false;
+    final isOrange = isInformational && discount == 0;
+
+    // Fetch company cover photo using Riverpod
+    final companiesAsync = ref.watch(alphabeticalCompaniesProvider);
+    final companyDoc = companiesAsync.value?.where((c) => c.id == companyId).firstOrNull;
+    final companyData = companyDoc?.data() as Map<String, dynamic>?;
+    final companyImage = companyData?['image_url'] as String? ?? companyData?['gorsel'] as String? ?? '';
 
     return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: const BoxDecoration(
-        color: AppColors.primary,
-        borderRadius: BorderRadius.only(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
+      decoration: BoxDecoration(
+        color: isOrange ? AppColors.warning : AppColors.primary,
+        borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(30),
           bottomRight: Radius.circular(30),
         ),
+        image: companyImage.isNotEmpty
+            ? DecorationImage(
+                image: NetworkImage(companyImage),
+                fit: BoxFit.cover,
+                colorFilter: ColorFilter.mode(
+                  Colors.black.withOpacity(0.55),
+                  BlendMode.darken,
+                ),
+              )
+            : null,
       ),
       child: Column(
         children: [
@@ -370,7 +394,7 @@ class _CouponDetailScreenState extends ConsumerState<CouponDetailScreen> {
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
-              '%$discount İNDİRİM',
+              discount > 0 ? '%$discount İNDİRİM' : 'ÖZEL FIRSAT',
               style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
@@ -442,7 +466,9 @@ class _CouponDetailScreenState extends ConsumerState<CouponDetailScreen> {
       );
     }
 
-    if (_activeCodeId != null) {
+    final isInformational = _currentCouponData?['isInformational'] as bool? ?? false;
+
+    if (!isInformational && _activeCodeId != null) {
       return Scaffold(
         backgroundColor: AppColors.background,
         appBar: AppBar(
@@ -472,6 +498,11 @@ class _CouponDetailScreenState extends ConsumerState<CouponDetailScreen> {
       buttonText = 'Kupon Stoğu Tükendi';
     }
 
+    if (isInformational) {
+      buttonText = 'Firmaya Git';
+      isButtonDisabled = false;
+    }
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -479,6 +510,7 @@ class _CouponDetailScreenState extends ConsumerState<CouponDetailScreen> {
         surfaceTintColor: Colors.transparent,
       ),
       body: SingleChildScrollView(
+        physics: const ClampingScrollPhysics(),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -505,46 +537,70 @@ class _CouponDetailScreenState extends ConsumerState<CouponDetailScreen> {
                       color: AppColors.textLight,
                     ),
                   ),
-                  const SizedBox(height: 32),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: ElevatedButton(
-                      onPressed: isButtonDisabled
-                          ? null
-                          : () {
-                              _generateCode();
-                            },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: (isButtonDisabled && !_isGenerating) ? Colors.grey : AppColors.primary,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: _isGenerating
-                          ? const SizedBox(
-                              height: 24,
-                              width: 24,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : Text(
-                              buttonText,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                    ),
-                  ),
                 ],
               ),
             ),
           ],
+        ),
+      ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20.0, 8.0, 20.0, 20.0),
+          child: SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: ElevatedButton(
+              onPressed: isButtonDisabled
+                  ? null
+                  : () {
+                      if (isInformational) {
+                        final companyId = _currentCouponData?['companyId'] as String? ?? '';
+                        if (companyId.isNotEmpty) {
+                          context.push('/companies/$companyId');
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Firma bilgisi bulunamadı.')),
+                          );
+                        }
+                      } else {
+                        _generateCode();
+                      }
+                    },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: (isButtonDisabled && !_isGenerating) ? Colors.grey : AppColors.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                elevation: 0,
+              ),
+              child: _isGenerating
+                  ? const SizedBox(
+                      height: 24,
+                      width: 24,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (isInformational) ...[
+                          const Icon(Icons.storefront_rounded),
+                          const SizedBox(width: 8),
+                        ],
+                        Text(
+                          buttonText,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+            ),
+          ),
         ),
       ),
     );

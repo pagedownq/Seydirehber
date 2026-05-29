@@ -15,7 +15,8 @@ import '../widgets/horizontal_coupon_list.dart';
 import '../../../core/widgets/see_all_button.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
-  const HomeScreen({super.key});
+  final ScrollController? scrollController;
+  const HomeScreen({super.key, this.scrollController});
 
   @override
   ConsumerState<HomeScreen> createState() => _HomeScreenState();
@@ -27,6 +28,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: CustomScrollView(
+        controller: widget.scrollController,
         slivers: [
           // Basic AppBar
             SliverAppBar(

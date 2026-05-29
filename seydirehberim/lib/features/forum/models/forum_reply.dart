@@ -13,6 +13,7 @@ class ForumReply {
   final List<String> reporterIds;
   final DateTime createdAt;
   final bool isEdited;
+  final List<String> likedUserIds;
 
   const ForumReply({
     required this.id,
@@ -27,6 +28,7 @@ class ForumReply {
     required this.reporterIds,
     required this.createdAt,
     this.isEdited = false,
+    required this.likedUserIds,
   });
 
   /// Kullanıcı arayüzünde gösterilecek isim
@@ -48,6 +50,7 @@ class ForumReply {
       reporterIds: List<String>.from(data['reporter_ids'] as List? ?? []),
       createdAt: (data['created_at'] as Timestamp?)?.toDate() ?? DateTime.now(),
       isEdited: data['is_edited'] as bool? ?? false,
+      likedUserIds: List<String>.from(data['liked_user_ids'] as List? ?? []),
     );
   }
 
@@ -64,6 +67,7 @@ class ForumReply {
       'reporter_ids': reporterIds,
       'created_at': FieldValue.serverTimestamp(),
       'is_edited': isEdited,
+      'liked_user_ids': likedUserIds,
     };
   }
 }

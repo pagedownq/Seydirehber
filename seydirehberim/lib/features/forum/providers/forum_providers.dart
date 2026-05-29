@@ -419,4 +419,22 @@ class ForumService {
       });
     }
   }
+
+  // Yanıt beğenme/beğeniyi geri alma
+  Future<void> toggleLikeReply({
+    required String replyId,
+    required String userId,
+    required bool isLiked,
+  }) async {
+    final docRef = _replies.doc(replyId);
+    if (isLiked) {
+      await docRef.update({
+        'liked_user_ids': FieldValue.arrayRemove([userId]),
+      });
+    } else {
+      await docRef.update({
+        'liked_user_ids': FieldValue.arrayUnion([userId]),
+      });
+    }
+  }
 }

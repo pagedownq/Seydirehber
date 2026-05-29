@@ -8,6 +8,7 @@ import '../providers/forum_providers.dart';
 import '../widgets/forum_report_sheet.dart';
 import '../widgets/forum_edit_sheet.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../../core/widgets/linkable_text.dart';
 
 /// Yanıt kartı.
 class ForumReplyCard extends ConsumerWidget {
@@ -158,6 +159,7 @@ class ForumReplyCard extends ConsumerWidget {
                       ),
                   ],
                   onSelected: (value) async {
+                    FocusScope.of(context).unfocus();
                     if (value == 'report') {
                       ForumReportSheet.show(
                         context,
@@ -223,12 +225,66 @@ class ForumReplyCard extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Text(
-            reply.content,
+          LinkableText(
+            text: reply.content,
             style: AppTextStyles.bodySmall.copyWith(
               color: AppColors.textSecondary,
               height: 1.5,
             ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              GestureDetector(
+                onTap: () {
+                  if (userId == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Yanıtı beğenmek için giriş yapmalısınız.')),
+                    );
+                    return;
+                  }
+                  final isLiked = reply.likedUserIds.contains(userId);
+                  ref.read(forumServiceProvider).toggleLikeReply(
+                    replyId: reply.id,
+                    userId: userId,
+                    isLiked: isLiked,
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: userId != null && reply.likedUserIds.contains(userId)
+                        ? AppColors.primary.withOpacity(0.08)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        userId != null && reply.likedUserIds.contains(userId)
+                            ? Icons.favorite_rounded
+                            : Icons.favorite_border_rounded,
+                        size: 16,
+                        color: userId != null && reply.likedUserIds.contains(userId)
+                            ? AppColors.primary
+                            : AppColors.textLight,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${reply.likedUserIds.length}',
+                        style: AppTextStyles.caption.copyWith(
+                          color: userId != null && reply.likedUserIds.contains(userId)
+                              ? AppColors.primary
+                              : AppColors.textLight,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

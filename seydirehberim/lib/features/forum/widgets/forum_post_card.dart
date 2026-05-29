@@ -10,6 +10,7 @@ import '../providers/forum_providers.dart';
 import '../widgets/forum_report_sheet.dart';
 import '../widgets/forum_edit_sheet.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../../core/widgets/linkable_text.dart';
 
 /// Gönderi listesi kartı.
 class ForumPostCard extends ConsumerWidget {
@@ -263,8 +264,8 @@ class ForumPostCard extends ConsumerWidget {
             Padding(
               padding:
                   const EdgeInsets.only(left: 16, right: 16, bottom: 14, top: 2),
-              child: Text(
-                post.content,
+              child: LinkableText(
+                text: post.content,
                 style: AppTextStyles.bodySmall
                     .copyWith(color: AppColors.textSecondary, height: 1.5),
                 maxLines: 3,

@@ -53,7 +53,7 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
   // New States for Map Features
   String _currentMapTheme = 'light';
   bool _showRadius = false;
-  final double _radiusKm = 2.0;
+  final double _radiusKm = 0.5;
   
   bool _isSearching = false;
   final TextEditingController _searchController = TextEditingController();

@@ -11,7 +11,8 @@ import '../models/news_model.dart';
 import '../../../core/widgets/shimmer_widget.dart';
 
 class NewsScreen extends ConsumerWidget {
-  const NewsScreen({super.key});
+  final ScrollController? scrollController;
+  const NewsScreen({super.key, this.scrollController});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -48,6 +49,7 @@ class NewsScreen extends ConsumerWidget {
           return RefreshIndicator(
             onRefresh: () => ref.refresh(newsProvider.future),
             child: ListView.separated(
+              controller: scrollController,
               padding: const EdgeInsets.all(16),
               itemCount: newsList.length + 1, // Footer için +1
               separatorBuilder: (_, __) => const SizedBox(height: 16),

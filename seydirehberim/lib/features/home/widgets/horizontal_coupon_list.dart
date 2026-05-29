@@ -117,6 +117,9 @@ class HorizontalCouponList extends ConsumerWidget {
     final title = data['title']?.toString() ?? '';
     final discountPercentage = (data['discountPercentage'] as num?)?.toInt() ?? 0;
     final companyName = data['companyName']?.toString() ?? '';
+    final isInformational = data['isInformational'] as bool? ?? false;
+
+    final isOrange = isInformational && discountPercentage == 0;
 
     return RepaintBoundary(
         child: Material(
@@ -134,16 +137,21 @@ class HorizontalCouponList extends ConsumerWidget {
                 border: Border.all(color: Colors.white.withOpacity(0.1)),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primary.withOpacity(0.3),
+                    color: (isOrange ? AppColors.warning : AppColors.primary).withOpacity(0.3),
                     blurRadius: 8,
                     offset: const Offset(0, 4),
                   ),
                 ],
                 gradient: LinearGradient(
-                  colors: [
-                    AppColors.primary,
-                    AppColors.primary.withOpacity(0.8),
-                  ],
+                  colors: isOrange
+                      ? [
+                          AppColors.warning,
+                          AppColors.warning.withOpacity(0.8),
+                        ]
+                      : [
+                          AppColors.primary,
+                          AppColors.primary.withOpacity(0.8),
+                        ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -166,22 +174,39 @@ class HorizontalCouponList extends ConsumerWidget {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(
-                            '%$discountPercentage',
-                            style: const TextStyle(
+                          if (discountPercentage > 0) ...[
+                            Text(
+                              '%$discountPercentage',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const Text(
+                              'İndirim',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ] else ...[
+                            const Icon(
+                              Icons.card_giftcard_rounded,
                               color: Colors.white,
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
+                              size: 28,
                             ),
-                          ),
-                          const Text(
-                            'İndirim',
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
+                            const SizedBox(height: 4),
+                            const Text(
+                              'Fırsat',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
-                          ),
+                          ],
                         ],
                       ),
                     ),
@@ -224,34 +249,69 @@ class HorizontalCouponList extends ConsumerWidget {
                             ],
                           ),
                           const SizedBox(height: 4),
-                          Consumer(
-                            builder: (context, ref, child) {
-                              final companiesAsync = ref.watch(alphabeticalCompaniesProvider);
-                              return companiesAsync.when(
-                                data: (companies) {
-                                  final company = companies.where((c) => c.id == data['companyId']).firstOrNull;
-                                  final category = company?.data()['kategori']?.toString();
-                                  if (category == null || category.isEmpty) return const SizedBox.shrink();
-                                  return Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white24,
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                    child: Text(
-                                      category,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
+                          Wrap(
+                            spacing: 6,
+                            runSpacing: 4,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              Consumer(
+                                builder: (context, ref, child) {
+                                  final companiesAsync = ref.watch(alphabeticalCompaniesProvider);
+                                  return companiesAsync.when(
+                                    data: (companies) {
+                                      final company = companies.where((c) => c.id == data['companyId']).firstOrNull;
+                                      final category = company?.data()['kategori']?.toString();
+                                      if (category == null || category.isEmpty) return const SizedBox.shrink();
+                                      return Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white24,
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
+                                        child: Text(
+                                          category,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    loading: () => const SizedBox.shrink(),
+                                    error: (_, __) => const SizedBox.shrink(),
                                   );
                                 },
-                                loading: () => const SizedBox.shrink(),
-                                error: (_, __) => const SizedBox.shrink(),
-                              );
-                            },
+                              ),
+                              () {
+                                final expiry = data['expiry_date'] as Timestamp?;
+                                final daysText = _getRemainingDaysText(expiry);
+                                if (daysText == null) return const SizedBox.shrink();
+                                final isUrgent = daysText.contains('Son') || daysText.contains('Yarın');
+                                return Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: isUrgent ? const Color(0xFFD32F2F) : const Color(0xFFF57C00),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.access_time_filled, color: Colors.white, size: 10),
+                                      const SizedBox(width: 3),
+                                      Text(
+                                        daysText,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }(),
+                            ],
                           ),
                         ],
                       ),
@@ -263,5 +323,27 @@ class HorizontalCouponList extends ConsumerWidget {
           ),
         ),
     );
+  }
+
+  String? _getRemainingDaysText(Timestamp? expiryTimestamp) {
+    if (expiryTimestamp == null) return null;
+    final now = DateTime.now();
+    final expiryDate = expiryTimestamp.toDate();
+    final difference = expiryDate.difference(now);
+    
+    if (difference.isNegative) return null;
+    
+    final days = difference.inDays;
+    if (days == 0) {
+      final hours = difference.inHours;
+      if (hours <= 0) {
+        return 'Son dakikalar!';
+      }
+      return 'Bugün son!';
+    } else if (days == 1) {
+      return 'Yarın son!';
+    } else {
+      return '$days gün kaldı';
+    }
   }
 }

@@ -14,6 +14,7 @@ import '../widgets/forum_report_sheet.dart';
 import '../widgets/forum_edit_sheet.dart';
 import '../../../core/services/notification_service.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../../core/widgets/linkable_text.dart';
 
 class ForumDetailScreen extends ConsumerStatefulWidget {
   final String postId;
@@ -377,6 +378,7 @@ class _ForumDetailScreenState extends ConsumerState<ForumDetailScreen> {
                                       ),
                                   ],
                                   onSelected: (value) async {
+                                    FocusScope.of(context).unfocus();
                                     if (value == 'report') {
                                       ForumReportSheet.show(
                                         context,
@@ -450,8 +452,8 @@ class _ForumDetailScreenState extends ConsumerState<ForumDetailScreen> {
                             style: AppTextStyles.heading3,
                           ),
                           const SizedBox(height: 10),
-                          Text(
-                            post.content,
+                          LinkableText(
+                            text: post.content,
                             style: AppTextStyles.bodyMedium.copyWith(
                               color: AppColors.textSecondary,
                               height: 1.6,

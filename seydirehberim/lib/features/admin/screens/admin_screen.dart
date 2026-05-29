@@ -339,6 +339,19 @@ class AdminScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 12),
                   ],
+                  if (permissions['canManageSurveys'] ?? false) ...[
+                    _AdminCard(
+                      icon: Icons.assignment_outlined,
+                      title: 'Anket Yönetimi',
+                      color: const Color(0xFF2E7D32),
+                      onTap: () => context.push('/admin/manage', extra: {
+                        'collection': 'surveys',
+                        'title': 'Anket Yönetimi',
+                        'bucket': null,
+                      }),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
                   if (permissions['canManageAdmins'] ?? false) ...[
                     _AdminCard(
                       icon: Icons.admin_panel_settings,
