@@ -15,46 +15,81 @@ class ProfanityFilter {
     'zibidi', 'zibidi', 'zina', 'kaltak', 'şıllık', 'sillik', 'çük', 'cuk', 'pip', 'pipi'
   ];
 
-  static bool hasProfanity(String text) {
-    final lowerText = text.toLowerCase();
-    
-    // Kelime kelime kontrol (Boşluklara göre ayır)
-    final words = lowerText.split(RegExp(r'\s+'));
-    for (var word in words) {
-      if (_badWords.contains(_cleanWord(word))) return true;
-    }
-
-    // İçerik olarak kontrol (Örn: "selamamk")
-    for (var badWord in _badWords) {
-      if (lowerText.contains(badWord)) {
-        // Eğer kötü kelime bir başka normal kelimenin içindeyse (örn: "şakşak") engelleme.
-        // Ancak bu basit filtreleme için "amk" gibi kısa kelimelerde sorun çıkarabilir.
-        // Bu yüzden şimdilik basit tutalım ama çok kısa kelimeleri (aq gibi) sadece tam kelime olarak kontrol edelim.
-        if (badWord.length > 3) return true;
-      }
-    }
-
-    return false;
+  static bool _isLetter(String char) {
+    if (char.isEmpty) return false;
+    return RegExp(r'[a-zA-ZğüşıöçĞÜŞİÖÇ]').hasMatch(char);
   }
 
-  static String _cleanWord(String word) {
-    return word.replaceAll(RegExp(r'[^a-zA-ZğüşıöçĞÜŞİÖÇ]'), '');
+  static bool _isWholeWordMatch(String text, int start, int end) {
+    // Check preceding character
+    if (start > 0) {
+      final prevChar = text.substring(start - 1, start);
+      if (_isLetter(prevChar)) return false;
+    }
+    // Check succeeding character
+    if (end < text.length) {
+      final nextChar = text.substring(end, end + 1);
+      if (_isLetter(nextChar)) return false;
+    }
+    return true;
+  }
+
+  static bool hasProfanity(String text) {
+    return findProfanity(text).isNotEmpty;
   }
 
   /// Verilen metni kontrol eder ve kötü kelimeleri sansürler.
   static String censor(String text) {
     if (text.isEmpty) return text;
     
-    String result = text;
+    List<_ProfanityMatch> matchesToCensor = [];
     
     for (final word in _badWords) {
-      // Sadece kelime olarak eşleşenleri bulmak için regex
-      final regex = RegExp(r'\b' + word + r'\b', caseSensitive: false, unicode: true);
-      result = result.replaceAllMapped(regex, (match) {
-        return '*' * match.group(0)!.length;
-      });
+      final repeatedCharPattern = word.split('').map((c) => RegExp.escape(c) + '+').join('');
+      final regex = RegExp(repeatedCharPattern, caseSensitive: false, unicode: true);
+      
+      for (final match in regex.allMatches(text)) {
+        if (_isWholeWordMatch(text, match.start, match.end)) {
+          matchesToCensor.add(_ProfanityMatch(match.start, match.end));
+        }
+      }
     }
-
+    
+    if (matchesToCensor.isEmpty) return text;
+    
+    // Sort matches: first by start ascending, then by end descending
+    matchesToCensor.sort((a, b) {
+      int cmp = a.start.compareTo(b.start);
+      if (cmp != 0) return cmp;
+      return b.end.compareTo(a.end);
+    });
+    
+    // Merge overlapping or adjacent matches
+    List<_ProfanityMatch> mergedMatches = [];
+    for (final match in matchesToCensor) {
+      if (mergedMatches.isEmpty) {
+        mergedMatches.add(match);
+      } else {
+        final last = mergedMatches.last;
+        if (match.start < last.end) {
+          if (match.end > last.end) {
+            mergedMatches[mergedMatches.length - 1] = _ProfanityMatch(last.start, match.end);
+          }
+        } else {
+          mergedMatches.add(match);
+        }
+      }
+    }
+    
+    // Replace from right to left
+    String result = text;
+    for (int i = mergedMatches.length - 1; i >= 0; i--) {
+      final match = mergedMatches[i];
+      final length = match.end - match.start;
+      final replacement = '*' * length;
+      result = result.replaceRange(match.start, match.end, replacement);
+    }
+    
     return result;
   }
 
@@ -68,23 +103,21 @@ class ProfanityFilter {
       // Her harfin kendisinden bir veya daha fazla kez tekrar etmesine izin ver (örn: y+a+r+r+a+k+)
       final repeatedCharPattern = word.split('').map((c) => RegExp.escape(c) + '+').join('');
       
-      String pattern;
-      if (word.length <= 3) {
-        // Kısa kelimelerde kelimenin tam sınırlarını koruyoruz (\b kelime başı ve sonu)
-        // Yoksa "tamam" kelimesi içindeki "am" kısmını da yakalar.
-        pattern = r'\b' + repeatedCharPattern + r'\b';
-      } else {
-        // Uzun kelimelerde kelime sınırıyla başlaması yeterli, sonuna gelen ekleri veya tekrarları da yakalasın
-        // Örn: "yarrakkk", "salaklar"
-        pattern = r'\b' + repeatedCharPattern;
-      }
-
-      final regex = RegExp(pattern, caseSensitive: false, unicode: true);
-      if (regex.hasMatch(text)) {
-        foundWords.add(word);
+      final regex = RegExp(repeatedCharPattern, caseSensitive: false, unicode: true);
+      for (final match in regex.allMatches(text)) {
+        if (_isWholeWordMatch(text, match.start, match.end)) {
+          foundWords.add(word);
+          break;
+        }
       }
     }
     
     return foundWords.toList();
   }
+}
+
+class _ProfanityMatch {
+  final int start;
+  final int end;
+  _ProfanityMatch(this.start, this.end);
 }
