@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../providers/vefat_provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
@@ -110,14 +111,48 @@ class VefatScreen extends ConsumerWidget {
                                         fontWeight: FontWeight.w800,
                                       ),
                                     ),
-                                    if (item.relative.isNotEmpty)
+                                    if (item.contactName.isNotEmpty)
                                       Padding(
-                                        padding: const EdgeInsets.only(top: 4),
-                                        child: Text(
-                                          'Yakını: ${item.relative}',
-                                          style: AppTextStyles.bodySmall.copyWith(
-                                            color: AppColors.textSecondary,
-                                            fontWeight: FontWeight.w500,
+                                        padding: const EdgeInsets.only(top: 6),
+                                        child: InkWell(
+                                          onTap: item.contactPhone.isNotEmpty
+                                              ? () async {
+                                                  HapticService.selection();
+                                                  final uri = Uri.parse('tel:${item.contactPhone}');
+                                                  if (await canLaunchUrl(uri)) {
+                                                    await launchUrl(uri);
+                                                  }
+                                                }
+                                              : null,
+                                          borderRadius: BorderRadius.circular(4),
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(vertical: 2),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(
+                                                  Icons.phone_outlined,
+                                                  size: 14,
+                                                  color: item.contactPhone.isNotEmpty
+                                                      ? AppColors.primary
+                                                      : AppColors.textSecondary,
+                                                ),
+                                                const SizedBox(width: 6),
+                                                Flexible(
+                                                  child: Text(
+                                                    'İletişim: ${item.contactName}${item.contactPhone.isNotEmpty ? " (${item.contactPhone})" : ""}',
+                                                    style: AppTextStyles.bodySmall.copyWith(
+                                                      color: item.contactPhone.isNotEmpty
+                                                          ? AppColors.primary
+                                                          : AppColors.textSecondary,
+                                                      fontWeight: item.contactPhone.isNotEmpty
+                                                          ? FontWeight.bold
+                                                          : FontWeight.w500,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
                                           ),
                                         ),
                                       ),
@@ -170,20 +205,7 @@ class VefatScreen extends ConsumerWidget {
                                   style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.w500),
                                 ),
                               ),
-                              if (item.contact.isNotEmpty) ...[
-                                const SizedBox(width: 12),
-                                Icon(Icons.phone_outlined, size: 16, color: AppColors.primary),
-                                const SizedBox(width: 6),
-                                Text(
-                                  item.contact.replaceAll(RegExp(r'[^0-9]'), '').length >= 10 
-                                    ? item.contact.split(' ').last 
-                                    : item.contact,
-                                  style: AppTextStyles.bodySmall.copyWith(
-                                    color: AppColors.primary,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
+
                             ],
                           ),
                         ],

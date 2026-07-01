@@ -65,4 +65,30 @@ class Vefat {
     } catch (_) {}
     return null;
   }
+
+  String get contactName {
+    if (contact.isEmpty) return '';
+    final trimmed = contact.trim();
+    final parts = trimmed.split(RegExp(r'\s+'));
+    if (parts.length > 1) {
+      final last = parts.last;
+      if (RegExp(r'^\d+$').hasMatch(last.replaceAll(RegExp(r'[^0-9]'), ''))) {
+        return parts.sublist(0, parts.length - 1).join(' ');
+      }
+    }
+    return trimmed;
+  }
+
+  String get contactPhone {
+    if (contact.isEmpty) return '';
+    final trimmed = contact.trim();
+    final parts = trimmed.split(RegExp(r'\s+'));
+    if (parts.isNotEmpty) {
+      final last = parts.last;
+      if (RegExp(r'^\d+$').hasMatch(last.replaceAll(RegExp(r'[^0-9]'), ''))) {
+        return last;
+      }
+    }
+    return '';
+  }
 }

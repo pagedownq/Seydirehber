@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
@@ -73,7 +74,7 @@ class _ReviewCardState extends State<ReviewCard> {
                   radius: 20,
                   backgroundColor: AppColors.primarySurface,
                   backgroundImage: widget.review.userImageUrl != null 
-                      ? NetworkImage(widget.review.userImageUrl!) 
+                      ? CachedNetworkImageProvider(widget.review.userImageUrl!) 
                       : null,
                   child: widget.review.userImageUrl == null 
                       ? const Icon(Icons.person, color: AppColors.primary, size: 20) 

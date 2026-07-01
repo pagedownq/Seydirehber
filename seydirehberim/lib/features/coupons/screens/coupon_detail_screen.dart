@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -376,7 +377,7 @@ class _CouponDetailScreenState extends ConsumerState<CouponDetailScreen> {
         ),
         image: companyImage.isNotEmpty
             ? DecorationImage(
-                image: NetworkImage(companyImage),
+                image: CachedNetworkImageProvider(companyImage),
                 fit: BoxFit.cover,
                 colorFilter: ColorFilter.mode(
                   Colors.black.withOpacity(0.55),

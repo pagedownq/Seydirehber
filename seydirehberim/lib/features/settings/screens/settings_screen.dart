@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -209,7 +210,7 @@ class SettingsScreen extends ConsumerWidget {
                 radius: 28,
                 backgroundColor: AppColors.primarySurface,
                 backgroundImage: user.photoURL != null
-                    ? NetworkImage(user.photoURL!)
+                    ? CachedNetworkImageProvider(user.photoURL!)
                     : null,
                 child: user.photoURL == null
                     ? const Icon(Icons.person, color: AppColors.primary, size: 28)
@@ -451,7 +452,7 @@ class SettingsScreen extends ConsumerWidget {
                           leading: CircleAvatar(
                             radius: 20,
                             backgroundColor: AppColors.primarySurface,
-                            backgroundImage: user.imageUrl != null ? NetworkImage(user.imageUrl!) : null,
+                            backgroundImage: user.imageUrl != null ? CachedNetworkImageProvider(user.imageUrl!) : null,
                             child: user.imageUrl == null ? const Icon(Icons.person, color: AppColors.primary, size: 20) : null,
                           ),
                           title: Text(user.name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),

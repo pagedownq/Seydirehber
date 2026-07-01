@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
@@ -46,7 +47,7 @@ class ForumReplyCard extends ConsumerWidget {
                     ? Colors.grey[200]
                     : AppColors.primarySurface,
                 backgroundImage: !reply.isAnonymous && reply.photoUrl != null
-                    ? NetworkImage(reply.photoUrl!)
+                    ? CachedNetworkImageProvider(reply.photoUrl!)
                     : null,
                 child: (!reply.isAnonymous && reply.photoUrl != null)
                     ? null

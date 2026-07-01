@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
@@ -277,7 +278,7 @@ class _ForumDetailScreenState extends ConsumerState<ForumDetailScreen> {
                                     ? Colors.grey[200]
                                     : AppColors.primarySurface,
                                 backgroundImage: !post.isAnonymous && post.photoUrl != null
-                                    ? NetworkImage(post.photoUrl!)
+                                    ? CachedNetworkImageProvider(post.photoUrl!)
                                     : null,
                                 child: (!post.isAnonymous && post.photoUrl != null)
                                     ? null
