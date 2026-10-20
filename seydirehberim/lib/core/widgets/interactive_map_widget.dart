@@ -33,6 +33,8 @@ class InteractiveMapWidget extends StatelessWidget {
         options: MapOptions(
           initialCenter: position,
           initialZoom: 15.0,
+          minZoom: 10.0,
+          maxZoom: 18.0,
           interactionOptions: const InteractionOptions(
             flags: InteractiveFlag.drag |
                 InteractiveFlag.pinchZoom |
@@ -45,7 +47,6 @@ class InteractiveMapWidget extends StatelessWidget {
             userAgentPackageName: 'com.seydirehberim.app',
             tileDisplay: const TileDisplay.instantaneous(),
             tileProvider: CancellableNetworkTileProvider(),
-            retinaMode: devicePixelRatio > 1.0,
           ),
           MarkerLayer(
             markers: [

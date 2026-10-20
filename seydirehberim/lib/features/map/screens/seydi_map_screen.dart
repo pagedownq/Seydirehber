@@ -324,12 +324,26 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
               ),
               child: const Icon(Icons.my_location, color: AppColors.primary, size: 20),
             ),
-            onPressed: () {
+            onPressed: () async {
               HapticService.vibrate();
               if (_userLocation != null) {
                 _mapController.move(_userLocation!, 15.0);
               } else {
-                _mapController.move(_seydisehirCenter, 14.5);
+                // If location is null, try to fetch it again
+                await _checkPermissionAndGetLocation();
+                if (_userLocation != null) {
+                  _mapController.move(_userLocation!, 15.0);
+                } else {
+                  _mapController.move(_seydisehirCenter, 14.5);
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Konum alınamadı. Lütfen konum servislerinizi ve izinlerinizi kontrol edin.'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  }
+                }
               }
             },
           ),
@@ -501,6 +515,12 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
         initialZoom: 14.5,
         maxZoom: 18.0,
         minZoom: 10.0,
+        cameraConstraint: CameraConstraint.contain(
+          bounds: LatLngBounds(
+            const LatLng(-85.0, -180.0),
+            const LatLng(85.0, 180.0),
+          ),
+        ),
         interactionOptions: const InteractionOptions(
           flags: InteractiveFlag.all & ~InteractiveFlag.rotate, // Better perf without rotation
         ),
@@ -782,7 +802,13 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
               }
             }
 
-            if (coords != null) {
+            if (coords != null &&
+                coords.latitude.isFinite &&
+                coords.longitude.isFinite &&
+                coords.latitude >= -90.0 &&
+                coords.latitude <= 90.0 &&
+                coords.longitude >= -180.0 &&
+                coords.longitude <= 180.0) {
               // 2. Radius Filter
               if (_showRadius && _userLocation != null) {
                 final dist = Geolocator.distanceBetween(
@@ -813,7 +839,13 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
   void _resolvePosition(String docKey, String locationData) async {
     _pendingResolutions.add(docKey);
     final coords = await MapHelper.getCoordinates(locationData);
-    if (mounted && coords != null) {
+    if (mounted && coords != null &&
+        coords.latitude.isFinite &&
+        coords.longitude.isFinite &&
+        coords.latitude >= -90.0 &&
+        coords.latitude <= 90.0 &&
+        coords.longitude >= -180.0 &&
+        coords.longitude <= 180.0) {
       _coordinateCache[docKey] = coords;
       _pendingResolutions.remove(docKey);
 
@@ -836,7 +868,16 @@ class _SeydiMapScreenState extends ConsumerState<SeydiMapScreen> {
       if (parts.length == 2) {
         final lat = double.tryParse(parts[0].trim());
         final lng = double.tryParse(parts[1].trim());
-        if (lat != null && lng != null) return LatLng(lat, lng);
+        if (lat != null &&
+            lng != null &&
+            lat.isFinite &&
+            lng.isFinite &&
+            lat >= -90.0 &&
+            lat <= 90.0 &&
+            lng >= -180.0 &&
+            lng <= 180.0) {
+          return LatLng(lat, lng);
+        }
       }
     } catch (_) {}
     return null;

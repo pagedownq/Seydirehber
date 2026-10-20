@@ -119,13 +119,24 @@ class MapHelper {
     if (locationData.isEmpty) return null;
 
     try {
+      bool isValid(double? lat, double? lng) {
+        return lat != null &&
+            lng != null &&
+            lat.isFinite &&
+            lng.isFinite &&
+            lat >= -90.0 &&
+            lat <= 90.0 &&
+            lng >= -180.0 &&
+            lng <= 180.0;
+      }
+
       // 1. Try to parse Google Maps URL
       final urlRegExp = RegExp(r'(!3d|!4d|@|ll=)(-?\d+\.\d+),(-?\d+\.\d+)');
       final match = urlRegExp.firstMatch(locationData);
       if (match != null) {
         final lat = double.tryParse(match.group(2)!);
         final lng = double.tryParse(match.group(3)!);
-        if (lat != null && lng != null) return LatLng(lat, lng);
+        if (isValid(lat, lng)) return LatLng(lat!, lng!);
       }
 
       // 2. Try to parse DMS (36°46'52.9"N 31°26'39.0"E)
@@ -146,7 +157,7 @@ class MapHelper {
           seconds: double.parse(dmsMatch.group(7)!),
           direction: dmsMatch.group(8)!,
         );
-        return LatLng(lat, lng);
+        if (isValid(lat, lng)) return LatLng(lat, lng);
       }
 
       // 3. Try plain "lat, lng"
@@ -155,13 +166,15 @@ class MapHelper {
       if (plainMatch != null) {
         final lat = double.tryParse(plainMatch.group(1)!);
         final lng = double.tryParse(plainMatch.group(2)!);
-        if (lat != null && lng != null) return LatLng(lat, lng);
+        if (isValid(lat, lng)) return LatLng(lat!, lng!);
       }
 
       // 4. Treat as a text address (Geocoding)
       List<Location> locations = await locationFromAddress(locationData);
       if (locations.isNotEmpty) {
-        return LatLng(locations.first.latitude, locations.first.longitude);
+        final lat = locations.first.latitude;
+        final lng = locations.first.longitude;
+        if (isValid(lat, lng)) return LatLng(lat, lng);
       }
     } catch (e) {
       print('Location Parsing Error: $e');
