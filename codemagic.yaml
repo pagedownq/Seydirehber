@@ -1,0 +1,36 @@
+workflows:
+  ios-release:
+    name: iOS Release
+    working_directory: seydirehberim
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    integrations:
+      app_store_connect: SeydiRehber ASC Key
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.mgverse.seydirehberim
+      vars:
+        APP_STORE_APPLE_ID: 6762803524
+    scripts:
+      - name: Flutter paketleri
+        script: flutter pub get
+      - name: Pod install
+        script: cd ios && pod install --repo-update
+      - name: İmzalama profillerini uygula
+        script: xcode-project use-profiles
+      - name: IPA oluştur
+        script: |
+          BUILD_NUMBER=$(($(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID") + 1))
+          flutter build ipa --release \
+            --build-number=$BUILD_NUMBER \
+            --export-options-plist=/Users/builder/export_options.plist
+    artifacts:
+      - build/ios/ipa/*.ipa
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
