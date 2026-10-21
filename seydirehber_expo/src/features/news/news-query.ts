@@ -27,9 +27,10 @@ const toIntOr = (text: string | undefined, fallback: number) => {
 };
 
 /**
- * Flutter _parseRfc822Date birebir. Not: Flutter saat dilimini düzeltirken yerel saatten ofseti çıkarıyor
- * (toLocal() yerel tarihte etkisiz); Türkiye'de "+0300" ile gelen haber saati 3 saat geride görünüyor.
- * Davranış korunuyor.
+ * RSS pubDate (RFC 822) ayrıştırma, örn. "Wed, 21 Oct 2026 14:52:00 +0300".
+ * Flutter sürümü saati yerel saat sayıp ofseti bir kez daha çıkarıyordu; Türkiye'de haberler 3 saat geride
+ * görünüyordu. Kullanıcı kararıyla (2026-10-21) düzeltildi: saat, verilen ofsete göre UTC'ye çevrilir ve
+ * cihazın saatinde gösterilir — haber sitesinde paylaşılan saat aynen görünür.
  */
 export function parseRfc822Date(dateStr: string): Date | null {
   try {
@@ -45,17 +46,18 @@ export function parseRfc822Date(dateStr: string): Date | null {
       const minute = toIntOr(timeParts[1], 0);
       const second = toIntOr(timeParts[2], 0);
 
-      const date = new Date(year, month - 1, day, hour, minute, second);
-      if (parts.length >= 5) {
-        const offset = parts[4];
-        if (offset.startsWith('+') || offset.startsWith('-')) {
-          const sign = offset.startsWith('+') ? 1 : -1;
-          const offsetHours = toIntOr(offset.substring(1, 3), 0);
-          const offsetMinutes = toIntOr(offset.substring(3, 5), 0);
-          return new Date(date.getTime() - sign * (offsetHours * 60 + offsetMinutes) * 60_000);
-        }
+      const zone = parts[4]?.toUpperCase();
+      if (zone && (zone.startsWith('+') || zone.startsWith('-'))) {
+        const sign = zone.startsWith('+') ? 1 : -1;
+        const offsetMinutes = toIntOr(zone.substring(1, 3), 0) * 60 + toIntOr(zone.substring(3, 5), 0);
+        const utc = Date.UTC(year, month - 1, day, hour, minute, second);
+        return new Date(utc - sign * offsetMinutes * 60_000);
       }
-      return date;
+      if (zone === 'GMT' || zone === 'UT' || zone === 'UTC' || zone === 'Z') {
+        return new Date(Date.UTC(year, month - 1, day, hour, minute, second));
+      }
+      // Saat dilimi yoksa Türkiye saati varsayılır (kaynak site Türkiye'de).
+      return new Date(Date.UTC(year, month - 1, day, hour, minute, second) - 3 * 60 * 60_000);
     }
   } catch {}
   const fallback = new Date(dateStr);

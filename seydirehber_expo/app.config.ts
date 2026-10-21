@@ -6,8 +6,8 @@ import type { ExpoConfig } from 'expo/config';
 
 // Mağazadaki canlı Flutter sürümü 1.0.10+32. Expo sürümü güncelleme olarak çıkacağı için
 // version ve build numaraları her zaman bundan büyük olmalı.
-const VERSION = '1.0.11';
-const BUILD_NUMBER = 34;
+const VERSION = '1.0.12';
+const BUILD_NUMBER = 39;
 
 // Firebase dosyaları git'e girmez. EAS'te file env variable olarak verilir,
 // yerelde proje kökündeki kopyalar kullanılır.
@@ -66,8 +66,11 @@ const config: ExpoConfig = {
       'expo-splash-screen',
       {
         backgroundColor: '#FFFFFF',
-        image: './assets/images/SeydiRehber.png',
-        imageWidth: 160,
+        // İkon yerine sade yeşil yazı (Poppins ExtraBold, #4CAF50, şeffaf zemin).
+        image: './assets/images/splash-wordmark.png',
+        imageWidth: 220,
+        // Android 12+ splash görseli ~192dp'lik daire maskesine giriyor; geniş yazı taşmasın.
+        android: { image: './assets/images/splash-wordmark.png', imageWidth: 180 },
       },
     ],
     [
@@ -78,6 +81,8 @@ const config: ExpoConfig = {
       },
     ],
     '@react-native-firebase/app',
+    // SDK 58 SceneDelegate şablonunda RNFirebase plugin'i FirebaseApp.configure() ekleyemiyor (bkz. plugin).
+    './plugins/with-firebase-configure',
     '@react-native-firebase/auth',
     '@react-native-firebase/messaging',
     '@react-native-firebase/analytics',

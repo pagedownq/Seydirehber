@@ -21,6 +21,7 @@ import {
   useTopRatedCompanies,
 } from '@/features/home/home-queries';
 import { ServiceGrid } from '@/features/home/service-grid';
+import { formatRemaining, PRAYER_LABELS, usePrayerTimes } from '@/features/prayer/prayer-times';
 import { haptics } from '@/services/haptics';
 import { colors, fonts, gradientDirection, gradients, typography } from '@/theme';
 
@@ -81,14 +82,17 @@ export function HomeScreen() {
             shadowColor={gradients.weather[0]}
             onPress={() => push('/weather')}
           />
-          <TopActionButton
-            title="Arkadaşlarınla Paylaş"
-            icon="share"
-            shadowColor="#000000"
-            onPress={() =>
-              shareContent('Seydi Rehber uygulamasını indir ve Seydişehir hakkında her şeyi öğren! 📱')
-            }
-          />
+          {/* Expo'ya özgü: hava durumunun sağında iki ince buton (namaz vakti + paylaş). */}
+          <View style={styles.sideColumn}>
+            <PrayerTimeButton />
+            <SlimButton
+              icon="share"
+              title="Arkadaşınla Paylaş"
+              onPress={() =>
+                shareContent('Seydi Rehber uygulamasını indir ve Seydişehir hakkında her şeyi öğren! 📱')
+              }
+            />
+          </View>
         </View>
 
         <Pressable
@@ -199,6 +203,46 @@ function TopActionButton({
   );
 }
 
+function PrayerTimeButton() {
+  const { next, now } = usePrayerTimes();
+  return (
+    <Pressable
+      accessibilityLabel={`${PRAYER_LABELS[next.key]} vakti ${next.time}, ${formatRemaining(next.at - now)} kaldı`}
+      onPress={() => {
+        haptics.selection();
+        push('/namaz-vakitleri');
+      }}
+      style={({ pressed }) => [styles.slimButton, styles.prayerButton, pressed && styles.pressed]}>
+      <MaterialCommunityIcons name="mosque" size={20} color={colors.primaryDark} />
+      <View style={styles.slimTextBox}>
+        <Text style={styles.prayerName} numberOfLines={1}>
+          {PRAYER_LABELS[next.key]} {next.time}
+        </Text>
+        <Text style={styles.prayerRemaining} numberOfLines={1}>
+          {formatRemaining(next.at - now)} kaldı
+        </Text>
+      </View>
+      <MaterialIcons name="chevron-right" size={18} color={colors.primaryDark} />
+    </Pressable>
+  );
+}
+
+function SlimButton({ icon, title, onPress }: { icon: IconName; title: string; onPress: () => void }) {
+  return (
+    <Pressable
+      onPress={() => {
+        haptics.selection();
+        onPress();
+      }}
+      style={({ pressed }) => [styles.slimButton, styles.shareButton, pressed && styles.pressed]}>
+      <MaterialIcons name={icon} size={18} color={colors.white} />
+      <Text style={styles.shareTitle} numberOfLines={1}>
+        {title}
+      </Text>
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -253,6 +297,52 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.9,
+  },
+  sideColumn: {
+    flex: 1,
+    gap: 8,
+  },
+  slimButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 12,
+    borderRadius: 14,
+  },
+  prayerButton: {
+    backgroundColor: colors.primarySurface,
+    borderWidth: 1,
+    borderColor: '#C8E6C9',
+  },
+  slimTextBox: {
+    flex: 1,
+  },
+  prayerName: {
+    fontFamily: fonts.bold,
+    fontSize: 13,
+    lineHeight: 16,
+    color: colors.primaryDark,
+  },
+  prayerRemaining: {
+    fontFamily: fonts.medium,
+    fontSize: 11,
+    lineHeight: 14,
+    color: colors.textSecondary,
+  },
+  shareButton: {
+    backgroundColor: '#000000',
+    shadowColor: '#000000',
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 4,
+  },
+  shareTitle: {
+    flex: 1,
+    fontFamily: fonts.extraBold,
+    fontSize: 12,
+    color: colors.white,
   },
   actionClip: {
     flex: 1,

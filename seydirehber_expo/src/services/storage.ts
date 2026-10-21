@@ -17,6 +17,8 @@ export const StorageKeys = {
   lastRegisteredFcmToken: 'last_registered_fcm_token',
   // Expo'ya özgü (Flutter'da yok): açılışı tetikleyen bildirim bir kez işlensin.
   lastHandledNotificationId: 'last_handled_notification_id',
+  // Expo'ya özgü: Diyanet namaz vakitleri (features/prayer/prayer-times.ts).
+  prayerTimesCache: 'prayer_times_cache_v1',
 } as const;
 
 export const viewedCompanyKey = (companyId: string) => `is_viewed_${companyId}`;

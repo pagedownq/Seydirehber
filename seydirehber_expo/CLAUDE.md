@@ -148,7 +148,7 @@ Mağazadan güncelleme alan kullanıcı Flutter'dan Expo'ya geçecek:
 - [x] 6. Liste + detay ekranları: etkinlik, gezilecek yer, firma (görüntülenme), favoriler, arama
 - [x] 7. Yorumlar / değerlendirme / şikayet
 - [x] 8. Hizmetler: eczane, noterler, pazarlar, otobüs saatleri, hava durumu, vefat
-- [x] 9. Haberler (RSS) — Flutter'daki haber saatinin 3 saat geri kayması (`parseRfc822Date`) bilerek korundu; kullanıcı karar verecek
+- [x] 9. Haberler (RSS) — Flutter'daki haber saatinin 3 saat geri kayması kullanıcı kararıyla (2026-10-21) düzeltildi; `parseRfc822Date` artık sitedeki saati aynen gösterir
 - [x] 10. Kuponlar (kod üretme, `generated_codes`)
 - [x] 11. Forum (liste, detay, oluştur, düzenle, raporla, kurallar, gönderilerim, engelleme) — Flutter tuhaflıkları aynen korundu: bildirme nedeni kaydedilmiyor, kullanıcı kendi gönderisini silince yanıtlar kalıyor, arama/kategori filtresi global, detayda kategori çipi ham değer gösteriyor
 - [x] 12. Seydi Harita + yol durum bildirimleri (`traffic_reports`) — kümeleme JS'te (`features/map/marker-clusters.ts`), işaretçiler RN view. Flutter'da "Anlık Durum Bildirimleri" bölümü yorum satırında (canlıda yok) → `features/reports/` hazır ama Ana Sayfa'ya eklenmedi; `traffic_reports` kuralı da Flutter'da commit edilmemiş, yayında olup olmadığı doğrulanmalı. Kullanıcı konum noktası Flutter'daki gibi ~30 px yukarıda (alignment topCenter) bilerek korundu
@@ -161,6 +161,8 @@ Mağazadan güncelleme alan kullanıcı Flutter'dan Expo'ya geçecek:
 
 Kullanıcı isteğiyle birebirlikten ayrılan yerler; kodda yanlarında not var.
 - **İş İlanları** (2026-10-21): koleksiyon `is_ilanlari` (baslik, firma_adi, company_id, calisma_sekli, aciklama, calisma_saatleri, ucret, telefon, whatsapp, adres, konum, bitis_tarihi, aktif, created_at). Sadece admin yazar (yetki `canManageJobs`; uygulama admin panelinde ve `seydirehber_web` admin panelinde "İş İlanı Yönetimi"), herkes okur; kural `seydirehberim/firestore.rules`'ta, 2026-10-21'de deploy edildi. Bitiş tarihi boşsa `created_at` + 30 gün sonra listeden düşer (istemcide, `features/jobs/jobs.ts`). Başvuru telefon / WhatsApp (wa.me). Rotalar `/is-ilanlari`, `/is-ilanlari/[id]`; Hizmetler ızgarasında tam genişlik 9. kart.
+- **Namaz Vakitleri** (2026-10-21): `features/prayer/` — Diyanet vakitleri ezanvakti.emushaf.net'ten (Seydişehir ilçe 9678, ~30 gün), AsyncStorage'da saklanır; yoksa `adhan` ile cihazda hesaplanır (Diyanet'e göre ≤1 dk, hep ihtiyatlı yönde). Servis yanıtındaki her gün hesaplamayla karşılaştırılır, >5 dk sapma varsa yanıt reddedilir. Saatler Türkiye saatine sabit (cihaz saat dilimi etkilemez). Saf mantık `prayer-calc.ts` (RN bağımlılığı yok, Node'da test edildi). Ekran `/namaz-vakitleri`; ana sayfada hava durumunun sağında ince "sıradaki vakit" butonu, altında ince paylaş butonu. Servis hatası Analytics'e `prayer_times_fetch_failed` olarak düşer.
+- Splash (2026-10-21): ikon yerine beyaz zeminde yeşil "Seydi Rehber" yazısı (`assets/images/splash-wordmark.png`, Poppins ExtraBold #4CAF50, ffmpeg ile üretildi).
 - Yeniden tasarlanan ekranlar: Otobüs Saatleri, Halk Pazarları (`pazarlar-screen.tsx`). Favoriler kart arası boşluk. Seydi Harita: aynı konumdaki küme tek dokunuşta açılır.
 
 ## Transfer sonrası (2026-10-21)
