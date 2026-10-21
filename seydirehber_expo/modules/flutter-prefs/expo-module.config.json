@@ -1,0 +1,9 @@
+{
+  "platforms": ["apple", "android"],
+  "apple": {
+    "modules": ["FlutterPrefsModule"]
+  },
+  "android": {
+    "modules": ["expo.modules.flutterprefs.FlutterPrefsModule"]
+  }
+}

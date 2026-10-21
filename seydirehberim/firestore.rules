@@ -169,6 +169,12 @@ service cloud.firestore {
       allow delete: if isAdmin() || (request.auth != null && resource.data.user_id == request.auth.uid);
     }
     
+    // --- İŞ İLANLARI (Expo sürümüyle eklendi; ilanları sadece admin girer) ---
+    match /is_ilanlari/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     // --- VARSAYILAN KAPALI ---
     match /{document=**} {
       allow read, write: if false;

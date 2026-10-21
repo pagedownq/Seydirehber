@@ -1,0 +1,37 @@
+# EAS Build arşivi: sadece Expo uygulaması yüklenir (monorepo'nun geri kalanı değil).
+# Kökte yeni klasör/dosya eklenirse buraya da ekle (negation "!" deseni EAS'te çalışmıyor).
+# Bu dosya varken EAS .gitignore'ları okumaz; gizli dosya kuralları burada da olmalı.
+/.github/
+/.vscode/
+/assets/
+/esnaf_web/
+/seydirehber_admin_web/
+/seydirehberim/
+/CLAUDE.md
+/prd.md
+/sha_keyleri.txt
+
+/seydirehber_expo/node_modules/
+/seydirehber_expo/.expo/
+/seydirehber_expo/dist/
+/seydirehber_expo/web-build/
+/seydirehber_expo/ios/
+/seydirehber_expo/android/
+/seydirehber_expo/expo-env.d.ts
+/seydirehber_expo/.claude/
+/seydirehber_expo/.vscode/
+
+# Gizli dosyalar (EAS'e file env variable olarak veriliyor)
+.env
+.env*.local
+google-services.json
+GoogleService-Info.plist
+*-firebase-adminsdk-*.json
+key.properties
+*.jks
+*.keystore
+*.p8
+*.p12
+*.key
+*.pem
+*.mobileprovision

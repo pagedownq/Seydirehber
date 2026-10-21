@@ -11,3 +11,6 @@ android/key.properties
 android/local.properties
 ios/Runner/GoogleService-Info.plist
 android/app/google-services.json
+
+# Kendi git deposu var (github.com/pagedownq/seydirehberwebsitesi); ana depoya eklenmez
+seydirehber_web/
