@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="tr">
+  <head><meta charset="UTF-8" /></head>
+  <body>
+    <template>
+      <style>
+        @font-face { font-family: "PressStart"; src: url("assets/fonts/PressStart2P-Regular.ttf"); }
+        @font-face { font-family: "Poppins"; font-weight: 600; src: url("assets/fonts/Poppins_600SemiBold.ttf"); }
+        @font-face { font-family: "Poppins"; font-weight: 800; src: url("assets/fonts/Poppins_800ExtraBold.ttf"); }
+        @font-face { font-family: "Material Icons"; src: url("assets/fonts/MaterialIcons.ttf"); }
+        #root { position: absolute; inset: 0; overflow: hidden; color: #fff; font-family: "Poppins", sans-serif; }
+        #q1-bg { position: absolute; inset: 0; background: radial-gradient(90% 60% at 50% 60%, #15103a 0%, #070614 75%); }
+        #q1-scan { position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(0,0,0,0.22) 0px, rgba(0,0,0,0.22) 3px, rgba(0,0,0,0) 3px, rgba(0,0,0,0) 7px); }
+
+        /* Görev kartı */
+        #q1-card { position: absolute; left: 90px; right: 90px; top: 560px; padding: 60px 50px; text-align: center; background: #e53935; border: 10px solid #fff; box-shadow: 16px 16px 0 #000; }
+        #q1-tag { font-family: "PressStart"; font-size: 40px; color: #ffe082; }
+        #q1-t1 { margin-top: 36px; font-weight: 800; font-size: 104px; line-height: 1; }
+        #q1-t2 { margin-top: 22px; font-weight: 800; font-size: 60px; line-height: 1.15; }
+        #q1-diff { margin-top: 34px; display: flex; justify-content: center; align-items: center; gap: 16px; font-family: "PressStart"; font-size: 28px; }
+        #q1-diff i { font-style: normal; font-family: "Material Icons"; font-size: 54px; color: #ffe082; }
+        /* Görev şeridi (kart küçülünce) */
+        #q1-banner { position: absolute; left: 90px; right: 90px; top: 290px; height: 92px; display: flex; align-items: center; justify-content: center; gap: 18px; background: #e53935; border: 6px solid #fff; font-weight: 800; font-size: 40px; }
+        #q1-banner span { font-family: "PressStart"; font-size: 24px; color: #ffe082; }
+
+        /* Gece şehri */
+        #q1-map { position: absolute; left: 90px; top: 470px; width: 900px; height: 1080px; }
+        .q1-blk { position: absolute; width: 170px; height: 150px; background: #1d1850; border: 4px solid #2b2470; }
+        .q1-win { position: absolute; width: 22px; height: 22px; background: #ffd54f; opacity: 0; }
+        .q1-q { position: absolute; width: 70px; height: 70px; font-family: "PressStart"; font-size: 46px; color: #ff4fa3; text-align: center; line-height: 70px; text-shadow: 0 0 20px rgba(255,79,163,0.9); }
+        #q1-player { position: absolute; left: 0; top: 0; width: 64px; height: 64px; border-radius: 50%; background: #29e6ff; box-shadow: 0 0 0 10px rgba(41,230,255,0.25), 0 0 40px #29e6ff; }
+        #q1-pin { position: absolute; left: 600px; top: 470px; width: 150px; height: 190px; }
+        #q1-pin-head { width: 150px; height: 150px; border-radius: 50%; background: #e53935; border: 8px solid #fff; display: flex; align-items: center; justify-content: center; font-family: "Material Icons"; font-size: 84px; box-shadow: 0 0 60px rgba(229,57,53,0.9); }
+        #q1-pin-tail { margin: -10px auto 0; width: 0; height: 0; border-left: 28px solid transparent; border-right: 28px solid transparent; border-top: 50px solid #fff; }
+        #q1-found { position: absolute; left: 0; right: 0; top: 1600px; text-align: center; font-family: "PressStart"; font-size: 64px; color: #4caf50; text-shadow: 6px 6px 0 #0a3d12; }
+
+        /* Power-up */
+        #q1-pu { position: absolute; left: 400px; top: 820px; width: 280px; height: 280px; }
+        #q1-pu-ring { position: absolute; inset: -40px; border-radius: 50%; border: 12px solid #ffc107; }
+        #q1-pu img { position: absolute; inset: 0; width: 280px; height: 280px; border-radius: 64px; box-shadow: 0 0 0 8px #fff, 0 0 80px rgba(255,193,7,0.9); }
+        #q1-pu-txt { position: absolute; left: 0; right: 0; top: 1180px; text-align: center; font-family: "PressStart"; font-size: 60px; color: #ffc107; text-shadow: 6px 6px 0 #ff4fa3; }
+
+        /* Görev tamam */
+        #q1-done { position: absolute; left: 60px; right: 60px; top: 700px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+        #q1-done-ic { font-family: "Material Icons"; font-size: 200px; color: #4caf50; line-height: 1; }
+        #q1-done-t { margin-top: 20px; font-weight: 800; font-size: 108px; line-height: 1; text-shadow: 6px 6px 0 #0a3d12; }
+        #q1-xp { margin-top: 50px; font-family: "PressStart"; font-size: 70px; color: #ffc107; text-shadow: 5px 5px 0 #7a4b00; }
+        .q1-coin { position: absolute; left: 510px; top: 1300px; width: 60px; height: 60px; border-radius: 50%; background: #ffc107; border: 6px solid #fff3c4; }
+        #q1-dim { position: absolute; inset: 0; background: rgba(7,6,20,0.82); opacity: 0; }
+        .q1-wipe { position: absolute; top: 0; height: 1920px; width: 136px; background: #000; transform-origin: 50% 0%; }
+      </style>
+
+      <div data-hf-id="hf-d2ul" id="root" data-composition-id="g-q1" data-width="1080" data-height="1920">
+        <div data-hf-id="hf-qbzp" id="q1-bg"></div>
+        <div data-hf-id="hf-ydee" id="q1-map"></div>
+        <div data-hf-id="hf-s3v2" id="q1-found">BULUNDU!</div>
+        <div data-hf-id="hf-x2cv" id="q1-banner"><span data-hf-id="hf-szrv">GOREV 1</span>Nöbetçi Eczane</div>
+        <div data-hf-id="hf-rrjl" id="q1-pu"><div data-hf-id="hf-eg08" id="q1-pu-ring"></div><img data-hf-id="hf-ek68" src="assets/icon.png" alt="Seydi Rehber" /></div>
+        <div data-hf-id="hf-vzlb" id="q1-pu-txt">POWER UP!</div>
+        <div data-hf-id="hf-dn5y" id="q1-dim"></div>
+        <div data-hf-id="hf-sbko" id="q1-done" data-layout-allow-overlap>
+          <div data-hf-id="hf-gyxv" id="q1-done-ic">&#xe86c;</div>
+          <div data-hf-id="hf-h6hy" id="q1-done-t">Görev tamam!</div>
+          <div data-hf-id="hf-1x8g" id="q1-xp">+500 XP</div>
+        </div>
+        <div data-hf-id="hf-mjgq" id="q1-coins"></div>
+        <div data-hf-id="hf-erjy" id="q1-card">
+          <div data-hf-id="hf-957s" id="q1-tag">GOREV 1</div>
+          <div data-hf-id="hf-w3pt" id="q1-t1">Gece 02:00.</div>
+          <div data-hf-id="hf-h660" id="q1-t2">Nöbetçi eczaneyi bul.</div>
+          <div data-hf-id="hf-20l4" id="q1-diff">ZORLUK <i data-hf-id="hf-3oi4">&#xe838;</i><i data-hf-id="hf-sjqc">&#xe838;</i><i data-hf-id="hf-rct9">&#xe838;</i></div>
+        </div>
+        <div data-hf-id="hf-pbuc" id="q1-wipes"></div>
+        <div data-hf-id="hf-gutj" id="q1-scan"></div>
+      </div>
+
+      <script>
+        // Şehir blokları: 4 sütun × 6 sıra, aralar sokak
+        const map = document.getElementById("q1-map");
+        const BX = [0, 243, 486, 729];
+        const BY = [0, 185, 370, 555, 740, 925];
+        let b = 0;
+        BY.forEach((y) => BX.forEach((x) => {
+          map.insertAdjacentHTML("beforeend", '<div class="q1-blk" id="q1-blk-' + b + '" style="left:' + x + "px;top:" + y + 'px"></div>');
+          b++;
+        }));
+        for (let i = 0; i < 24; i++) {
+          const x = BX[i % 4] + 30 + ((i * 53) % 100);
+          const y = BY[Math.floor(i / 4)] + 30 + ((i * 37) % 80);
+          map.insertAdjacentHTML("beforeend", '<div class="q1-win" id="q1-win-' + i + '" style="left:' + x + "px;top:" + y + 'px"></div>');
+        }
+        const QS = [[60, 120], [560, 30], [300, 480], [800, 650], [120, 860]];
+        QS.forEach((p, i) => map.insertAdjacentHTML("beforeend", '<div class="q1-q" id="q1-q-' + i + '" style="left:' + p[0] + "px;top:" + p[1] + 'px">?</div>'));
+        map.insertAdjacentHTML("beforeend", '<div id="q1-player"></div><div id="q1-pin"><div id="q1-pin-head"></div><div id="q1-pin-tail"></div></div>');
+        const coins = document.getElementById("q1-coins");
+        for (let i = 0; i < 8; i++) coins.insertAdjacentHTML("beforeend", '<div class="q1-coin" id="q1-coin-' + i + '"></div>');
+        const wipes = document.getElementById("q1-wipes");
+        for (let i = 0; i < 8; i++) wipes.insertAdjacentHTML("beforeend", '<div class="q1-wipe" id="q1-wipe-' + i + '" style="left:' + i * 135 + 'px"></div>');
+
+        const tl = gsap.timeline({ paused: true });
+        gsap.set("#q1-banner, #q1-map, #q1-pu, #q1-pu-txt, #q1-found, #q1-done, #q1-pin, .q1-coin", { opacity: 0 });
+        gsap.set(".q1-wipe", { scaleY: 0 });
+
+        // 0–1.8: görev kartı
+        tl.fromTo("#q1-card", { scale: 1.7, opacity: 0, rotation: -4 }, { scale: 1, opacity: 1, rotation: 0, duration: 0.24, ease: "power4.in" }, 0);
+        tl.fromTo("#q1-card", { x: 0 }, { keyframes: [{ x: -14 }, { x: 10 }, { x: -5 }, { x: 0 }], duration: 0.2, ease: "none" }, 0.24);
+        tl.fromTo("#q1-diff i", { scale: 0 }, { scale: 1, duration: 0.2, ease: "back.out(3)", stagger: 0.1 }, 0.7);
+        tl.fromTo("#q1-card", { y: 0 }, { y: -12, duration: 1.2, ease: "sine.inOut" }, 0.5);
+        tl.to("#q1-card", { scale: 0.3, y: -420, opacity: 0, duration: 0.25, ease: "power3.in" }, 1.65);
+        tl.fromTo("#q1-banner", { opacity: 0, scaleX: 0.3 }, { opacity: 1, scaleX: 1, duration: 0.2, ease: "back.out(2)" }, 1.85);
+
+        // 1.8–3.3: karanlık şehirde arama
+        tl.fromTo("#q1-map", { opacity: 0, scale: 0.85 }, { opacity: 1, scale: 1, duration: 0.3, ease: "power3.out" }, 1.8);
+        QS.forEach((p, i) => {
+          tl.fromTo("#q1-q-" + i, { opacity: 0, scale: 0 }, { opacity: 1, scale: 1, duration: 0.15, ease: "back.out(3)" }, 2.0 + i * 0.12);
+          tl.to("#q1-q-" + i, { keyframes: [{ opacity: 0.2 }, { opacity: 1 }, { opacity: 0.2 }, { opacity: 1 }], duration: 0.9, ease: "none" }, 2.4);
+        });
+        tl.fromTo("#q1-player", { x: 205, y: 1020 }, { keyframes: [{ x: 205, y: 700 }, { x: 448, y: 700 }, { x: 448, y: 330 }, { x: 205, y: 330 }, { x: 205, y: 150 }], duration: 1.5, ease: "none" }, 1.9);
+
+        // 3.3: POWER UP
+        tl.set("#q1-pu", { opacity: 1 }, 3.3);
+        tl.fromTo("#q1-pu", { y: -1100, rotation: -200, scale: 0.6 }, { opacity: 1, y: 0, rotation: 0, scale: 1, duration: 0.4, ease: "power3.in" }, 3.3);
+        tl.fromTo("#q1-pu-ring", { scale: 0.6, opacity: 1 }, { scale: 2.4, opacity: 0, duration: 0.5, ease: "power2.out" }, 3.7);
+        tl.fromTo("#q1-pu-txt", { opacity: 0, scale: 2 }, { opacity: 1, scale: 1, duration: 0.18, ease: "power4.in" }, 3.65);
+        tl.to("#q1-pu, #q1-pu-txt", { opacity: 0, scale: 0.4, duration: 0.2, ease: "power2.in" }, 4.2);
+
+        // 3.8: şehir aydınlanır, eczane bulunur
+        tl.to(".q1-blk", { backgroundColor: "#3b3392", borderColor: "#6c63d9", duration: 0.3, stagger: 0.015 }, 3.8);
+        tl.to(".q1-win", { opacity: 1, duration: 0.05, stagger: 0.02 }, 3.85);
+        QS.forEach((p, i) => tl.to("#q1-q-" + i, { opacity: 0, scale: 0, duration: 0.12 }, 3.8 + i * 0.03));
+        tl.to("#q1-player", { x: 640, y: 690, duration: 0.35, ease: "power2.inOut" }, 3.9);
+        tl.set("#q1-pin", { opacity: 1 }, 4.0);
+        tl.fromTo("#q1-pin", { y: -260, scale: 0.4 }, { opacity: 1, y: 0, scale: 1, duration: 0.35, ease: "bounce.out" }, 4.0);
+        tl.fromTo("#q1-found", { opacity: 0, scale: 2.2 }, { opacity: 1, scale: 1, duration: 0.18, ease: "power4.in" }, 4.1);
+        tl.fromTo("#q1-pin-head", { scale: 1 }, { keyframes: [{ scale: 1.12 }, { scale: 1 }, { scale: 1.12 }, { scale: 1 }], duration: 0.8, ease: "sine.inOut" }, 4.4);
+
+        // 5.1: görev tamam
+        tl.to("#q1-dim", { opacity: 1, duration: 0.2 }, 5.1);
+        tl.set("#q1-done", { opacity: 1 }, 5.1);
+        tl.fromTo("#q1-done-ic", { scale: 0, rotation: -90 }, { scale: 1, rotation: 0, duration: 0.3, ease: "back.out(2.5)" }, 5.1);
+        tl.fromTo("#q1-done-t", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 0.22, ease: "power4.out" }, 5.2);
+        tl.fromTo("#q1-xp", { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.2, ease: "back.out(3)" }, 5.35);
+        tl.to("#q1-xp", { y: -40, duration: 1.2, ease: "power1.out" }, 5.6);
+        for (let i = 0; i < 8; i++) {
+          tl.set("#q1-coin-" + i, { opacity: 1 }, 5.3 + i * 0.07);
+          tl.fromTo("#q1-coin-" + i, { x: (i - 3.5) * 70, y: 0, scale: 1 }, { opacity: 1, x: 330, y: -1140, scale: 0.5, duration: 0.6, ease: "power2.in" }, 5.3 + i * 0.07);
+          tl.set("#q1-coin-" + i, { opacity: 0 }, 5.9 + i * 0.07);
+        }
+        // 6.8: piksel silme
+        for (let i = 0; i < 8; i++) tl.to("#q1-wipe-" + i, { scaleY: 1, duration: 0.2, ease: "power2.in" }, 6.8 + i * 0.04);
+        window.__timelines["g-q1"] = tl;
+      </script>
+    </template>
+  </body>
+</html>

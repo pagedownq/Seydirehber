@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+  </head>
+  <body>
+    <template>
+      <style>
+        @font-face { font-family: "Poppins"; font-weight: 600; src: url("assets/fonts/Poppins_600SemiBold.ttf"); }
+        @font-face { font-family: "Poppins"; font-weight: 800; src: url("assets/fonts/Poppins_800ExtraBold.ttf"); }
+        @font-face { font-family: "Material Icons"; src: url("assets/fonts/MaterialIcons.ttf"); }
+        #root { position: absolute; inset: 0; overflow: hidden; font-family: "Poppins", sans-serif; color: #fff; }
+        #rn-base { position: absolute; inset: 0; background: radial-gradient(90% 60% at 50% 40%, #0f2416 0%, #050b07 70%); }
+
+        .it { position: absolute; inset: 0; }
+        .it-bg { position: absolute; inset: 0; }
+        .it-bg::after {
+          content: ""; position: absolute; inset: 0;
+          background: radial-gradient(70% 45% at 50% 55%, rgba(255,255,255,0.18) 0%, rgba(0,0,0,0) 70%), linear-gradient(180deg, rgba(0,0,0,0.28) 0%, rgba(0,0,0,0) 35%, rgba(0,0,0,0.22) 100%);
+        }
+        .it-num { position: absolute; left: 0; right: 0; bottom: -120px; text-align: center; font-weight: 800; font-size: 620px; line-height: 1; letter-spacing: -0.05em; color: rgba(255,255,255,0.13); }
+        .it-body { position: absolute; left: 0; right: 0; top: 720px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+        .it-circle {
+          width: 380px; height: 380px; border-radius: 50%; background: #fff;
+          display: flex; align-items: center; justify-content: center;
+          box-shadow: 0 40px 90px rgba(0,0,0,0.35);
+        }
+        .it-icon { font-family: "Material Icons"; font-size: 230px; line-height: 1; font-weight: normal; }
+        .it-label { margin-top: 70px; font-weight: 800; font-size: 108px; line-height: 1; letter-spacing: -0.02em; text-shadow: 0 8px 30px rgba(0,0,0,0.25); }
+        .it-subs { position: relative; margin-top: 40px; width: 900px; height: 70px; }
+        .it-sub { position: absolute; left: 0; right: 0; top: 0; font-weight: 600; font-size: 50px; line-height: 70px; color: rgba(255,255,255,0.95); }
+
+        #rn-streak {
+          position: absolute; top: -200px; left: 0; width: 260px; height: 2400px;
+          background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.55) 50%, rgba(255,255,255,0) 100%);
+          transform-origin: 50% 50%; opacity: 0;
+        }
+
+        /* Kronometre: sr-hook ile aynı konum ve ölçü (handoff). */
+        #rn-timer { position: absolute; left: 0; right: 0; top: 230px; height: 300px; overflow: hidden; }
+        #rn-strip { position: absolute; left: 0; right: 0; top: 0; }
+        .rn-row {
+          height: 300px; display: flex; justify-content: center; align-items: center;
+          font-weight: 800; font-size: 260px; letter-spacing: -0.02em; line-height: 1;
+          font-variant-numeric: tabular-nums;
+        }
+        #rn-bars { position: absolute; left: 150px; right: 150px; top: 560px; height: 22px; display: flex; gap: 12px; }
+        .rn-bar { flex: 1; border-radius: 6px; background: rgba(255,255,255,0.12); overflow: hidden; }
+        .rn-fill { width: 100%; height: 100%; background: #fff; transform-origin: 0 50%; }
+
+        #fin-ring { position: absolute; left: 540px; top: 1060px; width: 0; height: 0; }
+        .fin-dot {
+          position: absolute; left: -75px; top: -75px; width: 150px; height: 150px; border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+          font-family: "Material Icons"; font-size: 88px; color: #fff;
+        }
+        #fin-text { position: absolute; left: 60px; right: 60px; top: 780px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+        .fin-l { font-weight: 800; line-height: 1; letter-spacing: -0.03em; }
+        #fin-l1 { font-size: 120px; }
+        #fin-l2 { font-size: 150px; margin-top: 14px; color: #4caf50; }
+        #fin-l3 { font-size: 120px; margin-top: 14px; }
+        #rn-flash { position: absolute; inset: 0; background: #fff; opacity: 0; }
+      </style>
+
+      <div data-hf-id="hf-2cju" id="root" data-composition-id="sr-run" data-width="1080" data-height="1920">
+        <div data-hf-id="hf-y8yl" id="rn-base"></div>
+        <div data-hf-id="hf-28ya" id="rn-items"></div>
+        <div data-hf-id="hf-x3mj" id="rn-fin-bg" style="position:absolute;inset:0;background:radial-gradient(90% 60% at 50% 45%, #12301b 0%, #050b07 72%)"></div>
+        <div data-hf-id="hf-ujv7" id="fin-ring"></div>
+        <div data-hf-id="hf-03xc" id="fin-text">
+          <div data-hf-id="hf-e2it" class="fin-l" id="fin-l1">BÜTÜN</div>
+          <div data-hf-id="hf-kev4" class="fin-l" id="fin-l2">SEYDİŞEHİR</div>
+          <div data-hf-id="hf-yds2" class="fin-l" id="fin-l3">CEBİNDE.</div>
+        </div>
+        <div data-hf-id="hf-2yt4" id="rn-streak"></div>
+        <div data-hf-id="hf-pa6h" id="rn-timer"><div data-hf-id="hf-kgmd" id="rn-strip" data-layout-allow-overflow></div></div>
+        <div data-hf-id="hf-85o0" id="rn-bars"></div>
+        <div data-hf-id="hf-xuw0" id="rn-flash"></div>
+      </div>
+
+      <script>
+        // Uygulamanın hizmet ızgarasındaki renkler ve MaterialIcons kod noktaları (service-grid.tsx).
+        const ITEMS = [
+          { t: 0.0, d: 2.2, label: "Nöbetçi Eczane", icon: "", c: ["#E53935", "#EF5350"], subs: ["Gece 02:00. Hangisi açık?", "Tek dokunuşta karşında."] },
+          { t: 2.2, d: 2.2, label: "Otobüs Saatleri", icon: "", c: ["#00897B", "#26A69A"], subs: ["Sıradaki otobüs kaçta?", "Hat hat, saat saat."] },
+          { t: 4.4, d: 0.95, label: "Halk Pazarları", icon: "", ic: "#E65100", c: ["#FF8F00", "#FFB300"], subs: ["Hangi gün, nerede?"] },
+          { t: 5.35, d: 0.95, label: "Hava Durumu", icon: "", c: ["#1E88E5", "#00ACC1"], subs: ["Şemsiye lazım mı?"] },
+          { t: 6.3, d: 0.95, label: "Seydi Harita", icon: "", c: ["#2E7D32", "#66BB6A"], subs: ["Şehir avucunda."] },
+          { t: 7.25, d: 0.95, label: "Etkinlikler", icon: "", c: ["#AD1457", "#EC407A"], subs: ["Bu hafta ne var?"] },
+          { t: 8.2, d: 0.95, label: "Haberler", icon: "", c: ["#1B5E20", "#43A047"], subs: ["Seydişehir'den son dakika."] },
+          { t: 9.15, d: 0.95, label: "Forum", icon: "", c: ["#5C35CC", "#7B52E8"], subs: ["Komşuna sor."] },
+          { t: 10.1, d: 0.95, label: "İş İlanları", icon: "", c: ["#6D4C41", "#8D6E63"], subs: ["İş arayana, eleman arayana."] },
+        ];
+        const FINALE = 11.05;
+        const ROW = 300;
+
+        const strip = document.getElementById("rn-strip");
+        for (let i = 0; i <= 10; i++) {
+          const row = document.createElement("div");
+          row.className = "rn-row";
+          row.textContent = "00:" + String(i).padStart(2, "0");
+          strip.appendChild(row);
+        }
+        const bars = document.getElementById("rn-bars");
+        for (let i = 0; i < 10; i++) {
+          bars.insertAdjacentHTML("beforeend", '<div class="rn-bar"><div class="rn-fill" id="rn-fill-' + i + '"></div></div>');
+        }
+        const items = document.getElementById("rn-items");
+        ITEMS.forEach((it, i) => {
+          const subs = it.subs.map((s, j) => '<div class="it-sub" id="it-' + i + "-sub-" + j + '">' + s + "</div>").join("");
+          items.insertAdjacentHTML(
+            "beforeend",
+            '<div class="it" id="it-' + i + '">' +
+              '<div class="it-bg" id="it-' + i + '-bg" style="background:linear-gradient(160deg,' + it.c[0] + " 0%," + it.c[1] + ' 100%)"></div>' +
+              '<div class="it-num" id="it-' + i + '-num" data-layout-allow-overlap>' + String(i + 1).padStart(2, "0") + "</div>" +
+              '<div class="it-body" id="it-' + i + '-body">' +
+              '<div class="it-circle" id="it-' + i + '-circle"><div class="it-icon" style="color:' + (it.ic || it.c[0]) + '">' + it.icon + "</div></div>" +
+              '<div class="it-label" id="it-' + i + '-label">' + it.label + "</div>" +
+              '<div class="it-subs">' + subs + "</div>" +
+              "</div></div>"
+          );
+        });
+        const ring = document.getElementById("fin-ring");
+        ITEMS.forEach((it, i) => {
+          ring.insertAdjacentHTML("beforeend", '<div class="fin-dot" id="fin-dot-' + i + '" style="background:' + it.c[0] + '">' + it.icon + "</div>");
+        });
+
+        const tl = gsap.timeline({ paused: true });
+        gsap.set(".it", { opacity: 0 });
+        gsap.set(".rn-fill", { scaleX: 0 });
+        gsap.set("#rn-fin-bg, #fin-text, #fin-ring", { opacity: 0 });
+        gsap.set("#rn-strip", { color: "#4caf50", textShadow: "0 0 60px rgba(76,175,80,0.55)" });
+
+        function tick(n, at) {
+          tl.to("#rn-strip", { y: -n * ROW, duration: 0.14, ease: "power4.out" }, at);
+          tl.fromTo("#rn-fill-" + (n - 1), { scaleX: 0 }, { scaleX: 1, duration: 0.14, ease: "power3.out" }, at);
+          tl.fromTo("#rn-timer", { scale: 1.12 }, { scale: 1, duration: 0.25, ease: "power3.out" }, at);
+          tl.fromTo("#rn-streak", { x: -400, rotation: 18, opacity: 0.9 }, { x: 1300, rotation: 18, opacity: 0.9, duration: 0.24, ease: "power2.in" }, at);
+          tl.set("#rn-streak", { opacity: 0 }, at + 0.25);
+        }
+
+        // İlk tıkta kronometre neon yeşilden beyaza geçer (renkli zeminlerde okunsun).
+        tl.to("#rn-strip", { color: "#ffffff", textShadow: "0 10px 40px rgba(0,0,0,0.35)", duration: 0.1 }, 0.05);
+
+        ITEMS.forEach((it, i) => {
+          const s = it.t + 0.05;
+          const long = it.d > 1.5;
+          tick(i + 1, s);
+          tl.set("#it-" + i, { opacity: 1 }, s);
+          // Yeni kart zemini örtünce önceki kart gizlenir (altta üst üste binmesin).
+          if (i > 0) tl.set("#it-" + (i - 1), { opacity: 0 }, s + 0.17);
+          tl.fromTo("#it-" + i + "-bg", { clipPath: "inset(100% 0% 0% 0%)" }, { clipPath: "inset(0% 0% 0% 0%)", duration: 0.16, ease: "power3.out" }, s);
+          tl.fromTo("#it-" + i + "-circle", { scale: 0, rotation: -35 }, { scale: 1, rotation: 0, duration: 0.34, ease: "back.out(2.2)" }, s + 0.04);
+          tl.fromTo("#it-" + i + "-num", { y: 260, scale: 1.3 }, { y: 0, scale: 1, duration: 0.3, ease: "power4.out" }, s + 0.02);
+          tl.fromTo("#it-" + i + "-label", { opacity: 0, y: 120, skewY: 8 }, { opacity: 1, y: 0, skewY: 0, duration: 0.26, ease: "power4.out" }, s + 0.1);
+          tl.fromTo("#it-" + i + "-sub-0", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.2, ease: "power3.out" }, s + 0.2);
+          // Kalış boyunca hafif itme (donmasın)
+          tl.fromTo("#it-" + i + "-body", { scale: 1 }, { scale: long ? 1.07 : 1.04, duration: it.d, ease: "none" }, s);
+          if (long) {
+            tl.fromTo("#it-" + i + "-circle", { y: 0 }, { keyframes: [{ y: -14 }, { y: 0 }], duration: 0.5, ease: "sine.inOut" }, s + 0.9);
+            tl.to("#it-" + i + "-sub-0", { opacity: 0, y: -30, duration: 0.15, ease: "power2.in" }, s + 1.15);
+            tl.fromTo("#it-" + i + "-sub-1", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.2, ease: "power3.out" }, s + 1.28);
+          }
+        });
+
+        // Final: 00:10 — bütün hizmetler halka olur, merkeze çöker, yazı çarpar.
+        const f = FINALE;
+        tick(10, f);
+        tl.to("#rn-strip", { color: "#4caf50", textShadow: "0 0 70px rgba(76,175,80,0.9)", duration: 0.1 }, f);
+        tl.fromTo("#rn-fin-bg", { opacity: 0 }, { opacity: 1, duration: 0.12 }, f);
+        tl.set("#it-" + (ITEMS.length - 1), { opacity: 0 }, f + 0.13);
+        tl.set("#fin-ring", { opacity: 1 }, f);
+        ITEMS.forEach((it, i) => {
+          const a = (i / ITEMS.length) * Math.PI * 2 - Math.PI / 2;
+          const x = Math.cos(a) * 340;
+          const y = Math.sin(a) * 340;
+          tl.fromTo("#fin-dot-" + i, { x: 0, y: 0, scale: 0 }, { x: x, y: y, scale: 1, duration: 0.3, ease: "back.out(1.8)" }, f + 0.05 + i * 0.03);
+          tl.to("#fin-dot-" + i, { x: 0, y: 0, scale: 0.2, opacity: 0, duration: 0.2, ease: "power3.in" }, f + 0.8);
+        });
+        tl.to("#fin-ring", { rotation: 40, duration: 0.95, ease: "power1.inOut" }, f + 0.05);
+        tl.fromTo("#rn-flash", { opacity: 0 }, { opacity: 0.8, duration: 0.05 }, f + 1.0);
+        tl.to("#rn-flash", { opacity: 0, duration: 0.12 }, f + 1.05);
+        tl.set("#fin-text", { opacity: 1 }, f + 1.0);
+        ["#fin-l1", "#fin-l2", "#fin-l3"].forEach((sel, j) => {
+          tl.fromTo(sel, { opacity: 0, scale: 2.2 }, { opacity: 1, scale: 1, duration: 0.2, ease: "power4.in" }, f + 1.0 + j * 0.2);
+        });
+        tl.fromTo("#fin-text", { x: 0 }, { keyframes: [{ x: -16 }, { x: 12 }, { x: -6 }, { x: 0 }], duration: 0.2, ease: "none" }, f + 1.42);
+        tl.fromTo("#fin-text", { scale: 1 }, { scale: 1.05, duration: 0.9, ease: "none" }, f + 1.4);
+        window.__timelines["sr-run"] = tl;
+      </script>
+    </template>
+  </body>
+</html>

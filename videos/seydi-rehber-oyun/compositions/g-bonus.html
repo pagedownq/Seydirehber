@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="tr">
+  <head><meta charset="UTF-8" /></head>
+  <body>
+    <template>
+      <style>
+        @font-face { font-family: "PressStart"; src: url("assets/fonts/PressStart2P-Regular.ttf"); }
+        @font-face { font-family: "Poppins"; font-weight: 600; src: url("assets/fonts/Poppins_600SemiBold.ttf"); }
+        @font-face { font-family: "Poppins"; font-weight: 800; src: url("assets/fonts/Poppins_800ExtraBold.ttf"); }
+        @font-face { font-family: "Material Icons"; src: url("assets/fonts/MaterialIcons.ttf"); }
+        #root { position: absolute; inset: 0; overflow: hidden; color: #fff; font-family: "Poppins", sans-serif; }
+        #bn-bg { position: absolute; inset: 0; background: radial-gradient(80% 55% at 50% 50%, #2a0f45 0%, #0a0820 75%); }
+        #bn-rays { position: absolute; left: -460px; top: 100px; width: 2000px; height: 2000px; opacity: 0.18;
+          background: repeating-conic-gradient(from 0deg, #ff4fa3 0deg 10deg, transparent 10deg 20deg); border-radius: 50%; }
+        #bn-scan { position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(0,0,0,0.22) 0px, rgba(0,0,0,0.22) 3px, rgba(0,0,0,0) 3px, rgba(0,0,0,0) 7px); }
+        #bn-title { position: absolute; left: 0; right: 0; top: 520px; text-align: center; font-family: "PressStart"; font-size: 92px; line-height: 1.3; color: #ffc107; text-shadow: 7px 7px 0 #ff4fa3, -4px -4px 0 #29e6ff; }
+        #bn-count { position: absolute; left: 0; right: 0; top: 860px; height: 300px; }
+        .bn-n { position: absolute; left: 0; right: 0; top: 0; text-align: center; font-family: "PressStart"; font-size: 260px; line-height: 300px; color: #fff; text-shadow: 10px 10px 0 #ff4fa3; }
+        .bn-card { position: absolute; left: 160px; top: 520px; width: 760px; height: 860px; border: 10px solid #fff; box-shadow: 18px 18px 0 #000; display: flex; flex-direction: column; align-items: center; padding-top: 80px; }
+        .bn-num { font-family: "PressStart"; font-size: 30px; color: rgba(255,255,255,0.85); }
+        .bn-circle { margin-top: 44px; width: 300px; height: 300px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; font-family: "Material Icons"; font-size: 180px; }
+        .bn-name { margin-top: 50px; font-weight: 800; font-size: 80px; line-height: 1; text-align: center; }
+        .bn-verb { margin-top: 20px; font-weight: 600; font-size: 46px; color: rgba(255,255,255,0.95); }
+        .bn-stamp { position: absolute; right: -50px; top: -50px; width: 170px; height: 170px; border-radius: 50%; background: #4caf50; border: 8px solid #fff; display: flex; align-items: center; justify-content: center; font-family: "Material Icons"; font-size: 110px; color: #fff; }
+        .bn-plus { position: absolute; left: 0; right: 0; bottom: 60px; text-align: center; font-family: "PressStart"; font-size: 54px; color: #ffe082; text-shadow: 4px 4px 0 rgba(0,0,0,0.45); }
+        #bn-combo { position: absolute; left: 0; right: 0; top: 1520px; text-align: center; font-family: "PressStart"; font-size: 84px; color: #ff4fa3; text-shadow: 6px 6px 0 #4a0026; }
+        #bn-combo-lbl { position: absolute; left: 0; right: 0; top: 1470px; text-align: center; font-family: "PressStart"; font-size: 26px; color: #9b8fd6; }
+        #bn-flash { position: absolute; inset: 0; background: #fff; opacity: 0; }
+      </style>
+
+      <div data-hf-id="hf-zwkq" id="root" data-composition-id="g-bonus" data-width="1080" data-height="1920">
+        <div data-hf-id="hf-5pyn" id="bn-bg"></div>
+        <div data-hf-id="hf-eazh" id="bn-rays"></div>
+        <div data-hf-id="hf-65po" id="bn-title"><div data-hf-id="hf-rlh3">BONUS</div><div data-hf-id="hf-10cx">TURU!</div></div>
+        <div data-hf-id="hf-fn5f" id="bn-count"><div data-hf-id="hf-qma2" class="bn-n" id="bn-n-0">3</div><div data-hf-id="hf-8pte" class="bn-n" id="bn-n-1">2</div><div data-hf-id="hf-g7u2" class="bn-n" id="bn-n-2">1</div></div>
+        <div data-hf-id="hf-w5sz" id="bn-cards"></div>
+        <div data-hf-id="hf-fep9" id="bn-combo-lbl">COMBO</div>
+        <div data-hf-id="hf-sx24" id="bn-combo"></div>
+        <div data-hf-id="hf-eh11" id="bn-scan"></div>
+        <div data-hf-id="hf-5dbk" id="bn-flash"></div>
+      </div>
+
+      <script>
+        // Uygulamadaki hizmet renkleri + MaterialIcons; fiiller oyun görevi gibi.
+        const CARDS = [
+          { name: "Halk Pazarları", verb: "Pazarı bul", icon: "", c: ["#FF8F00", "#FFB300"], ic: "#E65100" },
+          { name: "Hava Durumu", verb: "Havayı öğren", icon: "", c: ["#1E88E5", "#00ACC1"] },
+          { name: "Seydi Harita", verb: "Yolu bul", icon: "", c: ["#2E7D32", "#66BB6A"] },
+          { name: "Etkinlikler", verb: "Etkinliği yakala", icon: "", c: ["#AD1457", "#EC407A"] },
+          { name: "Haberler", verb: "Haberi oku", icon: "", c: ["#1B5E20", "#43A047"] },
+          { name: "Forum", verb: "Komşuna sor", icon: "", c: ["#5C35CC", "#7B52E8"] },
+          { name: "İş İlanları", verb: "İşini bul", icon: "", c: ["#6D4C41", "#8D6E63"] },
+          { name: "Kuponlar", verb: "İndirimi kap", icon: "", c: ["#C62828", "#F4511E"] },
+        ];
+        const START = 1.2;
+        const STEP = 1.1;
+        const wrap = document.getElementById("bn-cards");
+        CARDS.forEach((k, i) => {
+          wrap.insertAdjacentHTML(
+            "beforeend",
+            '<div class="bn-card" id="bn-card-' + i + '" style="background:linear-gradient(160deg,' + k.c[0] + "," + k.c[1] + ')">' +
+              '<div class="bn-num">MINI ' + (i + 1) + "/8</div>" +
+              '<div class="bn-circle" style="color:' + (k.ic || k.c[0]) + '">' + k.icon + "</div>" +
+              '<div class="bn-name">' + k.name + "</div>" +
+              '<div class="bn-verb">' + k.verb + "</div>" +
+              '<div class="bn-plus">+100</div>' +
+              '<div class="bn-stamp" id="bn-stamp-' + i + '"></div>' +
+              "</div>"
+          );
+        });
+        // Combo sayacı: her değer ayrı satır, sırayla görünür (seek-safe)
+        const combo = document.getElementById("bn-combo");
+        for (let n = 3; n <= 10; n++) combo.insertAdjacentHTML("beforeend", '<div id="bn-cb-' + n + '" style="position:absolute;left:0;right:0;top:0">x' + n + "</div>");
+
+        const tl = gsap.timeline({ paused: true });
+        gsap.set(".bn-card, .bn-n, #bn-combo-lbl, #bn-combo > div", { opacity: 0 });
+        tl.fromTo("#bn-rays", { rotation: 0 }, { rotation: 90, duration: 10, ease: "none" }, 0);
+        tl.fromTo("#bn-title", { opacity: 0, scale: 2.4 }, { opacity: 1, scale: 1, duration: 0.2, ease: "power4.in" }, 0);
+        [0, 1, 2].forEach((i) => {
+          tl.set("#bn-n-" + i, { opacity: 1 }, 0.4 + i * 0.27);
+          tl.fromTo("#bn-n-" + i, { scale: 1.8 }, { scale: 1, duration: 0.15, ease: "power3.out" }, 0.4 + i * 0.27);
+          tl.to("#bn-n-" + i, { opacity: 0, duration: 0.01 }, 0.66 + i * 0.27);
+        });
+        tl.to("#bn-title", { opacity: 0, y: -80, duration: 0.15, ease: "power2.in" }, 1.1);
+        tl.fromTo("#bn-flash", { opacity: 0 }, { opacity: 0.7, duration: 0.04 }, 1.17);
+        tl.to("#bn-flash", { opacity: 0, duration: 0.1 }, 1.21);
+        tl.to("#bn-combo-lbl", { opacity: 1, duration: 0.01 }, START);
+
+        CARDS.forEach((k, i) => {
+          const s = START + i * STEP;
+          const card = "#bn-card-" + i;
+          tl.set(card, { opacity: 1 }, s);
+          tl.fromTo(card, { x: 1200, rotation: 10 }, { x: 0, rotation: 0, duration: 0.2, ease: "back.out(1.4)" }, s);
+          tl.fromTo("#bn-stamp-" + i, { scale: 0, rotation: -120 }, { scale: 1, rotation: 0, duration: 0.2, ease: "back.out(3)" }, s + 0.62);
+          tl.fromTo(card, { scale: 1 }, { keyframes: [{ scale: 1.05 }, { scale: 1 }], duration: 0.2, ease: "none" }, s + 0.62);
+          if (i < CARDS.length - 1) {
+            tl.to(card, { x: -1250, rotation: -10, duration: 0.2, ease: "power3.in" }, s + 0.9);
+            tl.set(card, { opacity: 0 }, s + 1.1);
+          } else {
+            tl.to(card, { scale: 1.15, opacity: 0, duration: 0.15, ease: "power2.in" }, s + 0.95);
+          }
+          // Combo: x3 ... x10
+          const n = i + 3;
+          if (n > 3) tl.set("#bn-cb-" + (n - 1), { opacity: 0 }, s + 0.62);
+          tl.set("#bn-cb-" + n, { opacity: 1 }, s + 0.62);
+          tl.fromTo("#bn-cb-" + n, { scale: 1.7 }, { scale: 1, duration: 0.2, ease: "power3.out" }, s + 0.62);
+        });
+        tl.fromTo("#bn-combo", { color: "#ff4fa3" }, { color: "#ffc107", duration: 0.2 }, START + 7 * STEP + 0.62);
+        window.__timelines["g-bonus"] = tl;
+      </script>
+    </template>
+  </body>
+</html>

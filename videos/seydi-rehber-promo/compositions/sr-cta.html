@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+  </head>
+  <body>
+    <template>
+      <style>
+        @font-face { font-family: "Poppins"; font-weight: 600; src: url("assets/fonts/Poppins_600SemiBold.ttf"); }
+        @font-face { font-family: "Poppins"; font-weight: 800; src: url("assets/fonts/Poppins_800ExtraBold.ttf"); }
+        #root { position: absolute; inset: 0; overflow: hidden; font-family: "Poppins", sans-serif; color: #fff; }
+        #ct-bg { position: absolute; inset: 0; background: linear-gradient(165deg, #66bb6a 0%, #43a047 55%, #2e7d32 100%); }
+        #ct-rings { position: absolute; left: 540px; top: 810px; width: 0; height: 0; }
+        .ct-ring { position: absolute; border-radius: 50%; border: 6px solid rgba(255,255,255,0.35); }
+        #ct-stack { position: absolute; left: 0; right: 0; top: 600px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+        #ct-icon { width: 420px; height: 420px; border-radius: 96px; overflow: hidden; box-shadow: 0 50px 110px rgba(10,50,20,0.45); }
+        #ct-icon img { display: block; width: 100%; height: 100%; }
+        #ct-name { margin-top: 80px; font-weight: 800; font-size: 136px; line-height: 1; letter-spacing: -0.03em; }
+        #ct-tag { margin-top: 28px; font-weight: 600; font-size: 52px; color: rgba(255,255,255,0.95); }
+        #ct-stores { margin-top: 90px; display: flex; gap: 28px; }
+        .ct-pill { padding: 26px 44px; border-radius: 999px; background: #0d1a10; font-weight: 800; font-size: 46px; color: #fff; }
+        #ct-free { margin-top: 40px; font-weight: 600; font-size: 44px; color: #e8f5e9; }
+      </style>
+
+      <div data-hf-id="hf-etd1" id="root" data-composition-id="sr-cta" data-width="1080" data-height="1920">
+        <div data-hf-id="hf-95og" id="ct-bg"></div>
+        <div data-hf-id="hf-6s5m" id="ct-rings">
+          <div data-hf-id="hf-m33d" class="ct-ring" id="ct-ring-0" style="left:-260px;top:-260px;width:520px;height:520px"></div>
+          <div data-hf-id="hf-pk28" class="ct-ring" id="ct-ring-1" style="left:-260px;top:-260px;width:520px;height:520px"></div>
+        </div>
+        <div data-hf-id="hf-o2y3" id="ct-stack">
+          <div data-hf-id="hf-i03e" id="ct-icon"><img data-hf-id="hf-hb24" src="assets/icon.png" alt="Seydi Rehber ikonu" /></div>
+          <div data-hf-id="hf-twqk" id="ct-name">Seydi Rehber</div>
+          <div data-hf-id="hf-yirv" id="ct-tag">Seydişehir'in rehberi cebinde.</div>
+          <div data-hf-id="hf-eg9f" id="ct-stores">
+            <div data-hf-id="hf-mofv" class="ct-pill" id="ct-pill-0">App Store</div>
+            <div data-hf-id="hf-uosp" class="ct-pill" id="ct-pill-1">Google Play</div>
+          </div>
+          <div data-hf-id="hf-osqv" id="ct-free">Ücretsiz indir</div>
+        </div>
+      </div>
+
+      <script>
+        const tl = gsap.timeline({ paused: true });
+        tl.fromTo("#ct-bg", { clipPath: "inset(100% 0% 0% 0%)" }, { clipPath: "inset(0% 0% 0% 0%)", duration: 0.22, ease: "power3.out" }, 0);
+        // İkon yukarıdan düşer ve çarpar
+        tl.fromTo("#ct-icon", { y: -900, rotation: -14, scale: 0.8 }, { y: 0, rotation: 0, scale: 1, duration: 0.32, ease: "power4.in" }, 0.05);
+        tl.fromTo("#ct-icon", { scaleY: 1 }, { keyframes: [{ scaleY: 0.86, scaleX: 1.1 }, { scaleY: 1.04, scaleX: 0.97 }, { scaleY: 1, scaleX: 1 }], duration: 0.3, ease: "power2.out" }, 0.37);
+        [0, 1].forEach((i) => {
+          tl.fromTo("#ct-ring-" + i, { scale: 0.7, opacity: 0.9 }, { scale: 2.6, opacity: 0, duration: 0.9, ease: "power2.out" }, 0.37 + i * 0.15);
+        });
+        tl.fromTo("#ct-name", { opacity: 0, y: 80, skewY: 6 }, { opacity: 1, y: 0, skewY: 0, duration: 0.3, ease: "power4.out" }, 0.55);
+        tl.fromTo("#ct-tag", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.3, ease: "power3.out" }, 0.75);
+        tl.fromTo("#ct-pill-0", { opacity: 0, x: -200 }, { opacity: 1, x: 0, duration: 0.3, ease: "back.out(1.6)" }, 1.0);
+        tl.fromTo("#ct-pill-1", { opacity: 0, x: 200 }, { opacity: 1, x: 0, duration: 0.3, ease: "back.out(1.6)" }, 1.08);
+        tl.fromTo("#ct-free", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 1.35);
+        // Kalış: yavaş itme + ikonda nefes
+        tl.fromTo("#ct-stack", { scale: 1 }, { scale: 1.04, duration: 3.6, ease: "none" }, 0.9);
+        tl.fromTo("#ct-free", { scale: 1 }, { keyframes: [{ scale: 1.08 }, { scale: 1 }, { scale: 1.08 }, { scale: 1 }], duration: 2.4, ease: "sine.inOut" }, 1.8);
+        window.__timelines["sr-cta"] = tl;
+      </script>
+    </template>
+  </body>
+</html>

@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="tr">
+  <head><meta charset="UTF-8" /></head>
+  <body>
+    <template>
+      <style>
+        @font-face { font-family: "PressStart"; src: url("assets/fonts/PressStart2P-Regular.ttf"); }
+        @font-face { font-family: "Poppins"; font-weight: 600; src: url("assets/fonts/Poppins_600SemiBold.ttf"); }
+        @font-face { font-family: "Poppins"; font-weight: 800; src: url("assets/fonts/Poppins_800ExtraBold.ttf"); }
+        #root { position: absolute; inset: 0; overflow: hidden; color: #fff; font-family: "Poppins", sans-serif; background: #050414; }
+        #sc-bg { position: absolute; inset: 0; background: radial-gradient(80% 50% at 50% 40%, #1a1240 0%, #050414 75%); }
+        #sc-scan { position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(0,0,0,0.25) 0px, rgba(0,0,0,0.25) 3px, rgba(0,0,0,0) 3px, rgba(0,0,0,0) 7px); }
+        #sc-head { position: absolute; left: 0; right: 0; top: 330px; text-align: center; font-family: "PressStart"; font-size: 76px; color: #29e6ff; text-shadow: 6px 6px 0 #0b3a44; }
+        #sc-table { position: absolute; left: 110px; right: 110px; top: 520px; }
+        .sc-row { display: flex; justify-content: space-between; align-items: center; height: 110px; font-family: "PressStart"; font-size: 40px; color: #6f66a8; border-bottom: 4px dashed rgba(111,102,168,0.4); }
+        #sc-r0 { color: #ffc107; font-size: 46px; }
+        #sc-stats { position: absolute; left: 0; right: 0; top: 920px; text-align: center; font-weight: 600; font-size: 50px; color: #e9e6ff; }
+        #sc-cont { position: absolute; left: 0; right: 0; top: 1130px; text-align: center; font-weight: 800; font-size: 90px; }
+        #sc-cd { position: absolute; left: 0; right: 0; top: 1260px; height: 200px; }
+        .sc-n { position: absolute; left: 0; right: 0; top: 0; text-align: center; font-family: "PressStart"; font-size: 150px; line-height: 200px; color: #ff4fa3; }
+        #sc-btns { position: absolute; left: 0; right: 0; top: 1540px; display: flex; justify-content: center; gap: 50px; }
+        .sc-btn { padding: 34px 54px; font-family: "PressStart"; font-size: 46px; border: 8px solid #fff; }
+        #sc-yes { background: #4caf50; box-shadow: 10px 10px 0 #0a3d12; }
+        #sc-no { color: #9e9e9e; border-color: #555; }
+        #sc-flash { position: absolute; inset: 0; background: #4caf50; opacity: 0; }
+      </style>
+
+      <div data-hf-id="hf-x5dn" id="root" data-composition-id="g-score" data-width="1080" data-height="1920">
+        <div data-hf-id="hf-74z5" id="sc-bg"></div>
+        <div data-hf-id="hf-17y0" id="sc-head">HIGH SCORE</div>
+        <div data-hf-id="hf-u2wk" id="sc-table">
+          <div data-hf-id="hf-9ykw" class="sc-row" id="sc-r0"><span data-hf-id="hf-ixpd">1ST SEN</span><span data-hf-id="hf-dfkb" id="sc-score">0</span></div>
+          <div data-hf-id="hf-aq8p" class="sc-row" id="sc-r1"><span data-hf-id="hf-51dm">2ND ---</span><span data-hf-id="hf-i6df">0</span></div>
+          <div data-hf-id="hf-eocq" class="sc-row" id="sc-r2"><span data-hf-id="hf-tvep">3RD ---</span><span data-hf-id="hf-djcz">0</span></div>
+        </div>
+        <div data-hf-id="hf-bqed" id="sc-stats">Görevler 10/10 · Combo x10</div>
+        <div data-hf-id="hf-29xx" id="sc-cont">Oyuna devam et?</div>
+        <div data-hf-id="hf-98xx" id="sc-cd"><div data-hf-id="hf-lzi8" class="sc-n" id="sc-n-0">9</div><div data-hf-id="hf-xq54" class="sc-n" id="sc-n-1">8</div><div data-hf-id="hf-xy6c" class="sc-n" id="sc-n-2">7</div></div>
+        <div data-hf-id="hf-yff7" id="sc-btns"><div data-hf-id="hf-4zbx" class="sc-btn" id="sc-yes">EVET</div><div data-hf-id="hf-af7c" class="sc-btn" id="sc-no">HAYIR</div></div>
+        <div data-hf-id="hf-4uf7" id="sc-scan"></div>
+        <div data-hf-id="hf-f5x2" id="sc-flash"></div>
+      </div>
+
+      <script>
+        const tl = gsap.timeline({ paused: true });
+        gsap.set(".sc-row, #sc-stats, #sc-cont, .sc-n, #sc-btns", { opacity: 0 });
+        tl.fromTo("#sc-head", { opacity: 0, y: -40 }, { opacity: 1, y: 0, duration: 0.2, ease: "power3.out" }, 0);
+        ["#sc-r0", "#sc-r1", "#sc-r2"].forEach((r, i) => tl.fromTo(r, { opacity: 0, x: -80 }, { opacity: 1, x: 0, duration: 0.18, ease: "power3.out" }, 0.15 + i * 0.1));
+        const sc = { v: 0 };
+        const el = document.getElementById("sc-score");
+        // Zamanın fonksiyonu: 0,2–1,2 sn arası 0 → 9.999.999 (power2.out), sahne boyunca tek tween.
+        const fmt = (n) => String(Math.round(n)).replace(/B(?=(d{3})+(?!d))/g, ".");
+        tl.fromTo(sc, { v: 0 }, { v: 3.5, duration: 3.5, ease: "none", onUpdate: () => {
+          const p = Math.min(Math.max((sc.v - 0.2) / 1.0, 0), 1);
+          el.textContent = fmt(9999999 * (1 - (1 - p) * (1 - p)));
+        } }, 0);
+        tl.fromTo("#sc-r0", { scale: 1 }, { keyframes: [{ scale: 1.08 }, { scale: 1 }], duration: 0.25 }, 1.2);
+        tl.fromTo("#sc-stats", { opacity: 0 }, { opacity: 1, duration: 0.25 }, 0.6);
+        tl.fromTo("#sc-cont", { opacity: 0, scale: 1.6 }, { opacity: 1, scale: 1, duration: 0.2, ease: "power4.in" }, 1.5);
+        [0, 1, 2].forEach((i) => {
+          tl.set("#sc-n-" + i, { opacity: 1 }, 1.6 + i * 0.5);
+          tl.fromTo("#sc-n-" + i, { scale: 1.6 }, { scale: 1, duration: 0.18, ease: "power3.out" }, 1.6 + i * 0.5);
+          if (i < 2) tl.set("#sc-n-" + i, { opacity: 0 }, 2.1 + i * 0.5);
+        });
+        tl.fromTo("#sc-btns", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.2, ease: "power3.out" }, 1.7);
+        [2.2, 2.6].forEach((t) => {
+          tl.to("#sc-yes", { opacity: 0.35, duration: 0.01 }, t);
+          tl.to("#sc-yes", { opacity: 1, duration: 0.01 }, t + 0.18);
+        });
+        // EVET seçilir
+        tl.to("#sc-yes", { scale: 1.2, duration: 0.1, ease: "power2.out" }, 3.1);
+        tl.to("#sc-no", { opacity: 0.2, duration: 0.1 }, 3.1);
+        tl.fromTo("#sc-flash", { opacity: 0 }, { opacity: 1, duration: 0.25, ease: "power2.in" }, 3.25);
+        window.__timelines["g-score"] = tl;
+      </script>
+    </template>
+  </body>
+</html>

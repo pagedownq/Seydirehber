@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="tr">
+  <head><meta charset="UTF-8" /></head>
+  <body>
+    <template>
+      <style>
+        @font-face { font-family: "PressStart"; src: url("assets/fonts/PressStart2P-Regular.ttf"); }
+        @font-face { font-family: "Poppins"; font-weight: 600; src: url("assets/fonts/Poppins_600SemiBold.ttf"); }
+        @font-face { font-family: "Poppins"; font-weight: 800; src: url("assets/fonts/Poppins_800ExtraBold.ttf"); }
+        @font-face { font-family: "Material Icons"; src: url("assets/fonts/MaterialIcons.ttf"); }
+        #root { position: absolute; inset: 0; overflow: hidden; color: #fff; font-family: "Poppins", sans-serif; }
+        #tt-bg { position: absolute; inset: 0; background: linear-gradient(180deg, #0a0820 0%, #1a1240 55%, #2a0f45 100%); }
+        #tt-sun { position: absolute; left: 290px; top: 1060px; width: 500px; height: 500px; border-radius: 50%; background: linear-gradient(180deg, #ffc107 0%, #ff4fa3 70%); opacity: 0.55; }
+        #tt-floor-wrap { position: absolute; left: 0; right: 0; top: 1300px; height: 620px; perspective: 700px; perspective-origin: 50% 0%; overflow: hidden; }
+        #tt-floor {
+          position: absolute; left: -1200px; right: -1200px; top: 0; height: 1400px; transform-origin: 50% 0%; transform: rotateX(62deg);
+          background-image: linear-gradient(rgba(255,79,163,0.8) 4px, transparent 4px), linear-gradient(90deg, rgba(41,230,255,0.6) 4px, transparent 4px);
+          background-size: 120px 120px;
+        }
+        #tt-scan { position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(0,0,0,0.22) 0px, rgba(0,0,0,0.22) 3px, rgba(0,0,0,0) 3px, rgba(0,0,0,0) 7px); }
+        .tt-tile { position: absolute; width: 60px; height: 60px; }
+        #tt-logo { position: absolute; left: 0; right: 0; top: 620px; display: flex; flex-direction: column; align-items: center; text-align: center; transform-origin: 50% 0%; }
+        #tt-name { font-weight: 800; font-size: 150px; line-height: 1; letter-spacing: -0.03em; text-shadow: 8px 8px 0 #ff4fa3, -5px -5px 0 #29e6ff; }
+        #tt-mode { margin-top: 40px; font-family: "PressStart"; font-size: 60px; color: #4caf50; text-shadow: 6px 6px 0 #0a3d12; }
+        #tt-lvl { margin-top: 30px; font-family: "PressStart"; font-size: 28px; color: #ffc107; }
+        #tt-panel {
+          position: absolute; left: 90px; right: 90px; top: 620px; padding: 44px 44px 30px;
+          background: rgba(10,8,32,0.88); border: 8px solid #29e6ff; box-shadow: 12px 12px 0 #ff4fa3;
+        }
+        #tt-ptitle { font-weight: 800; font-size: 58px; color: #29e6ff; margin-bottom: 26px; }
+        .tt-row { display: flex; align-items: center; gap: 26px; height: 104px; border-top: 4px dashed rgba(155,143,214,0.35); }
+        .tt-lock { font-family: "Material Icons"; font-size: 60px; color: #ffc107; width: 64px; text-align: center; }
+        .tt-txt { font-weight: 600; font-size: 44px; color: #e9e6ff; }
+        .tt-txt b { font-weight: 800; color: #fff; }
+        #tt-ready { position: absolute; left: 0; right: 0; top: 1640px; text-align: center; }
+        #tt-p1 { font-family: "PressStart"; font-size: 34px; color: #ff4fa3; }
+        #tt-q { margin-top: 22px; font-weight: 800; font-size: 72px; }
+        #tt-flash { position: absolute; inset: 0; background: #fff; opacity: 0; }
+      </style>
+
+      <div data-hf-id="hf-1qx3" id="root" data-composition-id="g-title" data-width="1080" data-height="1920">
+        <div data-hf-id="hf-g3o3" id="tt-bg"></div>
+        <div data-hf-id="hf-0neo" id="tt-sun"></div>
+        <div data-hf-id="hf-7dgl" id="tt-floor-wrap"><div data-hf-id="hf-bfoo" id="tt-floor"></div></div>
+        <div data-hf-id="hf-hi4x" id="tt-tiles"></div>
+        <div data-hf-id="hf-2cgz" id="tt-logo">
+          <div data-hf-id="hf-k9qr" id="tt-name">SEYDİŞEHİR</div>
+          <div data-hf-id="hf-ml89" id="tt-mode">SEHIR MODU</div>
+          <div data-hf-id="hf-jbxx" id="tt-lvl">- LEVEL 1 -</div>
+        </div>
+        <div data-hf-id="hf-5al8" id="tt-panel">
+          <div data-hf-id="hf-qvbn" id="tt-ptitle">GÖREV LİSTESİ</div>
+          <div data-hf-id="hf-lkfd" id="tt-rows"></div>
+        </div>
+        <div data-hf-id="hf-kpyf" id="tt-ready">
+          <div data-hf-id="hf-o7n9" id="tt-p1">PLAYER 1</div>
+          <div data-hf-id="hf-pl82" id="tt-q">Hazır mısın?</div>
+        </div>
+        <div data-hf-id="hf-6a89" id="tt-scan"></div>
+        <div data-hf-id="hf-jftg" id="tt-flash"></div>
+      </div>
+
+      <script>
+        const ROWS = [
+          ["Görev 1", "Nöbetçi eczaneyi bul"],
+          ["Görev 2", "Otobüse yetiş"],
+          ["Bonus", "Pazar · Hava · Harita"],
+          ["Bonus", "Etkinlik · Haber · Forum"],
+          ["Bonus", "İş ilanı · Kupon"],
+          ["Final", "Seviye atla"],
+        ];
+        const rows = document.getElementById("tt-rows");
+        ROWS.forEach((r, i) => {
+          rows.insertAdjacentHTML("beforeend", '<div class="tt-row" id="tt-row-' + i + '"><div class="tt-lock" id="tt-lock-' + i + '"></div><div class="tt-txt"><b>' + r[0] + ":</b> " + r[1] + "</div></div>");
+        });
+        // Sabit konumlu piksel karolar (rastgelelik yok)
+        const COLORS = ["#ff4fa3", "#29e6ff", "#4caf50", "#ffc107"];
+        const tiles = document.getElementById("tt-tiles");
+        for (let i = 0; i < 20; i++) {
+          const x = (i * 211) % 1020;
+          const y = 140 + ((i * 337) % 1500);
+          tiles.insertAdjacentHTML("beforeend", '<div class="tt-tile" id="tt-tile-' + i + '" style="left:' + x + "px;top:" + y + "px;background:" + COLORS[i % 4] + '"></div>');
+        }
+
+        const tl = gsap.timeline({ paused: true });
+        gsap.set("#tt-panel, #tt-ready", { opacity: 0 });
+        tl.fromTo("#tt-floor", { backgroundPosition: "0px 0px" }, { backgroundPosition: "0px 600px", duration: 4.5, ease: "none" }, 0);
+        tl.fromTo("#tt-sun", { y: 120 }, { y: 0, duration: 4.5, ease: "power1.out" }, 0);
+        for (let i = 0; i < 20; i++) {
+          tl.fromTo("#tt-tile-" + i, { y: -1900, opacity: 1 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.in" }, i * 0.025);
+          tl.to("#tt-tile-" + i, { scale: 0, opacity: 0, duration: 0.2, ease: "power2.in" }, 0.6 + i * 0.012);
+        }
+        tl.fromTo("#tt-name", { opacity: 0, scale: 2.6 }, { opacity: 1, scale: 1, duration: 0.24, ease: "power4.in" }, 0.1);
+        tl.fromTo("#tt-mode", { opacity: 0, y: 50 }, { opacity: 1, y: 0, duration: 0.25, ease: "back.out(2)" }, 0.65);
+        tl.fromTo("#tt-lvl", { opacity: 0 }, { opacity: 1, duration: 0.2 }, 0.95);
+        // Logo yukarı çekilir, görev panosu açılır
+        tl.to("#tt-logo", { y: -470, scale: 0.6, duration: 0.4, ease: "power3.inOut" }, 1.6);
+        tl.set("#tt-panel", { opacity: 1 }, 1.75);
+        tl.fromTo("#tt-panel", { scaleY: 0.02 }, { scaleY: 1, duration: 0.25, ease: "power3.out" }, 1.75);
+        ROWS.forEach((r, i) => {
+          tl.fromTo("#tt-row-" + i, { opacity: 0, x: -60 }, { opacity: 1, x: 0, duration: 0.18, ease: "power3.out" }, 1.9 + i * 0.15);
+          tl.to("#tt-lock-" + i, { keyframes: [{ rotation: -18 }, { rotation: 14 }, { rotation: -8 }, { rotation: 0 }], duration: 0.35, ease: "none" }, 3.0 + i * 0.04);
+        });
+        tl.set("#tt-ready", { opacity: 1 }, 3.6);
+        tl.fromTo("#tt-p1", { opacity: 0 }, { opacity: 1, duration: 0.01 }, 3.6);
+        tl.fromTo("#tt-q", { opacity: 0, scale: 1.8 }, { opacity: 1, scale: 1, duration: 0.2, ease: "power4.in" }, 3.65);
+        tl.to("#tt-p1", { opacity: 0, duration: 0.01 }, 3.95);
+        tl.to("#tt-p1", { opacity: 1, duration: 0.01 }, 4.1);
+        tl.fromTo("#tt-flash", { opacity: 0 }, { opacity: 0.85, duration: 0.05 }, 4.38);
+        tl.to("#tt-flash", { opacity: 0, duration: 0.07 }, 4.43);
+        window.__timelines["g-title"] = tl;
+      </script>
+    </template>
+  </body>
+</html>

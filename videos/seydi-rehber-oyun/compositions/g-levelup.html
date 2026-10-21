@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="tr">
+  <head><meta charset="UTF-8" /></head>
+  <body>
+    <template>
+      <style>
+        @font-face { font-family: "PressStart"; src: url("assets/fonts/PressStart2P-Regular.ttf"); }
+        @font-face { font-family: "Poppins"; font-weight: 600; src: url("assets/fonts/Poppins_600SemiBold.ttf"); }
+        @font-face { font-family: "Poppins"; font-weight: 800; src: url("assets/fonts/Poppins_800ExtraBold.ttf"); }
+        @font-face { font-family: "Material Icons"; src: url("assets/fonts/MaterialIcons.ttf"); }
+        #root { position: absolute; inset: 0; overflow: hidden; color: #fff; font-family: "Poppins", sans-serif; }
+        #lv-bg { position: absolute; inset: 0; background: radial-gradient(70% 50% at 50% 45%, #1f5e2a 0%, #0a1a0e 70%); }
+        #lv-rays { position: absolute; left: -460px; top: -80px; width: 2000px; height: 2000px; opacity: 0.25;
+          background: repeating-conic-gradient(from 0deg, #4caf50 0deg 8deg, transparent 8deg 20deg); border-radius: 50%; }
+        #lv-scan { position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(0,0,0,0.2) 0px, rgba(0,0,0,0.2) 3px, rgba(0,0,0,0) 3px, rgba(0,0,0,0) 7px); }
+        #lv-title { position: absolute; left: 0; right: 0; top: 300px; text-align: center; font-family: "PressStart"; font-size: 104px; color: #4caf50; text-shadow: 8px 8px 0 #0a3d12, -4px -4px 0 #b9f6ca; }
+        #lv-count { position: absolute; left: 0; right: 0; top: 480px; display: flex; justify-content: center; align-items: center; gap: 30px; font-family: "PressStart"; font-size: 64px; color: #fff; }
+        #lv-count span { color: #9e9e9e; }
+        #lv-count b { font-weight: normal; color: #ffc107; text-shadow: 5px 5px 0 #7a4b00; }
+        #lv-badge { position: absolute; left: 300px; top: 690px; width: 480px; height: 480px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff3c4 0%, #ffc107 45%, #c77700 100%); border: 14px solid #fff; box-shadow: 0 0 0 14px #c77700, 0 0 120px rgba(255,193,7,0.8); display: flex; align-items: center; justify-content: center; }
+        #lv-badge i { font-style: normal; font-family: "Material Icons"; font-size: 300px; color: #7a4b00; }
+        #lv-text { position: absolute; left: 60px; right: 60px; top: 1260px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+        #lv-unlock { font-weight: 800; font-size: 46px; letter-spacing: 0.08em; color: #b9f6ca; }
+        #lv-name { margin-top: 24px; font-weight: 800; font-size: 104px; line-height: 1; color: #ffc107; text-shadow: 6px 6px 0 #5a3800; }
+        #lv-sub { margin-top: 30px; font-weight: 600; font-size: 54px; }
+        .lv-cf { position: absolute; width: 26px; height: 26px; }
+        #lv-flash { position: absolute; inset: 0; background: #fff; opacity: 0; }
+      </style>
+
+      <div data-hf-id="hf-c85q" id="root" data-composition-id="g-levelup" data-width="1080" data-height="1920">
+        <div data-hf-id="hf-bryx" id="lv-bg"></div>
+        <div data-hf-id="hf-liov" id="lv-rays"></div>
+        <div data-hf-id="hf-8cko" id="lv-confetti"></div>
+        <div data-hf-id="hf-jwkc" id="lv-title">LEVEL UP!</div>
+        <div data-hf-id="hf-kkk1" id="lv-count"><span data-hf-id="hf-3a20">LV 1</span>&gt;<b data-hf-id="hf-9tpu" id="lv-num">LV 1</b></div>
+        <div data-hf-id="hf-7pmh" id="lv-badge"><i data-hf-id="hf-xdfx">&#xea23;</i></div>
+        <div data-hf-id="hf-trv1" id="lv-text">
+          <div data-hf-id="hf-vwc6" id="lv-unlock">BAŞARIM AÇILDI</div>
+          <div data-hf-id="hf-slyu" id="lv-name">Seydişehir Uzmanı</div>
+          <div data-hf-id="hf-n70f" id="lv-sub">Şehri cebine sığdırdın.</div>
+        </div>
+        <div data-hf-id="hf-r50b" id="lv-scan"></div>
+        <div data-hf-id="hf-dh72" id="lv-flash"></div>
+      </div>
+
+      <script>
+        const COLORS = ["#ff4fa3", "#29e6ff", "#4caf50", "#ffc107", "#ffffff"];
+        const cf = document.getElementById("lv-confetti");
+        for (let i = 0; i < 36; i++) {
+          const x = 30 + ((i * 197) % 1020);
+          cf.insertAdjacentHTML("beforeend", '<div class="lv-cf" id="lv-cf-' + i + '" style="left:' + x + "px;top:-60px;background:" + COLORS[i % 5] + '"></div>');
+        }
+        const tl = gsap.timeline({ paused: true });
+        gsap.set("#lv-text > div, #lv-badge, #lv-count", { opacity: 0 });
+        tl.fromTo("#lv-flash", { opacity: 1 }, { opacity: 0, duration: 0.25 }, 0);
+        tl.fromTo("#lv-rays", { rotation: 0, scale: 0.6 }, { rotation: 120, scale: 1, duration: 5, ease: "power1.out" }, 0);
+        tl.fromTo("#lv-title", { opacity: 0, scale: 3 }, { opacity: 1, scale: 1, duration: 0.25, ease: "power4.in" }, 0.1);
+        tl.fromTo("#lv-title", { y: 0 }, { keyframes: [{ y: -30 }, { y: 0 }, { y: -15 }, { y: 0 }], duration: 0.6, ease: "power1.out" }, 0.35);
+        tl.to("#lv-count", { opacity: 1, duration: 0.15 }, 0.5);
+        const lv = { v: 1 };
+        const num = document.getElementById("lv-num");
+        // Zamanın fonksiyonu: 0,6–1,5 sn arası LV 1 → 99 (power2.in), sahne boyunca tek tween.
+        tl.fromTo(lv, { v: 0 }, { v: 5, duration: 5, ease: "none", onUpdate: () => {
+          const p = Math.min(Math.max((lv.v - 0.6) / 0.9, 0), 1);
+          num.textContent = "LV " + Math.round(1 + 98 * p * p);
+        } }, 0);
+        tl.fromTo("#lv-num", { scale: 1 }, { keyframes: [{ scale: 1.35 }, { scale: 1 }], duration: 0.3, ease: "power2.out" }, 1.5);
+        // Rozet
+        tl.set("#lv-badge", { opacity: 1 }, 1.3);
+        tl.fromTo("#lv-badge", { scale: 0, rotation: -180 }, { scale: 1, rotation: 0, duration: 0.45, ease: "back.out(1.8)" }, 1.3);
+        tl.fromTo("#lv-badge", { y: 0 }, { y: -16, duration: 1.6, ease: "sine.inOut", yoyo: true, repeat: 1 }, 1.8);
+        tl.fromTo("#lv-unlock", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.25, ease: "power3.out" }, 1.6);
+        tl.fromTo("#lv-name", { opacity: 0, scale: 1.8 }, { opacity: 1, scale: 1, duration: 0.22, ease: "power4.in" }, 1.85);
+        tl.fromTo("#lv-sub", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.3, ease: "power3.out" }, 2.3);
+        for (let i = 0; i < 36; i++) {
+          tl.fromTo("#lv-cf-" + i, { y: 0, rotation: 0 }, { y: 2100, rotation: 360 + (i % 4) * 90, duration: 2.6 + (i % 5) * 0.25, ease: "power1.in" }, 1.35 + (i % 9) * 0.07);
+        }
+        tl.to("#lv-badge, #lv-text, #lv-title, #lv-count", { opacity: 0, duration: 0.2 }, 4.8);
+        window.__timelines["g-levelup"] = tl;
+      </script>
+    </template>
+  </body>
+</html>

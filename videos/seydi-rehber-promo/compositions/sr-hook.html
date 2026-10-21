@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+  </head>
+  <body>
+    <template>
+      <style>
+        @font-face { font-family: "Poppins"; font-weight: 600; src: url("assets/fonts/Poppins_600SemiBold.ttf"); }
+        @font-face { font-family: "Poppins"; font-weight: 800; src: url("assets/fonts/Poppins_800ExtraBold.ttf"); }
+        #root { position: absolute; inset: 0; overflow: hidden; font-family: "Poppins", sans-serif; color: #fff; }
+        #hk-bg { position: absolute; inset: 0; background: radial-gradient(90% 60% at 50% 40%, #0f2416 0%, #050b07 70%); }
+        #hk-grid {
+          position: absolute; inset: 0; opacity: 0.18;
+          background-image: linear-gradient(rgba(76,175,80,0.35) 2px, transparent 2px), linear-gradient(90deg, rgba(76,175,80,0.35) 2px, transparent 2px);
+          background-size: 120px 120px;
+        }
+        /* Kronometre: sr-run ile aynı konum ve ölçü (handoff). */
+        #hk-timer {
+          position: absolute; left: 0; right: 0; top: 230px; height: 300px;
+          display: flex; justify-content: center; align-items: center;
+          font-weight: 800; font-size: 260px; letter-spacing: -0.02em; line-height: 1;
+          color: #4caf50; text-shadow: 0 0 60px rgba(76,175,80,0.55);
+          font-variant-numeric: tabular-nums;
+        }
+        #hk-bars { position: absolute; left: 150px; right: 150px; top: 560px; height: 22px; display: flex; gap: 12px; }
+        #hk-bars div { flex: 1; border-radius: 6px; background: rgba(255,255,255,0.12); }
+        #hk-stack { position: absolute; left: 108px; right: 108px; top: 760px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+        #hk-l1 { font-weight: 600; font-size: 64px; color: #b9d8bd; }
+        #hk-l2 { margin-top: 30px; font-weight: 800; font-size: 170px; line-height: 0.95; letter-spacing: -0.03em; }
+        #hk-l3 { margin-top: 10px; font-weight: 800; font-size: 132px; line-height: 1; letter-spacing: -0.03em; color: #4caf50; }
+        #hk-flash { position: absolute; inset: 0; background: #fff; opacity: 0; }
+      </style>
+
+      <div data-hf-id="hf-dbtm" id="root" data-composition-id="sr-hook" data-width="1080" data-height="1920">
+        <div data-hf-id="hf-9jmy" id="hk-bg"></div>
+        <div data-hf-id="hf-epx7" id="hk-grid"></div>
+        <div data-hf-id="hf-vvx5" id="hk-shake" style="position:absolute;inset:0">
+          <div data-hf-id="hf-yl58" id="hk-timer">00:00</div>
+          <div data-hf-id="hf-ylvd" id="hk-bars"><div data-hf-id="hf-yeow"></div><div data-hf-id="hf-y7yw"></div><div data-hf-id="hf-x11t"></div><div data-hf-id="hf-xfcu"></div><div data-hf-id="hf-w8fr"></div><div data-hf-id="hf-wmqs"></div><div data-hf-id="hf-vftp"></div><div data-hf-id="hf-vu4q"></div><div data-hf-id="hf-1043"></div><div data-hf-id="hf-1ef4"></div></div>
+          <div data-hf-id="hf-hb5p" id="hk-stack">
+            <div data-hf-id="hf-31bp" id="hk-l1">Seydişehir'de</div>
+            <div data-hf-id="hf-isn8" id="hk-l2">HER ŞEY</div>
+            <div data-hf-id="hf-p0pm" id="hk-l3">10 SANİYEDE.</div>
+          </div>
+        </div>
+        <div data-hf-id="hf-7lez" id="hk-flash"></div>
+      </div>
+
+      <script>
+        const tl = gsap.timeline({ paused: true });
+        gsap.set("#hk-shake", { x: 0, y: 0 });
+        // Kronometre iki kez yanıp söner
+        tl.fromTo("#hk-timer", { opacity: 0 }, { opacity: 1, duration: 0.05 }, 0);
+        tl.to("#hk-timer", { opacity: 0.15, duration: 0.05 }, 0.25);
+        tl.to("#hk-timer", { opacity: 1, duration: 0.05 }, 0.4);
+        tl.fromTo("#hk-bars", { opacity: 0, scaleX: 0.6 }, { opacity: 1, scaleX: 1, duration: 0.35, ease: "power3.out" }, 0.1);
+        tl.fromTo("#hk-grid", { backgroundPosition: "0px 0px" }, { backgroundPosition: "0px 240px", duration: 2.2, ease: "none" }, 0);
+
+        tl.fromTo("#hk-l1", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.3, ease: "power3.out" }, 0.35);
+        // Çarpma: büyükten iner
+        tl.fromTo("#hk-l2", { opacity: 0, scale: 2.4 }, { opacity: 1, scale: 1, duration: 0.22, ease: "power4.in" }, 0.75);
+        tl.fromTo("#hk-l3", { opacity: 0, scale: 2.4 }, { opacity: 1, scale: 1, duration: 0.22, ease: "power4.in" }, 1.22);
+        // Her çarpmada sarsıntı
+        [0.97, 1.44].forEach((t) => {
+          tl.to("#hk-shake", { keyframes: [{ x: -18, y: 10 }, { x: 14, y: -8 }, { x: -8, y: 4 }, { x: 0, y: 0 }], duration: 0.22, ease: "none" }, t);
+        });
+        tl.to("#hk-l3", { textShadow: "0 0 70px rgba(76,175,80,0.9)", duration: 0.3 }, 1.44);
+        // Yazılar dışarı, kronometre kalır (sr-run devralır)
+        tl.to("#hk-stack", { opacity: 0, y: -60, duration: 0.18, ease: "power2.in" }, 1.95);
+        tl.fromTo("#hk-flash", { opacity: 0 }, { opacity: 0.85, duration: 0.06 }, 2.08);
+        tl.to("#hk-flash", { opacity: 0, duration: 0.06 }, 2.14);
+        window.__timelines["sr-hook"] = tl;
+      </script>
+    </template>
+  </body>
+</html>

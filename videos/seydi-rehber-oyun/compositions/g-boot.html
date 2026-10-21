@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="tr">
+  <head><meta charset="UTF-8" /></head>
+  <body>
+    <template>
+      <style>
+        @font-face { font-family: "PressStart"; src: url("assets/fonts/PressStart2P-Regular.ttf"); }
+        #root { position: absolute; inset: 0; overflow: hidden; background: #000; color: #fff; }
+        #bt-screen { position: absolute; inset: 0; background: radial-gradient(80% 55% at 50% 50%, #1a1240 0%, #0a0820 60%, #000 100%); transform-origin: 50% 50%; }
+        #bt-grid {
+          position: absolute; inset: 0; opacity: 0.25;
+          background-image: linear-gradient(rgba(255,79,163,0.35) 3px, transparent 3px), linear-gradient(90deg, rgba(41,230,255,0.3) 3px, transparent 3px);
+          background-size: 90px 90px;
+        }
+        #bt-scan { position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(0,0,0,0.28) 0px, rgba(0,0,0,0.28) 3px, rgba(0,0,0,0) 3px, rgba(0,0,0,0) 7px); }
+        #bt-content { position: absolute; inset: 0; }
+        #bt-presents { position: absolute; left: 0; right: 0; top: 640px; text-align: center; font-family: "PressStart"; font-size: 40px; line-height: 1.6; color: #ff4fa3; text-shadow: 0 0 24px rgba(255,79,163,0.7); }
+        #bt-presents span { display: block; font-size: 26px; color: #9b8fd6; text-shadow: none; }
+        #bt-start { position: absolute; left: 0; right: 0; top: 1040px; text-align: center; font-family: "PressStart"; font-size: 64px; color: #fff; text-shadow: 6px 6px 0 #ff4fa3, -3px -3px 0 #29e6ff; }
+        #bt-hint { position: absolute; left: 0; right: 0; top: 1180px; text-align: center; font-family: "PressStart"; font-size: 24px; color: #6f66a8; }
+        #bt-flash { position: absolute; inset: 0; background: #fff; opacity: 0; }
+      </style>
+
+      <div data-hf-id="hf-e9e3" id="root" data-composition-id="g-boot" data-width="1080" data-height="1920">
+        <div data-hf-id="hf-ras0" id="bt-screen">
+          <div data-hf-id="hf-nrd8" id="bt-grid"></div>
+          <div data-hf-id="hf-f87n" id="bt-content">
+            <div data-hf-id="hf-qnzo" id="bt-presents">SEYDI REHBER<span data-hf-id="hf-wymx">presents</span></div>
+            <div data-hf-id="hf-ogh3" id="bt-start">PRESS START</div>
+            <div data-hf-id="hf-29dc" id="bt-hint">1 PLAYER &#183; INSERT COIN</div>
+          </div>
+          <div data-hf-id="hf-sd53" id="bt-scan"></div>
+        </div>
+        <div data-hf-id="hf-or3u" id="bt-flash"></div>
+      </div>
+
+      <script>
+        const tl = gsap.timeline({ paused: true });
+        gsap.set("#bt-content", { x: 0, y: 0 });
+        // TV açılışı: önce yatay çizgi, sonra dikey açılma
+        tl.fromTo("#bt-screen", { scaleX: 0, scaleY: 0.004 }, { scaleX: 1, scaleY: 0.004, duration: 0.18, ease: "power2.out" }, 0);
+        tl.to("#bt-screen", { scaleY: 1, duration: 0.22, ease: "power3.out" }, 0.18);
+        tl.fromTo("#bt-grid", { backgroundPosition: "0px 0px" }, { backgroundPosition: "0px 360px", duration: 4, ease: "none" }, 0);
+        tl.fromTo("#bt-presents", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.35, ease: "power3.out" }, 0.5);
+        // PRESS START üç kez yanıp söner
+        tl.fromTo("#bt-start", { opacity: 0 }, { opacity: 1, duration: 0.01 }, 1.2);
+        [1.5, 2.1, 2.7].forEach((t) => {
+          tl.to("#bt-start", { opacity: 0, duration: 0.01 }, t);
+          tl.to("#bt-start", { opacity: 1, duration: 0.01 }, t + 0.25);
+        });
+        tl.fromTo("#bt-hint", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 1.4);
+        // Basıldı
+        tl.to("#bt-start", { color: "#4caf50", scale: 1.18, duration: 0.08, ease: "power2.out" }, 3.2);
+        tl.to("#bt-start", { scale: 1, duration: 0.15, ease: "power2.out" }, 3.28);
+        tl.fromTo("#bt-flash", { opacity: 0 }, { opacity: 0.9, duration: 0.04 }, 3.24);
+        tl.to("#bt-flash", { opacity: 0, duration: 0.12 }, 3.28);
+        tl.to("#bt-content", { keyframes: [{ x: -16, y: 8 }, { x: 12, y: -6 }, { x: -6, y: 3 }, { x: 0, y: 0 }], duration: 0.22, ease: "none" }, 3.24);
+        // Ekrana dalış
+        tl.to("#bt-screen", { scale: 3.2, opacity: 0, duration: 0.45, ease: "power3.in" }, 3.55);
+        window.__timelines["g-boot"] = tl;
+      </script>
+    </template>
+  </body>
+</html>
