@@ -7,7 +7,7 @@ import type { ExpoConfig } from 'expo/config';
 // Mağazadaki canlı Flutter sürümü 1.0.10+32. Expo sürümü güncelleme olarak çıkacağı için
 // version ve build numaraları her zaman bundan büyük olmalı.
 const VERSION = '1.0.11';
-const BUILD_NUMBER = 33;
+const BUILD_NUMBER = 34;
 
 // Firebase dosyaları git'e girmez. EAS'te file env variable olarak verilir,
 // yerelde proje kökündeki kopyalar kullanılır.
